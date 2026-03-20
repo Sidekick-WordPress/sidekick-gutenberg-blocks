@@ -1,0 +1,43 @@
+@use "sass:color";
+
+// ---- ---- ---- ---- VARIABLES ---- ---- ---- ----
+
+// Greys
+$appMidGrey: #303036;
+$black: #000;
+$darkerGrey: color.scale($black, $lightness: 10%);  // ~#1a1a1a
+$darkGrey:   color.scale($black, $lightness: 25%);  // ~#404040
+$midGrey:    color.scale($black, $lightness: 50%);  // ~#808080
+$lightGrey:  color.scale($black, $lightness: 75%);  // ~#bfbfbf
+$lighterGrey:color.scale($black, $lightness: 90%);  // ~#e6e6e6
+$lightestGrey: #f0f0f0;
+$white: #fff;
+
+// "Brand" Colors
+$sitePrimary: #008dda;
+$sitePrimaryHighlight: #df4bdc;
+$sitePrimaryDark: #892686;
+$siteSecondary: #ffdb58;
+$siteAccent: #011936;
+$siteAccentLight: #465362;
+$siteAccentLighter: #f4fffd;
+
+// Utility Colors
+$appError: #b70a0a;
+$appWarning: #c78e00;
+$appOkay: #378c4a;
+
+// Common easing
+$sexyEase: cubic-bezier(.56,.15,.16,1);
+$snappyEase: cubic-bezier(1.000, 0.005, 0.290, 1.000);
+
+// Breakpoints
+$breakpointLargeMobile: 25em;      // 400px
+$breakpointSmallTablet: 36.5em;    // 584px
+$breakpointTablet: 47.5em;         // 760px
+$breakpointDesktop: 63em;          // 1008px
+$breakpointWide: 79.625em;         // 1274px
+$breakpointSuperWide: 115em;       // 1840px
+$breakpointFinal: 133.25em;        // 1920px
+
+$baseFont: 'Overpass', sans-serif;

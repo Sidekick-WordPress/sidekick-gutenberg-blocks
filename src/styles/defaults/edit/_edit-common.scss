@@ -1,0 +1,10 @@
+@use "../../defaults/namespace" as *;
+@use "../../defaults/functions" as *;
+@use "../../defaults/variables" as *;
+
+.#{$namespace}-custom-control {
+    margin: rem(32) 0 rem(48) 0 !important;
+    &:last-of-type {
+        margin: 0 !important;
+    }
+}

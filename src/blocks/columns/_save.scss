@@ -1,0 +1,25 @@
+@use "../../styles/defaults/namespace" as *;
+
+.wp-block-#{$namespace}-columns {
+    &.is-mobile-layout {
+        --current-gap: var(--gap-mobile) !important;
+        --current-pad: var(--pad-mobile) !important;
+        --current-max-width: var(--max-width-mobile) !important;
+
+        .wp-block-#{$namespace}-column {
+            --col-current-pad: var(--col-pad-mobile) !important;
+            order: var(--mobile-order) !important;
+        }
+
+        .#{$namespace}-columns-inner {
+            flex-direction: column !important; /* Forces stack */
+            gap: var(--gap-mobile) !important;
+
+            & > * {
+                flex: 1 1 100% !important; /* Overrides the inline flex math */
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+        }
+    }
+}

@@ -1,0 +1,33 @@
+@use "../defaults/namespace" as *;
+@use "../defaults/variables" as *;
+@use "../defaults/functions" as *;
+
+.#{$namespace}-versatile-message {
+    width: 100%;
+    margin-top: 0;
+    text-align: center;
+    font-size: rem(14);
+    font-weight: 500;
+    border-radius: rem(4);
+    padding: rem(10);
+    align-self: center;
+    &.#{$namespace}-error {
+        color: $appError;
+        background: rgba(217, 83, 79, 0.1);
+    }
+
+    &.#{$namespace}-success {
+        color: $appOkay;
+        background: rgba(31,157,1, 0.1);
+    }
+
+    &.#{$namespace}-warning {
+        color: $appWarning;
+        background: rgba(216,181,0, 0.13);
+    }
+
+    &.#{$namespace}-normal {
+        color: $darkerGrey;
+        background: rgba(50,50,50, 0.1);
+    }
+}

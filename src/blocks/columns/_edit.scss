@@ -1,0 +1,52 @@
+@use "../../styles/defaults/namespace" as *;
+@use "../../styles/defaults/functions" as *;
+
+.block-editor-block-list__block[data-type="#{$namespace}/column"] {
+    margin: 0 !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.wp-block-#{$namespace}-columns {
+    &.is-mobile-layout {
+        .block-editor-block-list__block[data-type="#{$namespace}/column"] {
+            order: var(--mobile-order, 0) !important;
+        }
+    }
+
+    &:hover,
+    &:focus,
+    &:active {
+        box-shadow: inset 0 0 0 rem(2) rgba(100, 100, 100, 0.15);
+    }
+}
+
+.wp-block-#{$namespace}-column {
+    box-sizing: border-box;
+    &:hover,
+    &:focus,
+    &:active {
+        box-shadow: inset 0 0 0 rem(2) rgba(100,100,100,0.15);
+    }
+}
+
+//.#{$namespace}-columns-inner {
+//    box-sizing: border-box;
+//    display: block !important;
+//    & > .block-editor-block-list__layout {
+//        display: flex;
+//        flex-wrap: wrap;
+//        justify-content: space-between;
+//        gap: var(--current-gap);
+//        height: 100%;
+//    }
+//}
+
+.block-editor-block-list__block[data-type="#{$namespace}/column"] > .wp-block-#{$namespace}-column {
+    flex-grow: 1;
+    height: 100%;
+    min-height: 0;
+}

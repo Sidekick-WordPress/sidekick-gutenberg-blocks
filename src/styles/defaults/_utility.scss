@@ -1,0 +1,45 @@
+.u-full_cover_absolute,
+.parallax-outer,
+.parallax-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    max-width: none !important;
+}
+
+.u-relative_hidden {
+    position: relative;
+    overflow: hidden;
+}
+
+.u-no_margins {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.u-no_margin-bottom {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.u-no_margin-top {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+.u-text_transform_uppercase {
+    text-transform: uppercase !important;
+}
+
+.u-text_align_center {
+    text-align: center;
+}
+
+.u-text_decoration_none {
+    text-decoration: none !important;
+    a {
+        text-decoration: none !important;
+    }
+}

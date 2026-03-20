@@ -1,0 +1,22 @@
+@use "sass:math";
+@use "sass:meta";
+
+// Converts px → rem. Accepts unitless (assumed px) or px. Passes through rem.
+// Optional $base allows non-16px root sizes.
+
+// CHANGE BACK TO REM IF USED IN NON-REM SCALING THEME
+@function rem($value, $base: 16px) {
+    @if math.unit($value) == "rem" { @return $value; }
+    @if math.unit($value) == "px"  { @return math.div($value, $base) * 1em; }
+    @if math.is-unitless($value)   { @return math.div($value * 1px, $base) * 1em; }
+
+    @error "rem(): expected unitless, px, or rem; got #{meta.inspect($value)}";
+}
+
+@function em($value, $base: 16px) {
+    @if math.unit($value) == "em" { @return $value; }
+    @if math.unit($value) == "px"  { @return math.div($value, $base) * 1em; }
+    @if math.is-unitless($value)   { @return math.div($value * 1px, $base) * 1em; }
+
+    @error "rem(): expected unitless, px, or em; got #{meta.inspect($value)}";
+}
