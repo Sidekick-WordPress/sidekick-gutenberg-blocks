@@ -1,3 +1,4 @@
+/* ... Keep your existing typography inherit rules at the top ... */
 .sgb-nav-menu a {
     font-family: inherit;
     font-size: inherit;
@@ -7,4 +8,79 @@
     line-height: inherit;
     text-decoration: inherit;
     text-transform: inherit;
+}
+
+/* Base button resets */
+.sgb-nav-menu__toggle,
+.sgb-nav-menu__close {
+    display: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    padding: 8px;
+}
+
+.sgb-nav-menu__overlay-header {
+    display: none;
+}
+
+/* =========================================
+   MOBILE MODE (.is-mobile-menu)
+   ========================================= */
+
+/* 1. Show the hamburger icon */
+.sgb-nav-menu.is-mobile-menu .sgb-nav-menu__toggle {
+    display: block;
+}
+
+/* 2. Transform the wrapper into a hidden fullscreen overlay */
+.sgb-nav-menu.is-mobile-menu .sgb-nav-menu__overlay {
+    position: fixed;
+    inset: 0; /* Cover the whole screen */
+    background-color: var(--wp--preset--color--base, #ffffff);
+    color: var(--wp--preset--color--contrast, #000000);
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+
+    /* Hidden by default */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* 3. Show the close button */
+.sgb-nav-menu.is-mobile-menu .sgb-nav-menu__overlay-header {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    margin-bottom: 2rem;
+}
+.sgb-nav-menu.is-mobile-menu .sgb-nav-menu__close {
+    display: block;
+}
+
+/* 4. Force the inner UL to stack neatly for touch */
+.sgb-nav-menu.is-mobile-menu .sgb-nav-menu__inner {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2rem !important;
+    flex-grow: 1; /* Pushes it to the center of the screen */
+}
+.sgb-nav-menu.is-mobile-menu .sgb-nav-menu__inner a {
+    font-size: 1.5rem; /* Larger touch targets */
+}
+
+/* =========================================
+   OPEN OVERLAY STATE (.is-open)
+   ========================================= */
+
+.sgb-nav-menu.is-mobile-menu.is-open .sgb-nav-menu__overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }

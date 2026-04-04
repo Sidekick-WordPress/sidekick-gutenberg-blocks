@@ -18,7 +18,6 @@ export default function Edit({
     const {
         ref,
         orientation = 'horizontal',
-        justifyContent = 'right',
         gap = 24,
         mobileGap = 12,
         desktopBreakpoint = 768,
@@ -26,7 +25,6 @@ export default function Edit({
 
     const blockProps = useBlockProps({ className });
 
-    // Fetch all available navigation menus (wp_navigation posts)
     const navigationMenus = useSelect((select: any) => {
         return select('core').getEntityRecords('postType', 'wp_navigation', {
             per_page: -1,
@@ -54,7 +52,6 @@ export default function Edit({
                             value={ref || 0}
                             options={menuOptions}
                             onChange={(value) => setAttributes({ ref: parseInt(value, 10) })}
-                            help={__('Select a menu managed in the FSE Navigation panel.', namespace)}
                         />
                     )}
                 </PanelBody>
@@ -68,18 +65,6 @@ export default function Edit({
                             {label: __('Vertical', namespace), value: 'vertical'},
                         ]}
                         onChange={(value) => setAttributes({orientation: value as NavMenuAttributes['orientation']})}
-                    />
-
-                    <SelectControl
-                        label={__('Justify Content', namespace)}
-                        value={justifyContent}
-                        options={[
-                            {label: __('Left', namespace), value: 'left'},
-                            {label: __('Center', namespace), value: 'center'},
-                            {label: __('Right', namespace), value: 'right'},
-                            {label: __('Space Between', namespace), value: 'space-between'},
-                        ]}
-                        onChange={(value) => setAttributes({justifyContent: value as NavMenuAttributes['justifyContent']})}
                     />
 
                     <RangeControl

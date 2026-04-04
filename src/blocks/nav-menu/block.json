@@ -13,10 +13,6 @@
             "type": "string",
             "default": "horizontal"
         },
-        "justifyContent": {
-            "type": "string",
-            "default": "right"
-        },
         "gap": {
             "type": "number",
             "default": 24
@@ -45,5 +41,6 @@
                 "fontFamily": true
             }
         }
-    }
+    },
+    "style": "file:./style.css"
 }
