@@ -1,0 +1,33 @@
+{
+    "apiVersion": 3,
+    "name": "sgb/nav-menu",
+    "title": "Sidekick Nav Menu",
+    "category": "design",
+    "icon": "menu",
+    "attributes": {
+        "orientation": {
+            "type": "string",
+            "default": "horizontal"
+        },
+        "justifyContent": {
+            "type": "string",
+            "default": "right"
+        },
+        "gap": {
+            "type": "number",
+            "default": 24
+        },
+        "mobileGap": {
+            "type": "number",
+            "default": 12
+        },
+        "desktopBreakpoint": {
+            "type": "number",
+            "default": 768
+        }
+    },
+    "providesContext": {
+        "sgb/desktopBreakpoint": "desktopBreakpoint",
+        "sgb/navOrientation": "orientation"
+    }
+}

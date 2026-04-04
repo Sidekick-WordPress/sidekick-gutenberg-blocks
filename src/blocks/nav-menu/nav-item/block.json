@@ -1,0 +1,46 @@
+{
+    "apiVersion": 3,
+    "name": "sgb/nav-item",
+    "title": "Sidekick Nav Item",
+    "category": "design",
+    "icon": "admin-links",
+    "parent": ["sgb/nav-menu"],
+    "attributes": {
+        "label": {
+            "type": "string",
+            "default": "Menu Item"
+        },
+        "url": {
+            "type": "string",
+            "default": ""
+        },
+        "opensInNewTab": {
+            "type": "boolean",
+            "default": false
+        },
+        "rel": {
+            "type": "string",
+            "default": ""
+        },
+        "icon": {
+            "type": "string",
+            "default": ""
+        },
+        "iconPosition": {
+            "type": "string",
+            "default": "left"
+        },
+        "showIcon": {
+            "type": "boolean",
+            "default": false
+        },
+        "styleVariant": {
+            "type": "string",
+            "default": "default"
+        }
+    },
+    "usesContext": [
+        "sgb/desktopBreakpoint",
+        "sgb/navOrientation"
+    ]
+}
