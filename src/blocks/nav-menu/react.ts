@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const navMenus = document.querySelectorAll('.sgb-nav-menu');
+    const navMenus = document.querySelectorAll('.sgb-nav-menu') as NodeListOf<HTMLElement>;
 
     navMenus.forEach((navWrapper) => {
         const navInner = navWrapper.querySelector('.sgb-nav-menu__inner') as HTMLElement;
@@ -33,6 +33,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (toggleBtn) toggleBtn.addEventListener('click', openMenu);
         if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+
+        // NEW: Grab all actual links inside the menu
+        const navLinks = navInner.querySelectorAll('a');
+
+        // NEW: Loop through them and add a click listener
+        navLinks.forEach((link) => {
+            link.addEventListener('click', () => {
+                // If the menu is currently open in mobile mode, close it instantly
+                if (navWrapper.classList.contains('is-open')) {
+                    closeMenu();
+                }
+            });
+        });
 
         // --- Collision Logic ---
 
@@ -83,10 +96,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 navWrapper.classList.add('is-mobile-menu');
             } else {
                 navWrapper.classList.remove('is-mobile-menu');
-                // Safety Catch: If it snaps back to desktop, ensure the menu is closed
+                // Safety Catch
                 if (navWrapper.classList.contains('is-open')) {
                     closeMenu();
                 }
+            }
+
+            // NEW: Reveal the menu now that the layout is locked in
+            if (!navWrapper.classList.contains('is-initialized')) {
+                // requestAnimationFrame ensures the browser applies the mobile/desktop
+                // classes to the DOM *before* turning the opacity back on.
+                requestAnimationFrame(() => {
+                    navWrapper.classList.add('is-initialized');
+                });
             }
         });
 
