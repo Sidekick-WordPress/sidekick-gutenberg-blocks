@@ -5,4 +5,5 @@
 @use 'components/versatile-message';
 
 // Block Front-end Stylesheets
-@use '../blocks/columns/save';
+@use '../blocks/columns/save'   as columns_save;
+@use '../blocks/nav-menu/save'  as nav-menu_save;

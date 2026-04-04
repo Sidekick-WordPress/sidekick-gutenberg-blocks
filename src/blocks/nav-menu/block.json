@@ -5,6 +5,10 @@
     "category": "design",
     "icon": "menu",
     "attributes": {
+        "ref": {
+            "type": "number",
+            "default": 0
+        },
         "orientation": {
             "type": "string",
             "default": "horizontal"
@@ -26,8 +30,20 @@
             "default": 768
         }
     },
-    "providesContext": {
-        "sgb/desktopBreakpoint": "desktopBreakpoint",
-        "sgb/navOrientation": "orientation"
+    "supports": {
+        "typography": {
+            "fontSize": true,
+            "lineHeight": true,
+            "__experimentalFontFamily": true,
+            "__experimentalFontWeight": true,
+            "__experimentalFontStyle": true,
+            "__experimentalTextTransform": true,
+            "__experimentalTextDecoration": true,
+            "__experimentalLetterSpacing": true,
+            "__experimentalDefaultControls": {
+                "fontSize": true,
+                "fontFamily": true
+            }
+        }
     }
 }

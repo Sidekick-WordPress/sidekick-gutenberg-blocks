@@ -1,22 +1,14 @@
 import { __ } from '@wordpress/i18n';
-import {
-    useBlockProps,
-    useInnerBlocksProps,
-    InspectorControls
-} from '@wordpress/block-editor';
-import {
-    PanelBody,
-    RangeControl,
-    SelectControl
-} from '@wordpress/components';
+import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
+import { PanelBody, RangeControl, SelectControl, Spinner } from '@wordpress/components';
+import { useSelect } from '@wordpress/data';
+import ServerSideRender from '@wordpress/server-side-render';
 import { BlockEditProps } from '@wordpress/blocks';
-import type { CSSProperties } from 'react';
 
 // Plugin
 import namespace from '../../namespace';
-
-// Block
 import { NavMenuAttributes } from './attributes';
+import metadata from './block.json';
 
 export default function Edit({
                                  attributes,
@@ -24,6 +16,7 @@ export default function Edit({
                                  className
                              }: BlockEditProps<NavMenuAttributes>) {
     const {
+        ref,
         orientation = 'horizontal',
         justifyContent = 'right',
         gap = 24,
@@ -31,76 +24,68 @@ export default function Edit({
         desktopBreakpoint = 768,
     } = attributes;
 
-    const justifyMap: Record<string, string> = {
-        left: 'flex-start',
-        center: 'center',
-        right: 'flex-end',
-        'space-between': 'space-between',
-    };
+    const blockProps = useBlockProps({ className });
 
-    const blockProps = useBlockProps({
-        className,
-        style: {
-            '--nav-gap-desktop': `${gap}px`,
-            '--nav-gap-mobile': `${mobileGap}px`,
-            '--nav-current-gap': 'var(--nav-gap-desktop)',
-        } as CSSProperties
-    });
+    // Fetch all available navigation menus (wp_navigation posts)
+    const navigationMenus = useSelect((select: any) => {
+        return select('core').getEntityRecords('postType', 'wp_navigation', {
+            per_page: -1,
+            status: 'publish',
+        });
+    }, []);
 
-    const innerBlocksProps = useInnerBlocksProps(
-        {
-            className: `${namespace}-nav-menu__inner`,
-            style: {
-                display: 'flex',
-                flexDirection: orientation === 'vertical' ? 'column' : 'row',
-                flexWrap: 'wrap',
-                alignItems: orientation === 'vertical' ? 'stretch' : 'center',
-                justifyContent: justifyMap[justifyContent] || 'flex-end',
-                gap: 'var(--nav-current-gap)',
-            } as CSSProperties,
-        },
-        {
-            allowedBlocks: [`${namespace}/nav-item`],
-            orientation: orientation === 'vertical' ? 'vertical' : 'horizontal',
-            template: [
-                [`${namespace}/nav-item`, { label: 'Home', url: '/' }],
-                [`${namespace}/nav-item`, { label: 'About', url: '/about/' }],
-                [`${namespace}/nav-item`, { label: 'Contact', url: '/contact/' }],
-            ],
-            templateLock: false,
-        }
-    );
+    const menuOptions = [
+        { label: __('Select a menu', namespace), value: 0 },
+        ...(navigationMenus?.map((menu: any) => ({
+            label: menu.title?.rendered || __('(Untitled)', namespace),
+            value: menu.id,
+        })) || [])
+    ];
 
     return (
-        <>
+        <div {...blockProps}>
             <InspectorControls>
+                <PanelBody title={__('Menu Selection', namespace)}>
+                    {!navigationMenus ? (
+                        <Spinner />
+                    ) : (
+                        <SelectControl
+                            label={__('Navigation Menu', namespace)}
+                            value={ref || 0}
+                            options={menuOptions}
+                            onChange={(value) => setAttributes({ ref: parseInt(value, 10) })}
+                            help={__('Select a menu managed in the FSE Navigation panel.', namespace)}
+                        />
+                    )}
+                </PanelBody>
+
                 <PanelBody title={__('Menu Settings', namespace)}>
                     <SelectControl
                         label={__('Orientation', namespace)}
                         value={orientation}
                         options={[
-                            { label: __('Horizontal', namespace), value: 'horizontal' },
-                            { label: __('Vertical', namespace), value: 'vertical' },
+                            {label: __('Horizontal', namespace), value: 'horizontal'},
+                            {label: __('Vertical', namespace), value: 'vertical'},
                         ]}
-                        onChange={(value) => setAttributes({ orientation: value as NavMenuAttributes['orientation'] })}
+                        onChange={(value) => setAttributes({orientation: value as NavMenuAttributes['orientation']})}
                     />
 
                     <SelectControl
                         label={__('Justify Content', namespace)}
                         value={justifyContent}
                         options={[
-                            { label: __('Left', namespace), value: 'left' },
-                            { label: __('Center', namespace), value: 'center' },
-                            { label: __('Right', namespace), value: 'right' },
-                            { label: __('Space Between', namespace), value: 'space-between' },
+                            {label: __('Left', namespace), value: 'left'},
+                            {label: __('Center', namespace), value: 'center'},
+                            {label: __('Right', namespace), value: 'right'},
+                            {label: __('Space Between', namespace), value: 'space-between'},
                         ]}
-                        onChange={(value) => setAttributes({ justifyContent: value as NavMenuAttributes['justifyContent'] })}
+                        onChange={(value) => setAttributes({justifyContent: value as NavMenuAttributes['justifyContent']})}
                     />
 
                     <RangeControl
                         label={__('Desktop Gap', namespace)}
                         value={gap}
-                        onChange={(value) => setAttributes({ gap: value ?? 24 })}
+                        onChange={(value) => setAttributes({gap: value ?? 24})}
                         min={0}
                         max={120}
                     />
@@ -108,7 +93,7 @@ export default function Edit({
                     <RangeControl
                         label={__('Mobile Gap', namespace)}
                         value={mobileGap}
-                        onChange={(value) => setAttributes({ mobileGap: value ?? 12 })}
+                        onChange={(value) => setAttributes({mobileGap: value ?? 12})}
                         min={0}
                         max={120}
                     />
@@ -116,16 +101,23 @@ export default function Edit({
                     <RangeControl
                         label={__('Desktop Breakpoint (px)', namespace)}
                         value={desktopBreakpoint}
-                        onChange={(value) => setAttributes({ desktopBreakpoint: value ?? 768 })}
+                        onChange={(value) => setAttributes({desktopBreakpoint: value ?? 768})}
                         min={320}
                         max={1600}
                     />
                 </PanelBody>
             </InspectorControls>
 
-            <nav {...blockProps} aria-label={__('Custom navigation menu', namespace)}>
-                <div {...innerBlocksProps} />
-            </nav>
-        </>
+            {ref ? (
+                <ServerSideRender
+                    block={metadata.name}
+                    attributes={attributes}
+                />
+            ) : (
+                <div style={{ padding: '24px', border: '2px dashed #ccc', textAlign: 'center', backgroundColor: '#f9f9f9' }}>
+                    {__('Please select a Navigation Menu from the block settings in the sidebar.', namespace)}
+                </div>
+            )}
+        </div>
     );
 }

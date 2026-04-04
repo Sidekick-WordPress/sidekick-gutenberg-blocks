@@ -1,4 +1,5 @@
 export interface NavMenuAttributes {
+    ref?: number; // Added to store the menu ID
     orientation?: 'horizontal' | 'vertical';
     justifyContent?: 'left' | 'center' | 'right' | 'space-between';
     gap?: number;
@@ -7,6 +8,10 @@ export interface NavMenuAttributes {
 }
 
 export const navMenuAttributes = {
+    ref: {
+        type: 'number',
+        default: 0,
+    },
     orientation: {
         type: 'string',
         default: 'horizontal',

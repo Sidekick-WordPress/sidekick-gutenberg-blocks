@@ -4,6 +4,7 @@ defined('ABSPATH') || exit;
 return function( $attributes, $content ) {
     $namespace = defined('SGB_NS') ? SGB_NS : 'sgb';
 
+    $ref         = isset( $attributes['ref'] ) ? (int) $attributes['ref'] : 0;
     $orientation = isset( $attributes['orientation'] ) ? $attributes['orientation'] : 'horizontal';
     $justify     = isset( $attributes['justifyContent'] ) ? $attributes['justifyContent'] : 'right';
     $gap         = isset( $attributes['gap'] ) ? (int) $attributes['gap'] : 24;
@@ -32,14 +33,26 @@ return function( $attributes, $content ) {
         'style' => $style,
     ]);
 
+    // Fetch and render the core navigation items
+    $nav_content = '';
+    if ( $ref ) {
+        $nav_post = get_post( $ref );
+        if ( $nav_post && $nav_post->post_type === 'wp_navigation' ) {
+            $blocks = parse_blocks( $nav_post->post_content );
+            foreach ( $blocks as $block ) {
+                $nav_content .= render_block( $block );
+            }
+        }
+    }
+
     ob_start();
     ?>
     <nav <?php echo $wrapper_attributes; ?> aria-label="<?php echo esc_attr__( 'Custom navigation menu', 'sidekick-gutenberg-blocks' ); ?>">
-        <div
+        <ul
             class="<?php echo esc_attr( "{$namespace}-nav-menu__inner" ); ?>"
             style="<?php echo esc_attr(
                 sprintf(
-                    'display:flex; flex-direction:%s; flex-wrap:wrap; align-items:%s; justify-content:%s; gap:var(--nav-current-gap);',
+                    'display:flex; flex-direction:%s; flex-wrap:wrap; align-items:%s; justify-content:%s; gap:var(--nav-current-gap); list-style:none; padding:0; margin:0;',
                     $flex_direction,
                     $align_items,
                     $justify_css
@@ -47,8 +60,8 @@ return function( $attributes, $content ) {
             ); ?>"
             data-desktop-breakpoint="<?php echo esc_attr( $breakpoint ); ?>"
         >
-            <?php echo $content; ?>
-        </div>
+            <?php echo $nav_content; ?>
+        </ul>
     </nav>
     <?php
     return ob_get_clean();
