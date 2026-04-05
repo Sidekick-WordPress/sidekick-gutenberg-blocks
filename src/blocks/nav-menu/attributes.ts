@@ -17,6 +17,8 @@ export interface NavMenuAttributes {
     subMenuBgColor?: string;
     subMenuPadding?: PaddingAttribute;
     subMenuWidth?: number;
+    overlayBgColor?: string;
+    overlayColor?: string;
 }
 
 export const navMenuAttributes = {
@@ -37,4 +39,6 @@ export const navMenuAttributes = {
         default: { top: '0.5rem', right: '1rem', bottom: '0.5rem', left: '1rem' }
     },
     subMenuWidth: { type: 'number', default: 240 },
+    overlayBgColor: { type: 'string', default: '' },
+    overlayColor: { type: 'string', default: '' },
 } as const;

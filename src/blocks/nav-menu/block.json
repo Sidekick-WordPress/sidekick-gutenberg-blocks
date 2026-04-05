@@ -48,6 +48,14 @@
         "subMenuWidth": {
             "type": "number",
             "default": 240
+        },
+        "overlayBgColor": {
+            "type": "string",
+            "default": ""
+        },
+        "overlayColor": {
+            "type": "string",
+            "default": ""
         }
     },
     "supports": {

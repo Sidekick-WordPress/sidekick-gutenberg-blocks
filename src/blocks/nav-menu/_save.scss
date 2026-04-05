@@ -95,21 +95,20 @@
         background: transparent;
         border: none;
         cursor: pointer;
-        color: inherit;
         padding: rem(8);
     }
 
     &__toggle {
+        color: var(--nav-parent-color);
         padding: var(--nav-parent-padding);
     }
 
-    // Strut to maintain toggle height matching parent nav items
-    &__toggle::before {
-        content: '\200b';
+    &__close {
+        color: inherit;
     }
 
-    &__overlay-header {
-        display: none;
+    &__toggle::before {
+        content: '\200b';
     }
 
     // =========================================
@@ -117,7 +116,7 @@
     // =========================================
     &.is-mobile-menu {
         .sgb-nav-menu__toggle {
-            display: inline-flex; // inline-flex for the strut/svg alignment
+            display: inline-flex;
             align-items: center;
             justify-content: center;
         }
@@ -125,8 +124,9 @@
         .sgb-nav-menu__overlay {
             position: fixed;
             inset: 0;
-            background-color: var(--wp--preset--color--base, #ffffff);
-            color: var(--wp--preset--color--contrast, #000000);
+            // Apply our new variables here!
+            background-color: var(--nav-overlay-bg);
+            color: var(--nav-overlay-color);
             z-index: 100000;
             display: flex;
             flex-direction: column;
@@ -144,6 +144,8 @@
 
         .sgb-nav-menu__close {
             display: block;
+            // Inherits the overlay color so the X icon matches the text perfectly
+            color: inherit;
         }
 
         .sgb-nav-menu__inner {
@@ -156,6 +158,23 @@
             a {
                 font-size: rem(24);
             }
+
+            // CRITICAL MOBILE COLOR OVERRIDES
+            & > .wp-block-navigation-item {
+                background-color: transparent; // Strip the desktop background boxes
+
+                & > .wp-block-navigation-item__content {
+                    color: var(--nav-overlay-color); // Override the desktop text color
+                }
+            }
+
+            // Ensure submenus also adopt the overlay color if expanded
+            .wp-block-navigation__submenu-container {
+                background-color: transparent;
+                .wp-block-navigation-item__content {
+                    color: var(--nav-overlay-color);
+                }
+            }
         }
 
         // Open Overlay State
@@ -166,7 +185,7 @@
             }
         }
 
-        // Optional: Re-add the transition here ONLY when initialized to prevent page-load flashes
+        // Initialize transition
         &.is-initialized .sgb-nav-menu__overlay {
             transition: opacity 0.3s ease;
         }

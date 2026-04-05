@@ -34,6 +34,8 @@ return function( $attributes, $content ) {
     $parent_color       = isset( $attributes['parentColor'] ) ? $attributes['parentColor'] : 'inherit';
     $sub_menu_color     = isset( $attributes['subMenuColor'] ) ? $attributes['subMenuColor'] : 'inherit';
     $sub_menu_bg_color  = isset( $attributes['subMenuBgColor'] ) ? $attributes['subMenuBgColor'] : 'transparent';
+    $overlay_bg    = ! empty( $attributes['overlayBgColor'] ) ? $attributes['overlayBgColor'] : 'var(--wp--preset--color--base, #ffffff)';
+    $overlay_color = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : 'var(--wp--preset--color--contrast, #000000)';
     $sub_menu_width       = isset( $attributes['subMenuWidth'] ) ? (int) $attributes['subMenuWidth'] : 240;
 
     $flex_direction = $orientation === 'vertical' ? 'column' : 'row';
@@ -47,18 +49,22 @@ return function( $attributes, $content ) {
         '--nav-parent-bg: %4$s; ' .
         '--nav-parent-color: %5$s; ' .
         '--nav-sub-color: %6$s; ' .
-        '--nav-sub-bg: %7$s; ' .  // Added variable
+        '--nav-sub-bg: %7$s; ' .
         '--nav-sub-padding: %8$s; ' .
-        '--nav-sub-width: %9$dpx;',
+        '--nav-sub-width: %9$dpx; ' .
+        '--nav-overlay-bg: %10$s; ' .
+        '--nav-overlay-color: %11$s;',
         $gap,
         $mobile_gap,
         esc_attr( $parent_padding ),
         esc_attr( $parent_bg_color ),
         esc_attr( $parent_color ),
         esc_attr( $sub_menu_color ),
-        esc_attr( $sub_menu_bg_color ), // Added to sprintf args
+        esc_attr( $sub_menu_bg_color ),
         esc_attr( $sub_menu_padding ),
-        $sub_menu_width
+        $sub_menu_width,
+        esc_attr( $overlay_bg ),
+        esc_attr( $overlay_color )
     );
 
     $wrapper_attributes = get_block_wrapper_attributes([

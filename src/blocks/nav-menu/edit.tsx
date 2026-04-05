@@ -34,6 +34,8 @@ export default function Edit(
         subMenuBgColor = 'transparent',
         subMenuPadding = {top: '0.5rem', right: '1rem', bottom: '0.5rem', left: '1rem'},
         subMenuWidth = 240,
+        overlayBgColor = '',
+        overlayColor = '',
     } = attributes;
 
     const blockProps = useBlockProps({className});
@@ -152,6 +154,16 @@ export default function Edit(
                             value: subMenuColor,
                             onChange: (colorValue) => setAttributes({ subMenuColor: colorValue || 'inherit' }),
                             label: __('Sub-Menu Text Color', namespace),
+                        },
+                        {
+                            value: overlayBgColor,
+                            onChange: (colorValue) => setAttributes({ overlayBgColor: colorValue || '' }),
+                            label: __('Overlay Background', namespace),
+                        },
+                        {
+                            value: overlayColor,
+                            onChange: (colorValue) => setAttributes({ overlayColor: colorValue || '' }),
+                            label: __('Overlay Text Color', namespace),
                         },
                     ]}
                 />
