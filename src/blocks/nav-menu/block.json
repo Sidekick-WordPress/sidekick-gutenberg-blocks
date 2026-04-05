@@ -21,9 +21,33 @@
             "type": "number",
             "default": 12
         },
-        "desktopBreakpoint": {
+        "parentPadding": {
+            "type": "object",
+            "default": { "top": "0.5rem", "right": "1rem", "bottom": "0.5rem", "left": "1rem" }
+        },
+        "parentBgColor": {
+            "type": "string",
+            "default": "transparent"
+        },
+        "parentColor": {
+            "type": "string",
+            "default": "inherit"
+        },
+        "subMenuColor": {
+            "type": "string",
+            "default": "inherit"
+        },
+        "subMenuBgColor": {
+            "type": "string",
+            "default": "transparent"
+        },
+        "subMenuPadding": {
+            "type": "object",
+            "default": { "top": "0.5rem", "right": "1rem", "bottom": "0.5rem", "left": "1rem" }
+        },
+        "subMenuWidth": {
             "type": "number",
-            "default": 768
+            "default": 240
         }
     },
     "supports": {

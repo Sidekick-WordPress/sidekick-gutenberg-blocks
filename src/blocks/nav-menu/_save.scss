@@ -2,116 +2,173 @@
 @use "../../styles/defaults/variables" as *;
 
 .sgb-nav-menu {
+    // 1. Initial State
     display: none;
-    .sgb-nav-menu__overlay {
+
+    &.is-initialized {
+        display: inherit;
+    }
+
+    // 2. Global Resets
+    a,
+    .wp-block-navigation-item__content {
+        font-family: inherit;
+        font-size: inherit;
+        font-style: inherit;
+        font-weight: inherit;
+        letter-spacing: inherit;
+        line-height: inherit;
+        text-decoration: inherit;
+        text-transform: inherit;
+    }
+
+    a {
+        display: block; // Ensures the hit area fills the container
+    }
+
+    // 3. Inner Container (Desktop Level 1)
+    &__inner {
+        & > .wp-block-navigation-item {
+            background-color: var(--nav-parent-bg);
+
+            & > .wp-block-navigation-item__content {
+                padding: var(--nav-parent-padding);
+                color: var(--nav-parent-color);
+            }
+        }
+    }
+
+    // 4. Sub-Menu Overrides
+    .wp-block-navigation__submenu-container {
+        width: var(--nav-sub-width);
+        background-color: var(--nav-sub-bg);
+        white-space: normal;
+        word-break: break-word;
+        box-sizing: border-box;
+
+        .wp-block-navigation-item__content {
+            padding: var(--nav-sub-padding);
+            color: var(--nav-sub-color);
+            width: 100%;
+            text-align: right;
+            box-sizing: border-box;
+            // Note: word-wrap is legacy, word-break handles this now, but kept for safety
+            word-wrap: break-word;
+        }
+    }
+
+    // 5. Overlay Container & Dropdown Animation Logic
+    &__overlay {
         ul,
         li {
             list-style: none;
         }
 
-        li {
-            &.has-child {
-                position: relative;
-                & > ul {
-                    position: absolute;
-                    top: calc(100% + #{rem(10)});
-                    right: 0;
-                    overflow: hidden;
-                    opacity: 0;
-                    transition: top .25s $sexyEase, opacity .25s $sexyEase;
-                }
+        li.has-child {
+            position: relative;
 
-                &:hover,
-                &:focus,
-                &:active {
-                    & > ul {
-                        top: 100%;
-                        opacity: 1;
-                        transition: top .25s $sexyEase, opacity .25s $sexyEase;
-                    }
+            & > ul {
+                position: absolute;
+                top: calc(100% + #{rem(10)});
+                right: 0;
+                overflow: hidden;
+                opacity: 0;
+                padding: 0;
+                transition: top .25s $sexyEase, opacity .25s $sexyEase;
+            }
+
+            &:hover,
+            &:focus,
+            &:active {
+                & > ul {
+                    top: 100%;
+                    opacity: 1;
                 }
             }
         }
     }
-}
 
-.sgb-nav-menu.is-initialized {
-    display: inherit;
-}
+    // 6. UI Buttons
+    &__toggle,
+    &__close {
+        display: none;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: inherit;
+        padding: rem(8);
+    }
 
-.sgb-nav-menu a {
-    font-family: inherit;
-    font-size: inherit;
-    font-style: inherit;
-    font-weight: inherit;
-    letter-spacing: inherit;
-    line-height: inherit;
-    text-decoration: inherit;
-    text-transform: inherit;
-}
+    &__toggle {
+        padding: var(--nav-parent-padding);
+    }
 
-.sgb-nav-menu__toggle,
-.sgb-nav-menu__close {
-    display: none;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: inherit;
-    padding: rem(8);
-}
+    // Strut to maintain toggle height matching parent nav items
+    &__toggle::before {
+        content: '\200b';
+    }
 
-.sgb-nav-menu__overlay-header {
-    display: none;
-}
+    &__overlay-header {
+        display: none;
+    }
 
-/* =========================================
-   MOBILE MODE (.is-mobile-menu)
-   ========================================= */
-.sgb-nav-menu.is-mobile-menu {
-    &.is-open {
-        .sgb-nav-menu__overlay {
-            opacity: 1;
-            pointer-events: auto;
+    // =========================================
+    // 7. MOBILE MODE (.is-mobile-menu)
+    // =========================================
+    &.is-mobile-menu {
+        .sgb-nav-menu__toggle {
+            display: inline-flex; // inline-flex for the strut/svg alignment
+            align-items: center;
+            justify-content: center;
         }
-    }
 
-    .sgb-nav-menu__toggle {
-        display: block;
-    }
+        .sgb-nav-menu__overlay {
+            position: fixed;
+            inset: 0;
+            background-color: var(--wp--preset--color--base, #ffffff);
+            color: var(--wp--preset--color--contrast, #000000);
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            padding: rem(24);
+            opacity: 0;
+            pointer-events: none;
+        }
 
-    .sgb-nav-menu__overlay {
-        position: fixed;
-        inset: 0;
-        background-color: var(--wp--preset--color--base, #ffffff);
-        color: var(--wp--preset--color--contrast, #000000);
-        z-index: 100000;
-        display: flex;
-        flex-direction: column;
-        padding: rem(24);
-        opacity: 0;
-        pointer-events: none;
-    }
+        .sgb-nav-menu__overlay-header {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            margin-bottom: rem(32);
+        }
 
-    .sgb-nav-menu__overlay-header {
-        display: flex;
-        justify-content: flex-end;
-        width: 100%;
-        margin-bottom: rem(32);
-    }
+        .sgb-nav-menu__close {
+            display: block;
+        }
 
-    .sgb-nav-menu__close {
-        display: block;
-    }
+        .sgb-nav-menu__inner {
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: rem(32) !important;
+            flex-grow: 1;
 
-    .sgb-nav-menu__inner {
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: rem(32) !important;
-        flex-grow: 1;
-    }
+            a {
+                font-size: rem(24);
+            }
+        }
 
-    .sgb-nav-menu__inner a {
-        font-size: rem(24);
+        // Open Overlay State
+        &.is-open {
+            .sgb-nav-menu__overlay {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
+
+        // Optional: Re-add the transition here ONLY when initialized to prevent page-load flashes
+        &.is-initialized .sgb-nav-menu__overlay {
+            transition: opacity 0.3s ease;
+        }
     }
 }
