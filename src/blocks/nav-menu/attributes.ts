@@ -18,6 +18,7 @@ export interface NavMenuAttributes {
     subMenuPadding?: PaddingAttribute;
     subMenuWidth?: number;
     subMenuTextAlign?: 'left' | 'center' | 'right';
+    nestedSubMenuDirection?: 'left' | 'right';
     showSubMenuArrows?: boolean;
     overlayBgColor?: string;
     overlayColor?: string;
@@ -42,6 +43,7 @@ export const navMenuAttributes = {
     },
     subMenuWidth: { type: 'number', default: 240 },
     subMenuTextAlign: { type: 'string', default: 'right' },
+    nestedSubMenuDirection: { type: 'string', default: 'right' },
     showSubMenuArrows: { type: 'boolean', default: true },
     overlayBgColor: { type: 'string', default: '' },
     overlayColor: { type: 'string', default: '' },

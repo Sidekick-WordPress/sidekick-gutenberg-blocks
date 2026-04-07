@@ -104,11 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (availableWidth < requiredDesktopWidth && requiredDesktopWidth > 0) {
                 navWrapper.classList.add('is-mobile-menu');
             } else {
-                navWrapper.classList.remove('is-mobile-menu');
-                // Safety Catch
                 if (navWrapper.classList.contains('is-open')) {
                     closeMenu();
                 }
+                navWrapper.classList.remove('is-mobile-menu');
             }
 
             // NEW: Reveal the menu now that the layout is locked in

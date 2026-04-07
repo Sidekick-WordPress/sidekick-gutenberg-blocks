@@ -53,6 +53,10 @@
             "type": "string",
             "default": "right"
         },
+        "nestedSubMenuDirection": {
+            "type": "string",
+            "default": "right"
+        },
         "showSubMenuArrows": {
             "type": "boolean",
             "default": true

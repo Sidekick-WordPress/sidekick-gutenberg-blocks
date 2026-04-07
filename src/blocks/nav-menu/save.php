@@ -39,6 +39,9 @@ return function( $attributes, $content ) {
     $overlay_color = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : 'var(--wp--preset--color--contrast, #000000)';
     $sub_menu_width       = isset( $attributes['subMenuWidth'] ) ? (int) $attributes['subMenuWidth'] : 240;
     $sub_menu_text_align = isset( $attributes['subMenuTextAlign'] ) ? $attributes['subMenuTextAlign'] : 'right';
+    $nested_sub_menu_direction = isset( $attributes['nestedSubMenuDirection'] )
+        ? $attributes['nestedSubMenuDirection']
+        : 'right';
     $show_sub_menu_arrows = isset( $attributes['showSubMenuArrows'] ) ? (bool) $attributes['showSubMenuArrows'] : true;
 
     $flex_direction = $orientation === 'vertical' ? 'column' : 'row';
@@ -77,7 +80,8 @@ return function( $attributes, $content ) {
             '--nav-sub-width: %10$dpx; ' .
             '--nav-sub-text-align: %11$s; ' .
             '--nav-overlay-bg: %12$s; ' .
-            '--nav-overlay-color: %13$s;',
+            '--nav-overlay-color: %13$s; ' .
+            '--nav-nested-sub-direction: %14$s;',
             $gap,
             $mobile_gap,
             esc_attr( $parent_padding ),
@@ -90,7 +94,8 @@ return function( $attributes, $content ) {
             $sub_menu_width,
             esc_attr( $sub_menu_text_align ),
             esc_attr( $overlay_bg ),
-            esc_attr( $overlay_color )
+            esc_attr( $overlay_color ),
+            esc_attr( $nested_sub_menu_direction )
         );
 
     $wrapper_classes = [
@@ -125,6 +130,24 @@ return function( $attributes, $content ) {
     $nav_content = preg_replace(
         '/<li([^>]*class=")([^"]*wp-block-navigation-item[^"]*)(\")([^>]*)>(?=.*?wp-block-navigation__submenu-container)/s',
         '<li$1$2 has-child$3$4>',
+        $nav_content
+    );
+
+    $submenu_side = $nested_sub_menu_direction === 'left' ? 'left' : 'right';
+
+    $nav_content = preg_replace_callback(
+        '/<li([^>]*)class="([^"]*has-child[^"]*)"([^>]*)>/s',
+        function( $matches ) use ( $submenu_side ) {
+            $before = $matches[1];
+            $classes = $matches[2];
+            $after = $matches[3];
+
+            if ( strpos( $before . $after, 'data-submenu-side=' ) !== false ) {
+                return $matches[0];
+            }
+
+            return '<li' . $before . 'class="' . $classes . '" data-submenu-side="' . esc_attr( $submenu_side ) . '"' . $after . '>';
+        },
         $nav_content
     );
 

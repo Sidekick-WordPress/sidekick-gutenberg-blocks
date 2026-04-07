@@ -2,16 +2,14 @@
 @use "../../styles/defaults/variables" as *;
 
 .sgb-nav-menu {
-    // 1. Initial State
-    display: none;
-
+    visibility: hidden;
     * {
         margin-block-start: 0 !important;
         margin-block-end: 0 !important;
     }
 
     &.is-initialized {
-        display: inherit;
+        visibility: visible;
     }
 
     // 2. Global Resets
@@ -169,13 +167,28 @@
                 > ul,
                 > .wp-block-navigation__submenu-container {
                     position: absolute;
-                    top: calc(100% + #{rem(10)});
+                    top: 100%;
                     right: 0;
-                    overflow: hidden;
+                    overflow: visible;
                     opacity: 0;
                     pointer-events: none;
                     padding: 0;
-                    transition: top .15s $sexyEase, opacity .15s $sexyEase;
+                    transform: translateY(#{rem(10)});
+                    transition:
+                        transform .15s $sexyEase,
+                        opacity .15s $sexyEase;
+                    z-index: 20;
+                }
+
+                // hover bridge so the submenu stays open while crossing into it
+                > .wp-block-navigation__submenu-container::before,
+                > ul::before {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    top: #{rem(-10)};
+                    height: #{rem(10)};
                 }
 
                 &:hover,
@@ -183,9 +196,45 @@
                 &:active {
                     > ul,
                     > .wp-block-navigation__submenu-container {
-                        top: 100%;
                         opacity: 1;
-                        pointer-events: all;
+                        pointer-events: auto;
+                        transform: translateY(0);
+                    }
+                }
+
+                // nested submenus
+                .wp-block-navigation__submenu-container li:has(> .wp-block-navigation__submenu-container) {
+                    position: relative;
+
+                    > ul,
+                    > .wp-block-navigation__submenu-container {
+                        top: 0;
+                        transform: none;
+                        opacity: 0;
+                        pointer-events: none;
+                        z-index: 30;
+                    }
+
+                    &[data-submenu-side="right"] > ul,
+                    &[data-submenu-side="right"] > .wp-block-navigation__submenu-container {
+                        left: 100%;
+                        right: auto;
+                    }
+
+                    &[data-submenu-side="left"] > ul,
+                    &[data-submenu-side="left"] > .wp-block-navigation__submenu-container {
+                        right: 100%;
+                        left: auto;
+                    }
+
+                    &:hover,
+                    &:focus-within,
+                    &:active {
+                        > ul,
+                        > .wp-block-navigation__submenu-container {
+                            opacity: 1;
+                            pointer-events: auto;
+                        }
                     }
                 }
             }
@@ -200,9 +249,6 @@
         word-break: break-word;
         box-sizing: border-box;
         pointer-events: none;
-
-
-
         li {
             width: 100%;
         }
@@ -253,6 +299,24 @@
 
     // 10. MOBILE MODE
     &.is-mobile-menu {
+        &.sgb-nav-menu--show-submenu-arrows {
+            li:has(> .wp-block-navigation__submenu-container) {
+                > a,
+                > .wp-block-navigation-item__content,
+                > button,
+                > .wp-block-navigation-submenu__toggle {
+                    padding-right: var(--nav-parent-padding);
+                }
+
+                > a::after,
+                > .wp-block-navigation-item__content::after,
+                > button::after,
+                > .wp-block-navigation-submenu__toggle::after {
+                    content: none;
+                }
+            }
+        }
+
         .sgb-nav-menu__toggle {
             display: inline-flex;
             align-items: center;
@@ -269,9 +333,12 @@
             flex-direction: column;
             padding: rem(24);
             opacity: 0;
+            visibility: hidden;
             pointer-events: none;
+
             li {
                 width: 100%;
+
                 a {
                     text-align: left;
                 }
@@ -318,15 +385,15 @@
                 position: static !important;
                 top: auto !important;
                 right: auto !important;
+                left: auto !important;
                 opacity: 1 !important;
                 pointer-events: auto !important;
                 overflow: visible !important;
                 width: 100%;
                 padding-top: 0;
                 background-color: transparent;
-
-                // keep hierarchy cue in mobile too
                 padding-left: var(--nav-parent-padding-left, 1rem) !important;
+
                 & > li {
                     box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-overlay-color) 18%, transparent);
                 }
@@ -346,11 +413,13 @@
                     position: static !important;
                     top: auto !important;
                     right: auto !important;
+                    left: auto !important;
                     opacity: 1 !important;
                     pointer-events: auto !important;
                     overflow: visible !important;
                     width: 100%;
                     padding-top: 0;
+                    transform: none !important;
                 }
             }
         }
@@ -358,12 +427,21 @@
         &.is-open {
             .sgb-nav-menu__overlay {
                 opacity: 1;
+                visibility: visible;
                 pointer-events: auto;
             }
         }
 
         &.is-initialized .sgb-nav-menu__overlay {
-            transition: opacity 0.3s ease;
+            transition:
+                opacity 0.3s ease,
+                visibility 0s linear 0.3s;
+        }
+
+        &.is-initialized.is-open .sgb-nav-menu__overlay {
+            transition:
+                opacity 0.3s ease,
+                visibility 0s linear 0s;
         }
     }
 }

@@ -36,6 +36,7 @@ export default function Edit(
         subMenuPadding = {top: '0.5rem', right: '1rem', bottom: '0.5rem', left: '1rem'},
         subMenuWidth = 240,
         subMenuTextAlign = 'right',
+        nestedSubMenuDirection = 'right',
         showSubMenuArrows = true,
         overlayBgColor = '',
         overlayColor = '',
@@ -103,6 +104,19 @@ export default function Edit(
                         label={__('Show Sub-Menu Arrows', namespace)}
                         checked={showSubMenuArrows}
                         onChange={(value) => setAttributes({ showSubMenuArrows: value })}
+                    />
+                    <SelectControl
+                        label={__('Nested Sub-Menu Direction', namespace)}
+                        value={nestedSubMenuDirection}
+                        options={[
+                            { label: __('Open Right', namespace), value: 'right' },
+                            { label: __('Open Left', namespace), value: 'left' },
+                        ]}
+                        onChange={(value) =>
+                            setAttributes({
+                                nestedSubMenuDirection: value as NavMenuAttributes['nestedSubMenuDirection'],
+                            })
+                        }
                     />
                 </PanelBody>
             </InspectorControls>
