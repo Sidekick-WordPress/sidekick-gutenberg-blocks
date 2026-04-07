@@ -27,11 +27,30 @@
     }
 
     // 3. Inner Container (Desktop Level 1)
-    &__inner {
-        & > .wp-block-navigation-item {
-            background-color: var(--nav-parent-bg);
+    &__inner,
+    &__inner > ul {
+        display: flex;
+        flex-wrap: wrap;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        gap: var(--nav-current-gap, rem(24));
+        &[data-orientation="horizontal"],
+        &[data-orientation="horizontal"] > ul {
+            flex-direction: row;
+            align-items: center;
+        }
 
-            & > .wp-block-navigation-item__content {
+        &[data-orientation="vertical"],
+        &[data-orientation="vertical"] > ul {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        & > li,
+        & > ul > li {
+            background-color: var(--nav-parent-bg);
+            & > a {
                 padding: var(--nav-parent-padding);
                 color: var(--nav-parent-color);
             }
@@ -46,7 +65,7 @@
         word-break: break-word;
         box-sizing: border-box;
 
-        .wp-block-navigation-item__content {
+        a {
             padding: var(--nav-sub-padding);
             color: var(--nav-sub-color);
             width: 100%;
@@ -160,10 +179,10 @@
             }
 
             // CRITICAL MOBILE COLOR OVERRIDES
-            & > .wp-block-navigation-item {
+            & > li {
                 background-color: transparent; // Strip the desktop background boxes
 
-                & > .wp-block-navigation-item__content {
+                & > a {
                     color: var(--nav-overlay-color); // Override the desktop text color
                 }
             }
@@ -171,7 +190,7 @@
             // Ensure submenus also adopt the overlay color if expanded
             .wp-block-navigation__submenu-container {
                 background-color: transparent;
-                .wp-block-navigation-item__content {
+                a {
                     color: var(--nav-overlay-color);
                 }
             }
