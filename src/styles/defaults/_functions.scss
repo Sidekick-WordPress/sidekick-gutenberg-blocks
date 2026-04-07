@@ -7,8 +7,8 @@
 // CHANGE BACK TO REM IF USED IN NON-REM SCALING THEME
 @function rem($value, $base: 16px) {
     @if math.unit($value) == "rem" { @return $value; }
-    @if math.unit($value) == "px"  { @return math.div($value, $base) * 1em; }
-    @if math.is-unitless($value)   { @return math.div($value * 1px, $base) * 1em; }
+    @if math.unit($value) == "px"  { @return math.div($value, $base) * 1rem; }
+    @if math.is-unitless($value)   { @return math.div($value * 1px, $base) * 1rem; }
 
     @error "rem(): expected unitless, px, or rem; got #{meta.inspect($value)}";
 }

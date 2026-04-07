@@ -5,6 +5,7 @@ import {
     RangeControl,
     SelectControl,
     Spinner,
+    ToggleControl,
     __experimentalBoxControl as BoxControl
 } from '@wordpress/components';
 import {useSelect} from '@wordpress/data';
@@ -34,6 +35,8 @@ export default function Edit(
         subMenuBgColor = 'transparent',
         subMenuPadding = {top: '0.5rem', right: '1rem', bottom: '0.5rem', left: '1rem'},
         subMenuWidth = 240,
+        subMenuTextAlign = 'right',
+        showSubMenuArrows = true,
         overlayBgColor = '',
         overlayColor = '',
     } = attributes;
@@ -96,6 +99,11 @@ export default function Edit(
                         onChange={(value) => setAttributes({mobileGap: value ?? 12})}
                         min={0} max={120}
                     />
+                    <ToggleControl
+                        label={__('Show Sub-Menu Arrows', namespace)}
+                        checked={showSubMenuArrows}
+                        onChange={(value) => setAttributes({ showSubMenuArrows: value })}
+                    />
                 </PanelBody>
             </InspectorControls>
 
@@ -131,6 +139,20 @@ export default function Edit(
                         value={subMenuWidth}
                         onChange={(value) => setAttributes({subMenuWidth: value ?? 240})}
                         min={100} max={600}
+                    />
+                    <SelectControl
+                        label={__('Sub-Menu Text Align', namespace)}
+                        value={subMenuTextAlign}
+                        options={[
+                            { label: __('Left', namespace), value: 'left' },
+                            { label: __('Center', namespace), value: 'center' },
+                            { label: __('Right', namespace), value: 'right' },
+                        ]}
+                        onChange={(value) =>
+                            setAttributes({
+                                subMenuTextAlign: value as NavMenuAttributes['subMenuTextAlign'],
+                            })
+                        }
                     />
                 </PanelBody>
 

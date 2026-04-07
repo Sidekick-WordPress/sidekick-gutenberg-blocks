@@ -16,7 +16,8 @@
 
     // 2. Global Resets
     a,
-    .wp-block-navigation-item__content {
+    .wp-block-navigation-item__content,
+    .wp-block-navigation-submenu__toggle {
         font-family: inherit;
         font-size: inherit;
         font-style: inherit;
@@ -28,10 +29,69 @@
     }
 
     a {
-        display: block; // Ensures the hit area fills the container
+        display: block;
     }
 
-    // 3. Inner Container (Desktop Level 1)
+    .wp-block-navigation__submenu-container {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    // 3. Arrow Support (horizontal/default)
+    &--show-submenu-arrows {
+        li:has(> .wp-block-navigation__submenu-container) {
+            > a,
+            > .wp-block-navigation-item__content,
+            > button,
+            > .wp-block-navigation-submenu__toggle {
+                position: relative;
+                padding-right: calc(#{rem(18)} + 0.75em);
+            }
+
+            > a::after,
+            > .wp-block-navigation-item__content::after,
+            > button::after,
+            > .wp-block-navigation-submenu__toggle::after {
+                content: "▾";
+                position: absolute;
+                right: rem(8);
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 0.8em;
+                line-height: 1;
+            }
+        }
+    }
+
+    // 4. Hide arrows in vertical mode
+    &[data-orientation="vertical"] {
+        &.sgb-nav-menu--show-submenu-arrows {
+            li:has(> .wp-block-navigation__submenu-container) {
+                > a,
+                > .wp-block-navigation-item__content,
+                > button,
+                > .wp-block-navigation-submenu__toggle {
+                    padding-right: var(--nav-parent-padding);
+                }
+
+                > a::after,
+                > .wp-block-navigation-item__content::after,
+                > button::after,
+                > .wp-block-navigation-submenu__toggle::after {
+                    content: none;
+                }
+            }
+        }
+        .wp-block-navigation__submenu-container {
+            // hierarchy cue
+            padding-left: var(--nav-parent-padding-left, 1rem) !important;
+            li {
+                box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-sub-color) 18%, transparent);
+            }
+        }
+    }
+
+    // 5. Inner Container
     &__inner,
     &__inner > ul {
         display: flex;
@@ -40,6 +100,7 @@
         padding: 0;
         margin: 0;
         gap: var(--nav-current-gap, rem(24));
+
         &[data-orientation="horizontal"],
         &[data-orientation="horizontal"] > ul {
             flex-direction: row;
@@ -50,19 +111,88 @@
         &[data-orientation="vertical"] > ul {
             flex-direction: column;
             align-items: stretch;
+
+            .wp-block-navigation__submenu-container {
+                display: block !important;
+                position: static !important;
+                top: auto !important;
+                right: auto !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                overflow: visible !important;
+                padding-top: 0;
+                width: 100%;
+            }
+
+            li:has(> .wp-block-navigation__submenu-container) {
+                > ul,
+                > .wp-block-navigation__submenu-container {
+                    display: block !important;
+                    position: static !important;
+                    top: auto !important;
+                    right: auto !important;
+                    opacity: 1 !important;
+                    pointer-events: auto !important;
+                    overflow: visible !important;
+                    padding-top: 0;
+                    width: 100%;
+                }
+            }
         }
 
-        & > li,
-        & > ul > li {
+        li {
+            display: block;
+        }
+
+        > li,
+        > ul > li {
             background-color: var(--nav-parent-bg);
-            & > a {
+
+            > a,
+            > .wp-block-navigation-item__content,
+            > button,
+            > .wp-block-navigation-submenu__toggle {
                 padding: var(--nav-parent-padding);
                 color: var(--nav-parent-color);
+                box-sizing: border-box;
             }
         }
     }
 
-    // 4. Sub-Menu Overrides
+    // 6. Horizontal Desktop Dropdown Behavior Only
+    &[data-orientation="horizontal"]:not(.is-mobile-menu) {
+        .sgb-nav-menu__inner,
+        .sgb-nav-menu__inner > ul {
+            li:has(> .wp-block-navigation__submenu-container) {
+                position: relative;
+
+                > ul,
+                > .wp-block-navigation__submenu-container {
+                    position: absolute;
+                    top: calc(100% + #{rem(10)});
+                    right: 0;
+                    overflow: hidden;
+                    opacity: 0;
+                    pointer-events: none;
+                    padding: 0;
+                    transition: top .15s $sexyEase, opacity .15s $sexyEase;
+                }
+
+                &:hover,
+                &:focus-within,
+                &:active {
+                    > ul,
+                    > .wp-block-navigation__submenu-container {
+                        top: 100%;
+                        opacity: 1;
+                        pointer-events: all;
+                    }
+                }
+            }
+        }
+    }
+
+    // 7. Sub-Menu Overrides
     .wp-block-navigation__submenu-container {
         width: var(--nav-sub-width);
         background-color: var(--nav-sub-bg);
@@ -70,54 +200,35 @@
         word-break: break-word;
         box-sizing: border-box;
         pointer-events: none;
+
+
+
         li {
             width: 100%;
         }
 
-        a {
+        a,
+        .wp-block-navigation-item__content,
+        button,
+        .wp-block-navigation-submenu__toggle {
             padding: var(--nav-sub-padding);
             color: var(--nav-sub-color);
             width: 100%;
-            text-align: right;
+            text-align: var(--nav-sub-text-align, right);
             box-sizing: border-box;
-            // Note: word-wrap is legacy, word-break handles this now, but kept for safety
             word-wrap: break-word;
         }
     }
 
-    // 5. Overlay Container & Dropdown Animation Logic
+    // 8. Overlay Container
     &__overlay {
         ul,
         li {
             list-style: none;
         }
-
-        li.has-child {
-            position: relative;
-
-            & > ul {
-                position: absolute;
-                top: calc(100% + #{rem(10)});
-                right: 0;
-                overflow: hidden;
-                opacity: 0;
-                padding: 0;
-                transition: top .15s $sexyEase, opacity .15s $sexyEase;
-            }
-
-            &:hover,
-            &:focus,
-            &:active {
-                & > ul {
-                    top: 100%;
-                    opacity: 1;
-                    pointer-events: all;
-                }
-            }
-        }
     }
 
-    // 6. UI Buttons
+    // 9. UI Buttons
     &__toggle,
     &__close {
         display: none;
@@ -140,9 +251,7 @@
         content: '\200b';
     }
 
-    // =========================================
-    // 7. MOBILE MODE (.is-mobile-menu)
-    // =========================================
+    // 10. MOBILE MODE
     &.is-mobile-menu {
         .sgb-nav-menu__toggle {
             display: inline-flex;
@@ -153,7 +262,6 @@
         .sgb-nav-menu__overlay {
             position: fixed;
             inset: 0;
-            // Apply our new variables here!
             background-color: var(--nav-overlay-bg);
             color: var(--nav-overlay-color);
             z-index: 100000;
@@ -162,6 +270,12 @@
             padding: rem(24);
             opacity: 0;
             pointer-events: none;
+            li {
+                width: 100%;
+                a {
+                    text-align: left;
+                }
+            }
         }
 
         .sgb-nav-menu__overlay-header {
@@ -173,7 +287,6 @@
 
         .sgb-nav-menu__close {
             display: block;
-            // Inherits the overlay color so the X icon matches the text perfectly
             color: inherit;
         }
 
@@ -181,32 +294,67 @@
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
-            gap: rem(32) !important;
             flex-grow: 1;
 
-            a {
+            a,
+            .wp-block-navigation-item__content,
+            .wp-block-navigation-submenu__toggle {
                 font-size: rem(24);
             }
 
-            // CRITICAL MOBILE COLOR OVERRIDES
-            & > li {
-                background-color: transparent; // Strip the desktop background boxes
+            > li {
+                background-color: transparent;
 
-                & > a {
-                    color: var(--nav-overlay-color); // Override the desktop text color
+                > a,
+                > .wp-block-navigation-item__content,
+                > button,
+                > .wp-block-navigation-submenu__toggle {
+                    color: var(--nav-overlay-color);
                 }
             }
 
-            // Ensure submenus also adopt the overlay color if expanded
             .wp-block-navigation__submenu-container {
+                display: block !important;
+                position: static !important;
+                top: auto !important;
+                right: auto !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                overflow: visible !important;
+                width: 100%;
+                padding-top: 0;
                 background-color: transparent;
-                a {
+
+                // keep hierarchy cue in mobile too
+                padding-left: var(--nav-parent-padding-left, 1rem) !important;
+                & > li {
+                    box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-overlay-color) 18%, transparent);
+                }
+
+                a,
+                .wp-block-navigation-item__content,
+                button,
+                .wp-block-navigation-submenu__toggle {
                     color: var(--nav-overlay-color);
+                }
+            }
+
+            li:has(> .wp-block-navigation__submenu-container) {
+                > ul,
+                > .wp-block-navigation__submenu-container {
+                    display: block !important;
+                    position: static !important;
+                    top: auto !important;
+                    right: auto !important;
+                    opacity: 1 !important;
+                    pointer-events: auto !important;
+                    overflow: visible !important;
+                    width: 100%;
+                    padding-top: 0;
                 }
             }
         }
 
-        // Open Overlay State
         &.is-open {
             .sgb-nav-menu__overlay {
                 opacity: 1;
@@ -214,7 +362,6 @@
             }
         }
 
-        // Initialize transition
         &.is-initialized .sgb-nav-menu__overlay {
             transition: opacity 0.3s ease;
         }

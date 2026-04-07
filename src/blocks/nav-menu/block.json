@@ -49,6 +49,14 @@
             "type": "number",
             "default": 240
         },
+        "subMenuTextAlign": {
+            "type": "string",
+            "default": "right"
+        },
+        "showSubMenuArrows": {
+            "type": "boolean",
+            "default": true
+        },
         "overlayBgColor": {
             "type": "string",
             "default": ""

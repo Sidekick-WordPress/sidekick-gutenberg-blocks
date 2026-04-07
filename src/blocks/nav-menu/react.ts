@@ -2,14 +2,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const navMenus = document.querySelectorAll('.sgb-nav-menu') as NodeListOf<HTMLElement>;
 
     navMenus.forEach((navWrapper) => {
+        const orientation = navWrapper.getAttribute('data-orientation');
+
+        if (orientation === 'vertical') {
+            navWrapper.classList.remove('is-mobile-menu', 'is-open');
+            navWrapper.classList.add('is-initialized');
+            return;
+        }
+
         const navInner = navWrapper.querySelector('.sgb-nav-menu__inner') as HTMLElement;
         const toggleBtn = navWrapper.querySelector('.sgb-nav-menu__toggle');
         const closeBtn = navWrapper.querySelector('.sgb-nav-menu__close');
 
         if (!navInner) return;
-
-        const orientation = navInner.getAttribute('data-orientation');
-        if (orientation === 'vertical') return;
 
         const parent = navWrapper.parentElement;
         if (!parent) return;

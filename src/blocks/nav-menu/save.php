@@ -28,6 +28,7 @@ return function( $attributes, $content ) {
     $sub_padding_arr    = isset( $attributes['subMenuPadding'] ) ? $attributes['subMenuPadding'] : null;
 
     $parent_padding     = sgb_format_padding_attribute( $parent_padding_arr, '0.5rem 1rem' );
+    $parent_padding_left = ! empty( $parent_padding_arr['left'] ) ? $parent_padding_arr['left'] : '1rem';
     $sub_menu_padding   = sgb_format_padding_attribute( $sub_padding_arr, '0.5rem 1rem' );
 
     $parent_bg_color    = isset( $attributes['parentBgColor'] ) ? $attributes['parentBgColor'] : 'transparent';
@@ -37,6 +38,8 @@ return function( $attributes, $content ) {
     $overlay_bg    = ! empty( $attributes['overlayBgColor'] ) ? $attributes['overlayBgColor'] : 'var(--wp--preset--color--base, #ffffff)';
     $overlay_color = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : 'var(--wp--preset--color--contrast, #000000)';
     $sub_menu_width       = isset( $attributes['subMenuWidth'] ) ? (int) $attributes['subMenuWidth'] : 240;
+    $sub_menu_text_align = isset( $attributes['subMenuTextAlign'] ) ? $attributes['subMenuTextAlign'] : 'right';
+    $show_sub_menu_arrows = isset( $attributes['showSubMenuArrows'] ) ? (bool) $attributes['showSubMenuArrows'] : true;
 
     $flex_direction = $orientation === 'vertical' ? 'column' : 'row';
     $align_items    = $orientation === 'vertical' ? 'stretch' : 'center';
@@ -65,33 +68,49 @@ return function( $attributes, $content ) {
             '--nav-gap-mobile: %2$dpx; ' .
             '--nav-current-gap: var(--nav-gap-desktop); ' .
             '--nav-parent-padding: %3$s; ' .
-            '--nav-parent-bg: %4$s; ' .
-            '--nav-parent-color: %5$s; ' .
-            '--nav-sub-color: %6$s; ' .
-            '--nav-sub-bg: %7$s; ' .
-            '--nav-sub-padding: %8$s; ' .
-            '--nav-sub-width: %9$dpx; ' .
-            '--nav-overlay-bg: %10$s; ' .
-            '--nav-overlay-color: %11$s;',
+            '--nav-parent-padding-left: %4$s; ' .
+            '--nav-parent-bg: %5$s; ' .
+            '--nav-parent-color: %6$s; ' .
+            '--nav-sub-color: %7$s; ' .
+            '--nav-sub-bg: %8$s; ' .
+            '--nav-sub-padding: %9$s; ' .
+            '--nav-sub-width: %10$dpx; ' .
+            '--nav-sub-text-align: %11$s; ' .
+            '--nav-overlay-bg: %12$s; ' .
+            '--nav-overlay-color: %13$s;',
             $gap,
             $mobile_gap,
             esc_attr( $parent_padding ),
+            esc_attr( $parent_padding_left ),
             esc_attr( $parent_bg_color ),
             esc_attr( $parent_color ),
             esc_attr( $sub_menu_color ),
             esc_attr( $sub_menu_bg_color ),
             esc_attr( $sub_menu_padding ),
             $sub_menu_width,
+            esc_attr( $sub_menu_text_align ),
             esc_attr( $overlay_bg ),
             esc_attr( $overlay_color )
         );
 
+    $wrapper_classes = [
+        "{$namespace}-nav-menu",
+        "{$namespace}-nav-menu--{$orientation}",
+    ];
+
+    if ( $show_sub_menu_arrows ) {
+        $wrapper_classes[] = "{$namespace}-nav-menu--show-submenu-arrows";
+    } else {
+        $wrapper_classes[] = "{$namespace}-nav-menu--hide-submenu-arrows";
+    }
+
     $wrapper_attributes = get_block_wrapper_attributes([
-        'class' => "{$namespace}-nav-menu",
+        'class' => implode( ' ', $wrapper_classes ),
         'style' => $style,
     ]);
 
     $nav_content = '';
+
     if ( $ref ) {
         $nav_post = get_post( $ref );
         if ( $nav_post && $nav_post->post_type === 'wp_navigation' ) {
@@ -102,10 +121,20 @@ return function( $attributes, $content ) {
         }
     }
 
+    // Add has-child to items that contain a submenu container but don't already have it.
+    $nav_content = preg_replace(
+        '/<li([^>]*class=")([^"]*wp-block-navigation-item[^"]*)(\")([^>]*)>(?=.*?wp-block-navigation__submenu-container)/s',
+        '<li$1$2 has-child$3$4>',
+        $nav_content
+    );
+
     ob_start();
     ?>
-    <nav <?php echo $wrapper_attributes; ?> aria-label="<?php echo esc_attr__( 'Custom navigation menu', 'sidekick-gutenberg-blocks' ); ?>">
-
+    <nav
+        <?php echo $wrapper_attributes; ?>
+        data-orientation="<?php echo esc_attr( $orientation ); ?>"
+        aria-label="<?php echo esc_attr__( 'Custom navigation menu', 'sidekick-gutenberg-blocks' ); ?>"
+    >
         <noscript>
             <style>
                 .<?php echo esc_attr( $namespace ); ?>-nav-menu {
