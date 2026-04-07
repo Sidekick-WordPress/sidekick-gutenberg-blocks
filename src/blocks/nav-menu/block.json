@@ -1,0 +1,78 @@
+{
+    "apiVersion": 3,
+    "name": "sgb/nav-menu",
+    "title": "Sidekick Nav Menu",
+    "category": "design",
+    "icon": "menu",
+    "attributes": {
+        "ref": {
+            "type": "number",
+            "default": 0
+        },
+        "orientation": {
+            "type": "string",
+            "default": "horizontal"
+        },
+        "gap": {
+            "type": "number",
+            "default": 24
+        },
+        "mobileGap": {
+            "type": "number",
+            "default": 12
+        },
+        "parentPadding": {
+            "type": "object",
+            "default": { "top": "0.5rem", "right": "1rem", "bottom": "0.5rem", "left": "1rem" }
+        },
+        "parentBgColor": {
+            "type": "string",
+            "default": "transparent"
+        },
+        "parentColor": {
+            "type": "string",
+            "default": "inherit"
+        },
+        "subMenuColor": {
+            "type": "string",
+            "default": "inherit"
+        },
+        "subMenuBgColor": {
+            "type": "string",
+            "default": "transparent"
+        },
+        "subMenuPadding": {
+            "type": "object",
+            "default": { "top": "0.5rem", "right": "1rem", "bottom": "0.5rem", "left": "1rem" }
+        },
+        "subMenuWidth": {
+            "type": "number",
+            "default": 240
+        },
+        "overlayBgColor": {
+            "type": "string",
+            "default": ""
+        },
+        "overlayColor": {
+            "type": "string",
+            "default": ""
+        }
+    },
+    "supports": {
+        "typography": {
+            "fontSize": true,
+            "lineHeight": true,
+            "__experimentalFontFamily": true,
+            "__experimentalFontWeight": true,
+            "__experimentalFontStyle": true,
+            "__experimentalTextTransform": true,
+            "__experimentalTextDecoration": true,
+            "__experimentalLetterSpacing": true,
+            "__experimentalDefaultControls": {
+                "fontSize": true,
+                "fontFamily": true
+            }
+        }
+    },
+    "style": "file:./style.css"
+}

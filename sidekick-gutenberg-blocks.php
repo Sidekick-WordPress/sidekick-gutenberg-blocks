@@ -24,3 +24,6 @@ if (!defined('SGB_NS')) {
 include __DIR__ . '/php/enqueue-assets.php';
 include __DIR__ . '/php/helpers.php';
 include __DIR__ . '/php/register-blocks.php';
+
+// Patterns
+include __DIR__ . '/php/patterns/header-premium.php';

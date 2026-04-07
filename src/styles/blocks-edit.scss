@@ -4,4 +4,5 @@
 @use 'defaults/edit/edit-common';
 
 // Block Editor Stylesheets
-@use '../blocks/columns/edit';
+@use '../blocks/columns/edit' as columns_edit;
+@use '../blocks/nav-menu/edit' as nav-menu_edit;
