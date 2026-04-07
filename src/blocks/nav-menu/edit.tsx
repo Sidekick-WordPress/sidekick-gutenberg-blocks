@@ -38,7 +38,9 @@ export default function Edit(
         overlayColor = '',
     } = attributes;
 
-    const blockProps = useBlockProps({className});
+    const blockProps = useBlockProps({
+        className: `${className ?? ''} ${namespace}-nav-menu`.trim(),
+    });
 
     const navigationMenus = useSelect((select: any) => {
         return select('core').getEntityRecords('postType', 'wp_navigation', {

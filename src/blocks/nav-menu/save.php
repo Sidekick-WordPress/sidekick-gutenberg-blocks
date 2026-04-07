@@ -41,31 +41,50 @@ return function( $attributes, $content ) {
     $flex_direction = $orientation === 'vertical' ? 'column' : 'row';
     $align_items    = $orientation === 'vertical' ? 'stretch' : 'center';
 
-    $style = sprintf(
-        '--nav-gap-desktop: %1$dpx; ' .
-        '--nav-gap-mobile: %2$dpx; ' .
-        '--nav-current-gap: var(--nav-gap-desktop); ' .
-        '--nav-parent-padding: %3$s; ' .
-        '--nav-parent-bg: %4$s; ' .
-        '--nav-parent-color: %5$s; ' .
-        '--nav-sub-color: %6$s; ' .
-        '--nav-sub-bg: %7$s; ' .
-        '--nav-sub-padding: %8$s; ' .
-        '--nav-sub-width: %9$dpx; ' .
-        '--nav-overlay-bg: %10$s; ' .
-        '--nav-overlay-color: %11$s;',
-        $gap,
-        $mobile_gap,
-        esc_attr( $parent_padding ),
-        esc_attr( $parent_bg_color ),
-        esc_attr( $parent_color ),
-        esc_attr( $sub_menu_color ),
-        esc_attr( $sub_menu_bg_color ),
-        esc_attr( $sub_menu_padding ),
-        $sub_menu_width,
-        esc_attr( $overlay_bg ),
-        esc_attr( $overlay_color )
-    );
+    $layout_inline_style = '';
+
+    if (
+        ! empty( $attributes['style'] ) &&
+        is_array( $attributes['style'] ) &&
+        ! empty( $attributes['style']['layout'] ) &&
+        is_array( $attributes['style']['layout'] )
+    ) {
+        $layout = $attributes['style']['layout'];
+
+        if ( isset( $layout['selfStretch'] ) && $layout['selfStretch'] === 'fill' ) {
+            $layout_inline_style .= 'flex-grow:1;';
+        }
+
+        if ( ! empty( $layout['flexSize'] ) ) {
+            $layout_inline_style .= 'flex-basis:' . esc_attr( $layout['flexSize'] ) . ';';
+        }
+    }
+
+    $style = $layout_inline_style . sprintf(
+            '--nav-gap-desktop: %1$dpx; ' .
+            '--nav-gap-mobile: %2$dpx; ' .
+            '--nav-current-gap: var(--nav-gap-desktop); ' .
+            '--nav-parent-padding: %3$s; ' .
+            '--nav-parent-bg: %4$s; ' .
+            '--nav-parent-color: %5$s; ' .
+            '--nav-sub-color: %6$s; ' .
+            '--nav-sub-bg: %7$s; ' .
+            '--nav-sub-padding: %8$s; ' .
+            '--nav-sub-width: %9$dpx; ' .
+            '--nav-overlay-bg: %10$s; ' .
+            '--nav-overlay-color: %11$s;',
+            $gap,
+            $mobile_gap,
+            esc_attr( $parent_padding ),
+            esc_attr( $parent_bg_color ),
+            esc_attr( $parent_color ),
+            esc_attr( $sub_menu_color ),
+            esc_attr( $sub_menu_bg_color ),
+            esc_attr( $sub_menu_padding ),
+            $sub_menu_width,
+            esc_attr( $overlay_bg ),
+            esc_attr( $overlay_color )
+        );
 
     $wrapper_attributes = get_block_wrapper_attributes([
         'class' => "{$namespace}-nav-menu",
@@ -85,16 +104,17 @@ return function( $attributes, $content ) {
 
     ob_start();
     ?>
-    <noscript>
-        <style>
-            .<?php echo esc_attr( $namespace ); ?>-nav-menu {
-                opacity: 1 !important;
-                visibility: visible !important;
-            }
-        </style>
-    </noscript>
-
     <nav <?php echo $wrapper_attributes; ?> aria-label="<?php echo esc_attr__( 'Custom navigation menu', 'sidekick-gutenberg-blocks' ); ?>">
+
+        <noscript>
+            <style>
+                .<?php echo esc_attr( $namespace ); ?>-nav-menu {
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                }
+            </style>
+        </noscript>
+
         <button class="<?php echo esc_attr( "{$namespace}-nav-menu__toggle" ); ?>" aria-expanded="false" aria-label="<?php echo esc_attr__( 'Open menu', 'sidekick-gutenberg-blocks' ); ?>">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>

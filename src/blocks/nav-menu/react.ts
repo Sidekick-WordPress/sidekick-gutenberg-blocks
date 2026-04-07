@@ -51,12 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const getOuterWidth = (el: Element): number => {
             const style = window.getComputedStyle(el);
+
             if (style.display === 'none' || style.position === 'absolute' || style.position === 'fixed') {
                 return 0;
             }
+
             const ml = parseFloat(style.marginLeft) || 0;
             const mr = parseFloat(style.marginRight) || 0;
-            return el.scrollWidth + ml + mr;
+            const rect = (el as HTMLElement).getBoundingClientRect();
+
+            return rect.width + ml + mr;
         };
 
         const calculateRequiredWidth = () => {
@@ -78,8 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const totalGapWidth = gap * visibleSiblings;
 
             if (window.getComputedStyle(navInner).display !== 'none') {
-                const navOuterWidth = getOuterWidth(navWrapper);
-                return totalSiblingWidth + navOuterWidth + totalGapWidth + BUFFER;
+                const navDesktopWidth = getOuterWidth(navInner);
+                return totalSiblingWidth + navDesktopWidth + totalGapWidth + BUFFER;
             }
 
             return requiredDesktopWidth;

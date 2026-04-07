@@ -59,6 +59,7 @@
         }
     },
     "supports": {
+        "layout": true,
         "typography": {
             "fontSize": true,
             "lineHeight": true,
