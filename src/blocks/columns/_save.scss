@@ -1,8 +1,6 @@
 @use "../../styles/defaults/namespace" as *;
 
 .wp-block-#{$namespace}-columns {
-    word-wrap: break-word;
-    box-sizing: border-box;
     &.is-mobile-layout {
         --current-gap: var(--gap-mobile) !important;
         --current-pad: var(--pad-mobile) !important;
@@ -11,8 +9,6 @@
         .wp-block-#{$namespace}-column {
             --col-current-pad: var(--col-pad-mobile) !important;
             order: var(--mobile-order) !important;
-            word-wrap: break-word;
-            box-sizing: border-box;
         }
 
         .#{$namespace}-columns-inner {

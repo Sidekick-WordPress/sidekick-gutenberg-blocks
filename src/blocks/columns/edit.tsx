@@ -3,10 +3,12 @@ import {useBlockProps, useInnerBlocksProps, InspectorControls} from '@wordpress/
 import {useMemo, useState, useEffect} from '@wordpress/element';
 import {
     PanelBody,
-    RangeControl,
+    Button,
+    ButtonGroup,
     __experimentalBoxControl as BoxControl,
     ColorPalette,
-    SelectControl
+    SelectControl,
+    RangeControl
 } from '@wordpress/components';
 import {useSelect, useDispatch} from '@wordpress/data';
 import {createBlock, BlockEditProps} from '@wordpress/blocks';
@@ -23,9 +25,24 @@ import ControlsMedia from "../../components/edit-controls/ControlsMedia";
 import {CoreColumnsAttributes} from './attributes';
 import ColumnsExtraLogic from "./components/ColumnsExtraLogic";
 
+const COLUMN_PRESETS = [
+    {label: __('Auto', namespace), width: 0},
+    {label: '1/6', width: 16.666667},
+    {label: '1/5', width: 20},
+    {label: '1/4', width: 25},
+    {label: '1/3', width: 33.333333},
+    {label: '2/5', width: 40},
+    {label: '1/2', width: 50},
+    {label: '3/5', width: 60},
+    {label: '2/3', width: 66.666667},
+    {label: '3/4', width: 75},
+    {label: '4/5', width: 80},
+    {label: '5/6', width: 83.333333},
+    {label: '1/1', width: 100},
+];
+
 export default function Edit({attributes, setAttributes, clientId, className}: BlockEditProps<CoreColumnsAttributes>) {
-    const
-        {
+    const {
             columns,
             gap,
             padding,
@@ -46,12 +63,12 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             mobileMaxHeight
         } = attributes,
         {replaceInnerBlocks} = useDispatch('core/block-editor'),
-        {getBlocks, themeColors, innerBlocks} = useSelect((select) => {
+        {getBlocks, themeColors, innerBlocks} = useSelect((select: any) => {
             const settings = select('core/block-editor').getSettings();
             return {
                 getBlocks: select('core/block-editor').getBlocks,
                 themeColors: settings.colors || [],
-                innerBlocks: select('core/block-editor').getBlocks(clientId), // <--- Grab innerBlocks
+                innerBlocks: select('core/block-editor').getBlocks(clientId),
             };
         }, [clientId]),
         [blockElement, setBlockElement] = useState<HTMLElement | null>(null),
@@ -71,43 +88,22 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
         cssMaxHeightDesktop = hasDesktopMaxHeight ? `${desktopMaxHeight}px` : 'var(--max-height-mobile)',
         innerMarginLeft = horizontalAlignment === 'left' ? '0' : 'auto',
         innerMarginRight = horizontalAlignment === 'right' ? '0' : 'auto',
-        updateColumns = (newCount: number) => {
+
+        addColumn = (width: number) => {
             const currentBlocks = getBlocks(clientId);
-            const currentCount = currentBlocks.length;
-
-            if (newCount > currentCount) {
-                const toAdd = newCount - currentCount;
-
-                // 1. Calculate how much width is explicitly claimed by other blocks
-                const explicitWidth = currentBlocks.reduce((sum, block) => {
-                    return sum + (Number(block.attributes.width) || 0);
-                }, 0);
-
-                // 2. Count how many blocks are currently sharing the auto-space
-                const autoBlocksCount = currentBlocks.filter(b => !b.attributes.width).length;
-
-                // 3. Figure out how much space is left
-                const freeSpace = Math.max(0, 100 - explicitWidth);
-
-                let newBlockWidth = 0;
-                if (freeSpace > 0) {
-                    // Divide the free space fairly among any existing auto blocks PLUS the new blocks
-                    newBlockWidth = Math.floor(freeSpace / (autoBlocksCount + toAdd));
-                }
-
-                const newBlocks = Array.from({length: toAdd}, () =>
-                    createBlock(`${namespace}/column` as string, { width: newBlockWidth })
-                );
-
-                replaceInnerBlocks(clientId, [...currentBlocks, ...newBlocks]);
-            } else if (newCount < currentCount) {
-                const newBlockList = currentBlocks.slice(0, newCount);
-                replaceInnerBlocks(clientId, newBlockList);
-            }
-
-            // Still update the attribute for safety
-            setAttributes({columns: newCount});
+            const newBlock = createBlock(`${namespace}/column`, {width});
+            replaceInnerBlocks(clientId, [...currentBlocks, newBlock], false);
+            setAttributes({columns: currentBlocks.length + 1});
         },
+
+        removeLastColumn = () => {
+            const currentBlocks = getBlocks(clientId);
+            if (currentBlocks.length <= 1) return;
+
+            replaceInnerBlocks(clientId, currentBlocks.slice(0, -1), false);
+            setAttributes({columns: currentBlocks.length - 1});
+        },
+
         blockProps = useBlockProps({
             ref: setBlockElement,
             className,
@@ -121,7 +117,6 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                 '--max-height-desktop': cssMaxHeightDesktop,
                 '--max-height-mobile': cssMaxHeightMobile,
 
-                // ExtraLogic will swap these based on breakpoint
                 '--current-max-width': 'var(--max-width-desktop)',
                 '--current-max-height': 'var(--max-height-desktop)',
                 '--current-pad': 'var(--pad-desktop)',
@@ -129,7 +124,6 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
 
                 padding: 'var(--current-pad)',
                 position: 'relative',
-                // maxHeight: 'var(--current-max-height)',
                 backgroundColor: backgroundColor || 'transparent',
             } as CSSProperties
         }),
@@ -145,25 +139,27 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                 style: {
                     display: 'flex',
                     flexWrap: 'wrap',
-                    justifyContent: 'space-between',
+                    justifyContent: 'flex-start',
+                    alignItems: 'stretch',
                     gap: 'var(--current-gap)',
                     position: 'relative',
                     zIndex: 1,
                     maxWidth: 'var(--current-max-width)',
                     marginLeft: innerMarginLeft,
-                    marginRight: innerMarginRight
+                    marginRight: innerMarginRight,
+                    boxSizing: 'border-box',
                 } as CSSProperties
             },
             {
                 allowedBlocks: [`${namespace}/column`],
                 orientation: 'horizontal',
-                template: template,
+                template,
             }
         );
 
     useEffect(() => {
-        if (innerBlocks && innerBlocks.length > 0 && innerBlocks.length !== columns) {
-            setAttributes({ columns: innerBlocks.length });
+        if (innerBlocks && innerBlocks.length !== columns) {
+            setAttributes({columns: innerBlocks.length});
         }
     }, [innerBlocks, columns, setAttributes]);
 
@@ -171,18 +167,51 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
         <>
             <InspectorControls>
                 <PanelBody title={__('Global Settings', namespace)}>
-                    <RangeControl
-                        label={__('Number of Columns', namespace)}
-                        value={columns}
-                        onChange={updateColumns}
-                        min={1} max={8}
-                    />
+                    <div style={{marginBottom: '16px'}}>
+                        <div style={{marginBottom: '8px', fontWeight: 500}}>
+                            {__('Add Column Presets', namespace)}
+                        </div>
+
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '8px'}}>
+                            {COLUMN_PRESETS.map((preset) => (
+                                <Button
+                                    key={`${preset.label}-${preset.width}`}
+                                    variant="secondary"
+                                    onClick={() => addColumn(preset.width)}
+                                >
+                                    {preset.label}
+                                </Button>
+                            ))}
+                        </div>
+
+                        <div style={{marginTop: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                            <Button
+                                variant="tertiary"
+                                onClick={() => addColumn(0)}
+                            >
+                                {__('Add Auto Column', namespace)}
+                            </Button>
+
+                            <Button
+                                variant="tertiary"
+                                onClick={removeLastColumn}
+                                disabled={(innerBlocks?.length || 0) <= 1}
+                            >
+                                {__('Remove Last Column', namespace)}
+                            </Button>
+                        </div>
+
+                        <p style={{marginTop: '10px', marginBottom: 0, fontSize: '12px', opacity: 0.75}}>
+                            {__('Preset buttons add a new column with that width. Columns can wrap to a new line if their combined widths exceed 100%.', namespace)}
+                        </p>
+                    </div>
 
                     <RangeControl
                         label={__('Desktop Breakpoint (px)', namespace)}
                         value={desktopBreakpoint}
                         onChange={(v) => setAttributes({desktopBreakpoint: v})}
-                        min={300} max={1200}
+                        min={300}
+                        max={1200}
                     />
 
                     <SelectControl
@@ -230,7 +259,8 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         className={`${namespace}-custom-control`}
                         value={mobileGap}
                         onChange={(v) => setAttributes({mobileGap: v !== undefined ? v : 0})}
-                        min={0} max={1200}
+                        min={0}
+                        max={1200}
                         allowReset={true}
                     />
 
@@ -253,33 +283,27 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         className={`${namespace}-custom-control`}
                         value={mobileMaxWidth}
                         onChange={(v) => setAttributes({mobileMaxWidth: v})}
-                        min={0} max={2000}
+                        min={0}
+                        max={2000}
                         allowReset={true}
                         help={__('Set to 0 for full width', namespace)}
                     />
-
-                    {/*<RangeControl*/}
-                    {/*    label={__('Max Height (px)', namespace)}*/}
-                    {/*    className={`${namespace}-custom-control`}*/}
-                    {/*    value={mobileMaxHeight}*/}
-                    {/*    onChange={(v) => setAttributes({ mobileMaxHeight: v !== undefined ? v : 0 })}*/}
-                    {/*    min={0} max={2000}*/}
-                    {/*    allowReset={true}*/}
-                    {/*    help={__('Set to 0 for auto height', namespace)}*/}
-                    {/*/>*/}
                 </PanelBody>
 
                 <PanelBody title={__('Desktop Layout (Overrides)', namespace)} initialOpen={false}>
                     <VersatileMessage
                         msg={`Optional overrides for screens WIDER than ${desktopBreakpoint}px. If left blank, base layout values are used.`}
-                        type="warning" textAlign="center"/>
+                        type="warning"
+                        textAlign="center"
+                    />
 
                     <RangeControl
                         label={__('Space Between Columns (px)', namespace)}
                         className={`${namespace}-custom-control`}
                         value={gap}
                         onChange={(v) => setAttributes({gap: v})}
-                        min={0} max={1200}
+                        min={0}
+                        max={1200}
                         allowReset={true}
                     />
 
@@ -295,20 +319,11 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         className={`${namespace}-custom-control`}
                         value={desktopMaxWidth}
                         onChange={(v) => setAttributes({desktopMaxWidth: v})}
-                        min={0} max={2000}
+                        min={0}
+                        max={2000}
                         allowReset={true}
                         help={__('Set to 0 to inherit from Base Layout', namespace)}
                     />
-
-                    {/*<RangeControl*/}
-                    {/*    label={__('Inner Content Max Height (px)', namespace)}*/}
-                    {/*    className={`${namespace}-custom-control`}*/}
-                    {/*    value={desktopMaxHeight}*/}
-                    {/*    onChange={(v) => setAttributes({desktopMaxHeight: v})}*/}
-                    {/*    min={0} max={2000}*/}
-                    {/*    allowReset={true}*/}
-                    {/*    help={__('Set to 0 to inherit from Base Layout', namespace)}*/}
-                    {/*/>*/}
                 </PanelBody>
             </InspectorControls>
 
@@ -320,7 +335,10 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         className="u-full_cover_absolute"
                         style={{
                             position: 'absolute',
-                            top: 0, right: 0, bottom: 0, left: 0,
+                            top: 0,
+                            right: 0,
+                            bottom: 0,
+                            left: 0,
                             backgroundImage: `url(${backgroundImage})`,
                             backgroundSize: backgroundSize || 'cover',
                             backgroundPosition: backgroundPosition || 'center',

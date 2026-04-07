@@ -79,7 +79,7 @@ return function( $attributes, $content ) {
 
     // Build Inner Styles
     $inner_style = sprintf(
-        'display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--current-gap); position: relative; z-index: 1; max-width: var(--current-max-width); margin-left: %s; margin-right: %s;',
+        'display:flex; flex-wrap:wrap; justify-content:flex-start; align-items:stretch; gap:var(--current-gap); position:relative; z-index:1; max-width:var(--current-max-width); margin-left:%s; margin-right:%s; box-sizing:border-box;',
         esc_attr( $margin_left ),
         esc_attr( $margin_right )
     );
