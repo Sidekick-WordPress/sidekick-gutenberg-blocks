@@ -2,6 +2,8 @@
 defined('ABSPATH') || exit;
 
 return function( $attributes, $content ) {
+    $namespace = SGB_NS;
+
     $v_align      = isset( $attributes['vAlign'] ) ? $attributes['vAlign'] : 'flex-start';
     $width        = isset( $attributes['width'] ) ? (float) $attributes['width'] : 0;
     $mobile_order = isset( $attributes['mobileOrder'] ) ? (int) $attributes['mobileOrder'] : 0;
@@ -13,6 +15,37 @@ return function( $attributes, $content ) {
     $bg_position   = isset( $attributes['backgroundPosition'] ) ? $attributes['backgroundPosition'] : 'center';
     $bg_repeat     = isset( $attributes['backgroundRepeat'] ) ? $attributes['backgroundRepeat'] : 'no-repeat';
     $bg_attachment = ! empty( $attributes['backgroundFixedPosition'] ) ? 'fixed' : 'scroll';
+
+    $inner_max_width = isset( $attributes['innerMaxWidth'] ) ? $attributes['innerMaxWidth'] : '';
+    $content_h_align = isset( $attributes['contentHAlign'] ) ? $attributes['contentHAlign'] : 'left';
+
+    // Combine Border CSS
+    $border_css = '';
+
+    // 1. Process Border Box (Width/Style/Color)
+    $border = isset( $attributes['border'] ) ? $attributes['border'] : null;
+    if ( is_array( $border ) ) {
+        if ( isset( $border['width'] ) || isset( $border['color'] ) || isset( $border['style'] ) ) {
+            if ( ! empty( $border['width'] ) ) $border_css .= sprintf( 'border-width:%s;', esc_attr( $border['width'] ) );
+            if ( ! empty( $border['style'] ) ) $border_css .= sprintf( 'border-style:%s;', esc_attr( $border['style'] ) );
+            if ( ! empty( $border['color'] ) ) $border_css .= sprintf( 'border-color:%s;', esc_attr( $border['color'] ) );
+        } else {
+            $sides = ['top', 'right', 'bottom', 'left'];
+            foreach ( $sides as $side ) {
+                if ( isset( $border[ $side ] ) && is_array( $border[ $side ] ) ) {
+                    if ( ! empty( $border[ $side ]['width'] ) ) $border_css .= sprintf( 'border-%s-width:%s;', $side, esc_attr( $border[ $side ]['width'] ) );
+                    if ( ! empty( $border[ $side ]['style'] ) ) $border_css .= sprintf( 'border-%s-style:%s;', $side, esc_attr( $border[ $side ]['style'] ) );
+                    if ( ! empty( $border[ $side ]['color'] ) ) $border_css .= sprintf( 'border-%s-color:%s;', $side, esc_attr( $border[ $side ]['color'] ) );
+                }
+            }
+        }
+    }
+
+    // 2. Process Border Radius
+    $border_radius = isset( $attributes['borderRadius'] ) ? $attributes['borderRadius'] : '';
+    if ( ! empty( $border_radius ) ) {
+        $border_css .= ' border-radius:' . esc_attr( $border_radius ) . ';';
+    }
 
     $default_mobile_padding = [
         'top'    => '10px',
@@ -40,19 +73,34 @@ return function( $attributes, $content ) {
         $max_width_style = 'none';
     }
 
+    // Injected $border_css at the end
     $style = sprintf(
-        '--col-pad-desktop:%s; --col-pad-mobile:%s; --col-current-pad:var(--col-pad-desktop); --mobile-order:%d; padding:var(--col-current-pad); display:flex; flex-direction:column; justify-content:%s; align-items:stretch; flex:%s; max-width:%s; box-sizing:border-box; position:relative; overflow:hidden; min-width:0;',
+        '--col-pad-desktop:%s; --col-pad-mobile:%s; --col-current-pad:var(--col-pad-desktop); --mobile-order:%d; padding:var(--col-current-pad); display:flex; flex-direction:column; justify-content:%s; align-items:stretch; flex:%s; max-width:%s; box-sizing:border-box; position:relative; overflow:hidden; min-width:0; %s',
         esc_attr( $css_pad_desktop ),
         esc_attr( $css_pad_mobile ),
         $mobile_order,
         esc_attr( $v_align ),
         esc_attr( $flex_style ),
-        esc_attr( $max_width_style )
+        esc_attr( $max_width_style ),
+        $border_css
     );
 
     $wrapper_attributes = get_block_wrapper_attributes( [
         'style' => $style,
     ] );
+
+    $align_map = [
+        'left'   => 'flex-start',
+        'center' => 'center',
+        'right'  => 'flex-end',
+    ];
+    $inner_align_self = isset( $align_map[ $content_h_align ] ) ? $align_map[ $content_h_align ] : 'flex-start';
+
+    $inner_style = 'position:relative; z-index:1; width:100%; min-width:0;';
+    if ( ! empty( $inner_max_width ) ) {
+        $inner_style .= ' max-width:' . esc_attr( $inner_max_width ) . ';';
+    }
+    $inner_style .= ' align-self:' . esc_attr( $inner_align_self ) . ';';
 
     ob_start();
     ?>
@@ -71,7 +119,7 @@ return function( $attributes, $content ) {
             ></div>
         <?php endif; ?>
 
-        <div style="position:relative; z-index:1; width:100%; min-width:0;">
+        <div class="<?php echo esc_attr( "{$namespace}-column__inner" ); ?>" style="<?php echo $inner_style; ?>">
             <?php echo $content; ?>
         </div>
     </div>

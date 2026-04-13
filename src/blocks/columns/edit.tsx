@@ -4,8 +4,7 @@ import {useMemo, useState, useEffect} from '@wordpress/element';
 import {
     PanelBody,
     Button,
-    ButtonGroup,
-    __experimentalBoxControl as BoxControl,
+    BoxControl,
     ColorPalette,
     SelectControl,
     RangeControl

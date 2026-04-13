@@ -5,8 +5,10 @@ import {
     PanelBody,
     SelectControl,
     ColorPalette,
-    __experimentalBoxControl as BoxControl,
-    RangeControl
+    BoxControl,
+    BorderBoxControl,
+    RangeControl,
+    TextControl
 } from '@wordpress/components';
 import {BlockEditProps} from '@wordpress/blocks';
 import type {CSSProperties} from 'react';
@@ -20,6 +22,36 @@ import {PaddingAttribute} from "../../../models/attr-shapes/padding-margin";
 // Block
 import {ColumnAttributes} from './attributes';
 import VersatileMessage from "../../../components/VersitileMessage";
+
+// Helper to safely parse the Gutenberg Border object into React inline styles
+const getBorderStyles = (borderAttr: any): CSSProperties => {
+    if (!borderAttr) return {};
+
+    // Handle "flat" border (all sides the same)
+    if (borderAttr.width || borderAttr.color || borderAttr.style) {
+        return {
+            borderWidth: borderAttr.width,
+            borderStyle: borderAttr.style,
+            borderColor: borderAttr.color,
+        };
+    }
+
+    // Handle "split" border (individual sides)
+    return {
+        borderTopWidth: borderAttr.top?.width,
+        borderTopStyle: borderAttr.top?.style,
+        borderTopColor: borderAttr.top?.color,
+        borderRightWidth: borderAttr.right?.width,
+        borderRightStyle: borderAttr.right?.style,
+        borderRightColor: borderAttr.right?.color,
+        borderBottomWidth: borderAttr.bottom?.width,
+        borderBottomStyle: borderAttr.bottom?.style,
+        borderBottomColor: borderAttr.bottom?.color,
+        borderLeftWidth: borderAttr.left?.width,
+        borderLeftStyle: borderAttr.left?.style,
+        borderLeftColor: borderAttr.left?.color,
+    };
+};
 
 export default function Edit({attributes, setAttributes, className, context}: BlockEditProps<ColumnAttributes>) {
     const {
@@ -35,6 +67,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             backgroundPosition,
             backgroundRepeat,
             backgroundFixedPosition,
+            innerMaxWidth,
+            contentHAlign,
+            border,
+            borderRadius, // <-- Restored
         } = attributes,
         { themeColors } = useSelect((select: any) => {
             const settings = select('core/block-editor').getSettings();
@@ -55,6 +91,15 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             : `calc(${preciseWidth}% - (var(--current-gap) * ${(100 - preciseWidth) / 100}))`,
         flexValue = isAuto ? '1 1 0px' : `0 0 ${computedWidth}`,
         maxWidthValue = isAuto ? undefined : computedWidth,
+
+        innerAlignMap: Record<string, string> = {
+            left: 'flex-start',
+            center: 'center',
+            right: 'flex-end'
+        },
+        innerAlignSelf = innerAlignMap[contentHAlign] || 'flex-start',
+        borderStyles = getBorderStyles(border),
+
         blockProps = useBlockProps({
             className,
             style: {
@@ -73,6 +118,9 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                 position: 'relative',
                 overflow: 'hidden',
                 minWidth: 0,
+                height: 'auto',
+                borderRadius: borderRadius || undefined, // <-- Applied Radius
+                ...borderStyles, // <-- Applied Border Box
             } as CSSProperties
         }),
         innerBlocksProps = useInnerBlocksProps({
@@ -102,6 +150,41 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             {label: 'Bottom', value: 'flex-end'},
                         ]}
                         onChange={(v) => setAttributes({vAlign: v})}
+                    />
+
+                    {/* Border Width/Style/Color Control */}
+                    <BorderBoxControl
+                        label={__('Borders', namespace)}
+                        colors={themeColors}
+                        value={border}
+                        onChange={(v) => setAttributes({ border: v })}
+                    />
+
+                    {/* Border Radius Control */}
+                    <TextControl
+                        label={__('Border Radius', namespace)}
+                        value={borderRadius}
+                        onChange={(v) => setAttributes({borderRadius: v})}
+                        help={__('e.g., 10px, 50%, or 10px 10px 0 0', namespace)}
+                    />
+
+                    <TextControl
+                        label={__('Inner Content Max Width', namespace)}
+                        value={innerMaxWidth}
+                        onChange={(v) => setAttributes({innerMaxWidth: v})}
+                        help={__('E.g., 500px, 80%, etc. Leave blank for default full width.', namespace)}
+                    />
+
+                    <SelectControl
+                        label={__('Inner Content Align', namespace)}
+                        className={`${namespace}-custom-control`}
+                        value={contentHAlign as any}
+                        options={[
+                            {label: 'Left', value: 'left'},
+                            {label: 'Center', value: 'center'},
+                            {label: 'Right', value: 'right'},
+                        ]}
+                        onChange={(v) => setAttributes({contentHAlign: v})}
                     />
                 </PanelBody>
 
@@ -208,7 +291,14 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                     />
                 )}
 
-                <div style={{position: 'relative', zIndex: 1, width: '100%', minWidth: '0'}}>
+                <div style={{
+                    position: 'relative',
+                    zIndex: 1,
+                    width: '100%',
+                    minWidth: '0',
+                    maxWidth: innerMaxWidth || undefined,
+                    alignSelf: innerAlignSelf
+                }}>
                     <div {...innerBlocksProps} />
                 </div>
             </div>

@@ -14,13 +14,16 @@ export interface ColumnAttributes {
     backgroundPosition: string;
     backgroundRepeat: string;
     backgroundFixedPosition: boolean;
+    innerMaxWidth: string;
+    contentHAlign: string;
+    // Both Border Attributes
+    border: Record<string, any>;
+    borderRadius: string;
 }
 
 export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any>> = {
     width: { type: 'number', default: 0 },
-    // Desktop Layout (Override) - NO DEFAULT
     padding: { type: 'object' },
-    // Mobile Layout (Base) - HAS DEFAULT
     mobilePadding: {
         type: 'object',
         default: { top: '10px', right: '10px', bottom: '10px', left: '10px' }
@@ -34,4 +37,9 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
     backgroundPosition: { type: 'string', default: 'center' },
     backgroundRepeat: { type: 'string', default: 'no-repeat' },
     backgroundFixedPosition: { type: 'boolean', default: false },
+    innerMaxWidth: { type: 'string', default: '' },
+    contentHAlign: { type: 'string', default: 'left' },
+    // Both Border Attributes
+    border: { type: 'object' },
+    borderRadius: { type: 'string', default: '' },
 };
