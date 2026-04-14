@@ -33,9 +33,16 @@ export default function Edit(
         parentColor = 'inherit',
         subMenuColor = 'inherit',
         subMenuBgColor = 'transparent',
+        parentBgColorHover = '',
+        parentColorHover = '',
+        subMenuBgColorHover = '',
+        subMenuColorHover = '',
+        overlayBgColorHover = '',
+        overlayColorHover = '',
         subMenuPadding = {top: '0.5rem', right: '1rem', bottom: '0.5rem', left: '1rem'},
         subMenuWidth = 240,
         subMenuTextAlign = 'right',
+        subMenuAlignment = 'left',
         nestedSubMenuDirection = 'right',
         showSubMenuArrows = true,
         overlayBgColor = '',
@@ -105,6 +112,19 @@ export default function Edit(
                         label={__('Show Sub-Menu Arrows', namespace)}
                         checked={showSubMenuArrows}
                         onChange={(value) => setAttributes({ showSubMenuArrows: value })}
+                    />
+                    <SelectControl
+                        label={__('Top-Level Sub-Menu Alignment', namespace)}
+                        value={subMenuAlignment}
+                        options={[
+                            { label: __('Align Left', namespace), value: 'left' },
+                            { label: __('Align Right', namespace), value: 'right' },
+                        ]}
+                        onChange={(value) =>
+                            setAttributes({
+                                subMenuAlignment: value as NavMenuAttributes['subMenuAlignment'],
+                            })
+                        }
                     />
                     <SelectControl
                         label={__('Nested Sub-Menu Direction', namespace)}
@@ -192,38 +212,35 @@ export default function Edit(
                 </InspectorControls>
 
                 <PanelColorSettings
-                    title={__('Menu Colors', namespace)}
+                    title={__('Parent Menu Colors', namespace)}
+                    initialOpen={true}
                     colorSettings={[
-                        {
-                            value: parentBgColor,
-                            onChange: (colorValue) => setAttributes({ parentBgColor: colorValue || 'transparent' }),
-                            label: __('Parent Menu Background', namespace),
-                        },
-                        {
-                            value: parentColor,
-                            onChange: (colorValue) => setAttributes({ parentColor: colorValue || 'inherit' }),
-                            label: __('Parent Menu Text Color', namespace),
-                        },
-                        {
-                            value: subMenuBgColor,
-                            onChange: (colorValue) => setAttributes({ subMenuBgColor: colorValue || 'transparent' }),
-                            label: __('Sub-Menu Background', namespace),
-                        },
-                        {
-                            value: subMenuColor,
-                            onChange: (colorValue) => setAttributes({ subMenuColor: colorValue || 'inherit' }),
-                            label: __('Sub-Menu Text Color', namespace),
-                        },
-                        {
-                            value: overlayBgColor,
-                            onChange: (colorValue) => setAttributes({ overlayBgColor: colorValue || '' }),
-                            label: __('Overlay Background', namespace),
-                        },
-                        {
-                            value: overlayColor,
-                            onChange: (colorValue) => setAttributes({ overlayColor: colorValue || '' }),
-                            label: __('Overlay Text Color', namespace),
-                        },
+                        { value: parentBgColor, onChange: (v) => setAttributes({ parentBgColor: v || 'transparent' }), label: __('Background', namespace) },
+                        { value: parentBgColorHover, onChange: (v) => setAttributes({ parentBgColorHover: v || '' }), label: __('Background (Hover)', namespace) },
+                        { value: parentColor, onChange: (v) => setAttributes({ parentColor: v || 'inherit' }), label: __('Text Color', namespace) },
+                        { value: parentColorHover, onChange: (v) => setAttributes({ parentColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
+                    ]}
+                />
+
+                <PanelColorSettings
+                    title={__('Sub-Menu Colors', namespace)}
+                    initialOpen={false}
+                    colorSettings={[
+                        { value: subMenuBgColor, onChange: (v) => setAttributes({ subMenuBgColor: v || 'transparent' }), label: __('Container Background', namespace) },
+                        { value: subMenuBgColorHover, onChange: (v) => setAttributes({ subMenuBgColorHover: v || '' }), label: __('Item Background (Hover)', namespace) },
+                        { value: subMenuColor, onChange: (v) => setAttributes({ subMenuColor: v || 'inherit' }), label: __('Text Color', namespace) },
+                        { value: subMenuColorHover, onChange: (v) => setAttributes({ subMenuColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
+                    ]}
+                />
+
+                <PanelColorSettings
+                    title={__('Mobile Overlay Colors', namespace)}
+                    initialOpen={false}
+                    colorSettings={[
+                        { value: overlayBgColor, onChange: (v) => setAttributes({ overlayBgColor: v || '' }), label: __('Overlay Background', namespace) },
+                        { value: overlayBgColorHover, onChange: (v) => setAttributes({ overlayBgColorHover: v || '' }), label: __('Item Background (Hover)', namespace) },
+                        { value: overlayColor, onChange: (v) => setAttributes({ overlayColor: v || '' }), label: __('Text Color', namespace) },
+                        { value: overlayColorHover, onChange: (v) => setAttributes({ overlayColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
                     ]}
                 />
             </InspectorControls>

@@ -24,6 +24,7 @@
         line-height: inherit;
         text-decoration: inherit;
         text-transform: var(--nav-text-transform, inherit);
+        background-color: transparent !important;
     }
 
     a {
@@ -145,6 +146,7 @@
         > li,
         > ul > li {
             background-color: var(--nav-parent-bg);
+            transition: background-color 0.2s ease; // Add smooth transition
 
             > a,
             > .wp-block-navigation-item__content,
@@ -153,12 +155,28 @@
                 padding: var(--nav-parent-padding);
                 color: var(--nav-parent-color);
                 box-sizing: border-box;
+                transition: color 0.2s ease; // Add smooth transition
+            }
+
+            // --- ADD HOVER STATES ---
+            &:hover,
+            &:focus-within {
+                background-color: var(--nav-parent-bg-hover) !important;
+
+                > a,
+                > .wp-block-navigation-item__content,
+                > button,
+                > .wp-block-navigation-submenu__toggle {
+                    color: var(--nav-parent-color-hover) !important;
+                }
             }
         }
     }
 
     // 6. Horizontal Desktop Dropdown Behavior Only
     &[data-orientation="horizontal"]:not(.is-mobile-menu) {
+
+        // Base Dropdown Styles
         .sgb-nav-menu__inner,
         .sgb-nav-menu__inner > ul {
             li:has(> .wp-block-navigation__submenu-container) {
@@ -168,7 +186,6 @@
                 > .wp-block-navigation__submenu-container {
                     position: absolute;
                     top: 100%;
-                    right: 0;
                     overflow: visible;
                     opacity: 0;
                     pointer-events: none;
@@ -178,6 +195,7 @@
                         transform .15s $sexyEase,
                         opacity .15s $sexyEase;
                     z-index: 20;
+                    display: block;
                 }
 
                 // hover bridge so the submenu stays open while crossing into it
@@ -202,7 +220,7 @@
                     }
                 }
 
-                // nested submenus
+                // Reset Nested Submenus to base state
                 .wp-block-navigation__submenu-container li:has(> .wp-block-navigation__submenu-container) {
                     position: relative;
 
@@ -213,18 +231,6 @@
                         opacity: 0;
                         pointer-events: none;
                         z-index: 30;
-                    }
-
-                    &[data-submenu-side="right"] > ul,
-                    &[data-submenu-side="right"] > .wp-block-navigation__submenu-container {
-                        left: 100%;
-                        right: auto;
-                    }
-
-                    &[data-submenu-side="left"] > ul,
-                    &[data-submenu-side="left"] > .wp-block-navigation__submenu-container {
-                        right: 100%;
-                        left: auto;
                     }
 
                     &:hover,
@@ -239,6 +245,54 @@
                 }
             }
         }
+
+        // --- TOP-LEVEL ALIGNMENT LOGIC ---
+        // Align Right: Drodown's right edge matches Parent's right edge
+        &[data-submenu-alignment="right"] {
+            .sgb-nav-menu__inner > li:has(> .wp-block-navigation__submenu-container),
+            .sgb-nav-menu__inner > ul > li:has(> .wp-block-navigation__submenu-container) {
+                > ul,
+                > .wp-block-navigation__submenu-container {
+                    right: 0;
+                    left: auto;
+                }
+            }
+        }
+
+        // Align Left: Dropdown's left edge matches Parent's left edge
+        &[data-submenu-alignment="left"] {
+            .sgb-nav-menu__inner > li:has(> .wp-block-navigation__submenu-container),
+            .sgb-nav-menu__inner > ul > li:has(> .wp-block-navigation__submenu-container) {
+                > ul,
+                > .wp-block-navigation__submenu-container {
+                    left: 0;
+                    right: auto;
+                }
+            }
+        }
+
+        // --- NESTED ALIGNMENT LOGIC ---
+        // Open Right: Sub-menu pushes out to the right of its parent
+        &[data-nested-direction="right"] {
+            .wp-block-navigation__submenu-container li:has(> .wp-block-navigation__submenu-container) {
+                > ul,
+                > .wp-block-navigation__submenu-container {
+                    left: 100%;
+                    right: auto;
+                }
+            }
+        }
+
+        // Open Left: Sub-menu pushes out to the left of its parent
+        &[data-nested-direction="left"] {
+            .wp-block-navigation__submenu-container li:has(> .wp-block-navigation__submenu-container) {
+                > ul,
+                > .wp-block-navigation__submenu-container {
+                    right: 100%;
+                    left: auto;
+                }
+            }
+        }
     }
 
     // 7. Sub-Menu Overrides
@@ -249,8 +303,21 @@
         word-break: break-word;
         box-sizing: border-box;
         pointer-events: none;
+
         li {
             width: 100%;
+            transition: background-color 0.2s ease; // Transition
+            &:hover,
+            &:focus-within {
+                background-color: var(--nav-sub-bg-hover) !important;
+
+                > a,
+                > .wp-block-navigation-item__content,
+                > button,
+                > .wp-block-navigation-submenu__toggle {
+                    color: var(--nav-sub-color-hover) !important;
+                }
+            }
         }
 
         a,
@@ -263,6 +330,7 @@
             text-align: var(--nav-sub-text-align, right);
             box-sizing: border-box;
             word-wrap: break-word;
+            transition: color 0.2s ease; // Transition
         }
     }
 
@@ -335,77 +403,12 @@
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
+
             li {
                 width: 100%;
 
                 a {
                     text-align: left;
-                }
-            }
-
-            .sgb-nav-menu__inner {
-                flex-direction: column !important;
-                align-items: center !important;
-                justify-content: center !important;
-                flex-grow: 1;
-
-                a,
-                .wp-block-navigation-item__content,
-                .wp-block-navigation-submenu__toggle {
-                    font-size: rem(24);
-                }
-
-                > li {
-                    background-color: transparent;
-
-                    > a,
-                    > .wp-block-navigation-item__content,
-                    > button,
-                    > .wp-block-navigation-submenu__toggle {
-                        color: var(--nav-overlay-color) !important;
-                    }
-                }
-
-                a,
-                .wp-block-navigation-item__content,
-                button,
-                .wp-block-navigation-submenu__toggle {
-                    color: var(--nav-overlay-color) !important;
-                }
-
-                .wp-block-navigation__submenu-container {
-                    display: block !important;
-                    position: static !important;
-                    top: auto !important;
-                    right: auto !important;
-                    left: auto !important;
-                    opacity: 1 !important;
-                    pointer-events: auto !important;
-                    overflow: visible !important;
-                    width: 100%;
-                    padding-top: 0;
-                    background-color: transparent;
-                    padding-left: var(--nav-parent-padding-left, 1rem) !important;
-                    & > li {
-                        box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-overlay-color) 18%, transparent);
-                    }
-                }
-
-                li:has(> .wp-block-navigation__submenu-container) {
-                    > ul,
-                    > .wp-block-navigation__submenu-container {
-                        display: block !important;
-                        position: static !important;
-                        top: auto !important;
-                        right: auto !important;
-                        left: auto !important;
-                        opacity: 1 !important;
-                        pointer-events: auto !important;
-                        overflow: visible !important;
-                        width: 100%;
-                        padding-top: 0;
-                        transform: none !important;
-                    }
                 }
             }
         }
@@ -420,6 +423,105 @@
         .sgb-nav-menu__close {
             display: block;
             color: inherit;
+        }
+
+        .sgb-nav-menu__inner {
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-grow: 1;
+
+            a,
+            .wp-block-navigation-item__content,
+            .wp-block-navigation-submenu__toggle {
+                font-size: rem(24);
+                transition: color 0.2s ease;
+            }
+
+            > li {
+                background-color: transparent;
+                width: 100%;
+                transition: background-color 0.2s ease;
+
+                > a,
+                > .wp-block-navigation-item__content,
+                > button,
+                > .wp-block-navigation-submenu__toggle {
+                    color: var(--nav-overlay-color) !important;
+                }
+
+                &:hover, &:active {
+                    background-color: var(--nav-overlay-bg-hover) !important;
+                    > a,
+                    > .wp-block-navigation-item__content,
+                    > button,
+                    > .wp-block-navigation-submenu__toggle {
+                        color: var(--nav-overlay-color-hover) !important;
+                    }
+                }
+            }
+
+            a,
+            .wp-block-navigation-item__content,
+            button,
+            .wp-block-navigation-submenu__toggle {
+                color: var(--nav-overlay-color) !important;
+            }
+
+            .wp-block-navigation__submenu-container {
+                display: block !important;
+                position: static !important;
+                top: auto !important;
+                right: auto !important;
+                left: auto !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                overflow: visible !important;
+                width: 100%;
+                padding-top: 0;
+                background-color: transparent;
+                padding-left: var(--nav-parent-padding-left, 1rem) !important;
+
+                & > li {
+                    box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-overlay-color) 18%, transparent);
+                    transition: background-color 0.2s ease;
+
+                    a,
+                    .wp-block-navigation-item__content,
+                    button,
+                    .wp-block-navigation-submenu__toggle {
+                        color: var(--nav-overlay-color) !important;
+                    }
+
+                    // --- ADD HOVER/ACTIVE STATES ---
+                    &:hover, &:active {
+                        background-color: var(--nav-overlay-bg-hover) !important;
+                        > a,
+                        > .wp-block-navigation-item__content,
+                        > button,
+                        > .wp-block-navigation-submenu__toggle {
+                            color: var(--nav-overlay-color-hover) !important;
+                        }
+                    }
+                }
+            }
+
+            li:has(> .wp-block-navigation__submenu-container) {
+                > ul,
+                > .wp-block-navigation__submenu-container {
+                    display: block !important;
+                    position: static !important;
+                    top: auto !important;
+                    right: auto !important;
+                    left: auto !important;
+                    opacity: 1 !important;
+                    pointer-events: auto !important;
+                    overflow: visible !important;
+                    width: 100%;
+                    padding-top: 0;
+                    transform: none !important;
+                }
+            }
         }
 
         &.is-open {

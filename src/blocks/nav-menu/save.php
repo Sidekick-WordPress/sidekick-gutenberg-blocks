@@ -39,8 +39,15 @@ return function( $attributes, $content ) {
     $overlay_color      = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : 'var(--wp--preset--color--contrast, #000000)';
     $sub_menu_width     = isset( $attributes['subMenuWidth'] ) ? (int) $attributes['subMenuWidth'] : 240;
     $sub_menu_text_align = isset( $attributes['subMenuTextAlign'] ) ? $attributes['subMenuTextAlign'] : 'right';
+    $sub_menu_alignment = isset( $attributes['subMenuAlignment'] ) ? $attributes['subMenuAlignment'] : 'left'; // <-- Extract new attr
     $nested_sub_menu_direction = isset( $attributes['nestedSubMenuDirection'] ) ? $attributes['nestedSubMenuDirection'] : 'right';
     $show_sub_menu_arrows = isset( $attributes['showSubMenuArrows'] ) ? (bool) $attributes['showSubMenuArrows'] : true;
+    $parent_bg_hover = !empty($attributes['parentBgColorHover']) ? $attributes['parentBgColorHover'] : $parent_bg_color;
+    $parent_color_hover = !empty($attributes['parentColorHover']) ? $attributes['parentColorHover'] : $parent_color;
+    $sub_menu_bg_hover = !empty($attributes['subMenuBgColorHover']) ? $attributes['subMenuBgColorHover'] : 'transparent';
+    $sub_menu_color_hover = !empty($attributes['subMenuColorHover']) ? $attributes['subMenuColorHover'] : $sub_menu_color;
+    $overlay_bg_hover = !empty($attributes['overlayBgColorHover']) ? $attributes['overlayBgColorHover'] : 'transparent';
+    $overlay_color_hover = !empty($attributes['overlayColorHover']) ? $attributes['overlayColorHover'] : $overlay_color;
 
     // Extract new textTransform attribute
     $text_transform     = isset( $attributes['textTransform'] ) ? $attributes['textTransform'] : 'none';
@@ -83,22 +90,38 @@ return function( $attributes, $content ) {
             '--nav-overlay-bg: %12$s; ' .
             '--nav-overlay-color: %13$s; ' .
             '--nav-nested-sub-direction: %14$s; ' .
-            '--nav-text-transform: %15$s;',
-            $gap,
-            $mobile_gap,
-            esc_attr( $parent_padding ),
-            esc_attr( $parent_padding_left ),
-            esc_attr( $parent_bg_color ),
-            esc_attr( $parent_color ),
-            esc_attr( $sub_menu_color ),
-            esc_attr( $sub_menu_bg_color ),
-            esc_attr( $sub_menu_padding ),
-            $sub_menu_width,
-            esc_attr( $sub_menu_text_align ),
-            esc_attr( $overlay_bg ),
-            esc_attr( $overlay_color ),
-            esc_attr( $nested_sub_menu_direction ),
-            esc_attr( $text_transform )
+            '--nav-submenu-alignment: %15$s; ' .
+            '--nav-text-transform: %16$s; ' .
+            '--nav-parent-bg-hover: %17$s; ' .
+            '--nav-parent-color-hover: %18$s; ' .
+            '--nav-sub-bg-hover: %19$s; ' .
+            '--nav-sub-color-hover: %20$s; ' .
+            '--nav-overlay-bg-hover: %21$s; ' .
+            '--nav-overlay-color-hover: %22$s;',
+            $gap, // 1
+            $mobile_gap, // 2
+            esc_attr( $parent_padding ), // 3
+            esc_attr( $parent_padding_left ), // 4
+            esc_attr( $parent_bg_color ), // 5
+            esc_attr( $parent_color ), // 6
+            esc_attr( $sub_menu_color ), // 7
+            esc_attr( $sub_menu_bg_color ), // 8
+            esc_attr( $sub_menu_padding ), // 9
+            $sub_menu_width, // 10
+            esc_attr( $sub_menu_text_align ), // 11
+            esc_attr( $overlay_bg ), // 12
+            esc_attr( $overlay_color ), // 13
+            esc_attr( $nested_sub_menu_direction ), // 14
+            esc_attr( $sub_menu_alignment ), // 15 (if you added this in previous step)
+            esc_attr( $text_transform ), // 16
+
+            // NEW VARIABLES
+            esc_attr( $parent_bg_hover ), // 17
+            esc_attr( $parent_color_hover ), // 18
+            esc_attr( $sub_menu_bg_hover ), // 19
+            esc_attr( $sub_menu_color_hover ), // 20
+            esc_attr( $overlay_bg_hover ), // 21
+            esc_attr( $overlay_color_hover ) // 22
         );
 
     $wrapper_classes = [
@@ -136,29 +159,13 @@ return function( $attributes, $content ) {
         $nav_content
     );
 
-    $submenu_side = $nested_sub_menu_direction === 'left' ? 'left' : 'right';
-
-    $nav_content = preg_replace_callback(
-        '/<li([^>]*)class="([^"]*has-child[^"]*)"([^>]*)>/s',
-        function( $matches ) use ( $submenu_side ) {
-            $before = $matches[1];
-            $classes = $matches[2];
-            $after = $matches[3];
-
-            if ( strpos( $before . $after, 'data-submenu-side=' ) !== false ) {
-                return $matches[0];
-            }
-
-            return '<li' . $before . 'class="' . $classes . '" data-submenu-side="' . esc_attr( $submenu_side ) . '"' . $after . '>';
-        },
-        $nav_content
-    );
-
     ob_start();
     ?>
     <nav
         <?php echo $wrapper_attributes; ?>
         data-orientation="<?php echo esc_attr( $orientation ); ?>"
+        data-submenu-alignment="<?php echo esc_attr( $sub_menu_alignment ); ?>"
+        data-nested-direction="<?php echo esc_attr( $nested_sub_menu_direction ); ?>"
         aria-label="<?php echo esc_attr__( 'Custom navigation menu', 'sidekick-gutenberg-blocks' ); ?>"
     >
         <noscript>

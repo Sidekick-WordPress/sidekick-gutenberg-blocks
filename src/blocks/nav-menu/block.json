@@ -23,7 +23,12 @@
         },
         "parentPadding": {
             "type": "object",
-            "default": { "top": "0.5rem", "right": "1rem", "bottom": "0.5rem", "left": "1rem" }
+            "default": {
+                "top": "0.5rem",
+                "right": "1rem",
+                "bottom": "0.5rem",
+                "left": "1rem"
+            }
         },
         "parentBgColor": {
             "type": "string",
@@ -41,9 +46,38 @@
             "type": "string",
             "default": "transparent"
         },
+        "parentBgColorHover": {
+            "type": "string",
+            "default": ""
+        },
+        "parentColorHover": {
+            "type": "string",
+            "default": ""
+        },
+        "subMenuBgColorHover": {
+            "type": "string",
+            "default": ""
+        },
+        "subMenuColorHover": {
+            "type": "string",
+            "default": ""
+        },
+        "overlayBgColorHover": {
+            "type": "string",
+            "default": ""
+        },
+        "overlayColorHover": {
+            "type": "string",
+            "default": ""
+        },
         "subMenuPadding": {
             "type": "object",
-            "default": { "top": "0.5rem", "right": "1rem", "bottom": "0.5rem", "left": "1rem" }
+            "default": {
+                "top": "0.5rem",
+                "right": "1rem",
+                "bottom": "0.5rem",
+                "left": "1rem"
+            }
         },
         "subMenuWidth": {
             "type": "number",
@@ -52,6 +86,10 @@
         "subMenuTextAlign": {
             "type": "string",
             "default": "right"
+        },
+        "subMenuAlignment": {
+            "type": "string",
+            "default": "left"
         },
         "nestedSubMenuDirection": {
             "type": "string",
