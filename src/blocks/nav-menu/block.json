@@ -68,6 +68,10 @@
         "overlayColor": {
             "type": "string",
             "default": ""
+        },
+        "textTransform": {
+            "type": "string",
+            "default": "none"
         }
     },
     "supports": {

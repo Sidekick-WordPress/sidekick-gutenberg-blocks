@@ -22,6 +22,7 @@ export interface NavMenuAttributes {
     showSubMenuArrows?: boolean;
     overlayBgColor?: string;
     overlayColor?: string;
+    textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 }
 
 export const navMenuAttributes = {
@@ -47,4 +48,5 @@ export const navMenuAttributes = {
     showSubMenuArrows: { type: 'boolean', default: true },
     overlayBgColor: { type: 'string', default: '' },
     overlayColor: { type: 'string', default: '' },
+    textTransform: { type: 'string', default: 'none' },
 } as const;

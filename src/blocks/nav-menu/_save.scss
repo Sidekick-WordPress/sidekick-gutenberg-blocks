@@ -23,7 +23,7 @@
         letter-spacing: inherit;
         line-height: inherit;
         text-decoration: inherit;
-        text-transform: inherit;
+        text-transform: var(--nav-text-transform, inherit);
     }
 
     a {
@@ -335,12 +335,77 @@
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
-
             li {
                 width: 100%;
 
                 a {
                     text-align: left;
+                }
+            }
+
+            .sgb-nav-menu__inner {
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                flex-grow: 1;
+
+                a,
+                .wp-block-navigation-item__content,
+                .wp-block-navigation-submenu__toggle {
+                    font-size: rem(24);
+                }
+
+                > li {
+                    background-color: transparent;
+
+                    > a,
+                    > .wp-block-navigation-item__content,
+                    > button,
+                    > .wp-block-navigation-submenu__toggle {
+                        color: var(--nav-overlay-color) !important;
+                    }
+                }
+
+                a,
+                .wp-block-navigation-item__content,
+                button,
+                .wp-block-navigation-submenu__toggle {
+                    color: var(--nav-overlay-color) !important;
+                }
+
+                .wp-block-navigation__submenu-container {
+                    display: block !important;
+                    position: static !important;
+                    top: auto !important;
+                    right: auto !important;
+                    left: auto !important;
+                    opacity: 1 !important;
+                    pointer-events: auto !important;
+                    overflow: visible !important;
+                    width: 100%;
+                    padding-top: 0;
+                    background-color: transparent;
+                    padding-left: var(--nav-parent-padding-left, 1rem) !important;
+                    & > li {
+                        box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-overlay-color) 18%, transparent);
+                    }
+                }
+
+                li:has(> .wp-block-navigation__submenu-container) {
+                    > ul,
+                    > .wp-block-navigation__submenu-container {
+                        display: block !important;
+                        position: static !important;
+                        top: auto !important;
+                        right: auto !important;
+                        left: auto !important;
+                        opacity: 1 !important;
+                        pointer-events: auto !important;
+                        overflow: visible !important;
+                        width: 100%;
+                        padding-top: 0;
+                        transform: none !important;
+                    }
                 }
             }
         }
@@ -355,73 +420,6 @@
         .sgb-nav-menu__close {
             display: block;
             color: inherit;
-        }
-
-        .sgb-nav-menu__inner {
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            flex-grow: 1;
-
-            a,
-            .wp-block-navigation-item__content,
-            .wp-block-navigation-submenu__toggle {
-                font-size: rem(24);
-            }
-
-            > li {
-                background-color: transparent;
-
-                > a,
-                > .wp-block-navigation-item__content,
-                > button,
-                > .wp-block-navigation-submenu__toggle {
-                    color: var(--nav-overlay-color);
-                }
-            }
-
-            .wp-block-navigation__submenu-container {
-                display: block !important;
-                position: static !important;
-                top: auto !important;
-                right: auto !important;
-                left: auto !important;
-                opacity: 1 !important;
-                pointer-events: auto !important;
-                overflow: visible !important;
-                width: 100%;
-                padding-top: 0;
-                background-color: transparent;
-                padding-left: var(--nav-parent-padding-left, 1rem) !important;
-
-                & > li {
-                    box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-overlay-color) 18%, transparent);
-                }
-
-                a,
-                .wp-block-navigation-item__content,
-                button,
-                .wp-block-navigation-submenu__toggle {
-                    color: var(--nav-overlay-color);
-                }
-            }
-
-            li:has(> .wp-block-navigation__submenu-container) {
-                > ul,
-                > .wp-block-navigation__submenu-container {
-                    display: block !important;
-                    position: static !important;
-                    top: auto !important;
-                    right: auto !important;
-                    left: auto !important;
-                    opacity: 1 !important;
-                    pointer-events: auto !important;
-                    overflow: visible !important;
-                    width: 100%;
-                    padding-top: 0;
-                    transform: none !important;
-                }
-            }
         }
 
         &.is-open {
@@ -442,6 +440,23 @@
             transition:
                 opacity 0.3s ease,
                 visibility 0s linear 0s;
+        }
+    }
+}
+
+.admin-bar {
+    .sgb-nav-menu {
+        &.is-mobile-menu {
+            .sgb-nav-menu__overlay {
+                top: $adminBarHeightMobile;
+            }
+
+            // This is a WordPress dictated breakpoint
+            @media screen and (min-width: calc(783em/16)) {
+                .sgb-nav-menu__overlay {
+                    top: $adminBarHeightDesktop;
+                }
+            }
         }
     }
 }

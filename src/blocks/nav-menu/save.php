@@ -35,14 +35,15 @@ return function( $attributes, $content ) {
     $parent_color       = isset( $attributes['parentColor'] ) ? $attributes['parentColor'] : 'inherit';
     $sub_menu_color     = isset( $attributes['subMenuColor'] ) ? $attributes['subMenuColor'] : 'inherit';
     $sub_menu_bg_color  = isset( $attributes['subMenuBgColor'] ) ? $attributes['subMenuBgColor'] : 'transparent';
-    $overlay_bg    = ! empty( $attributes['overlayBgColor'] ) ? $attributes['overlayBgColor'] : 'var(--wp--preset--color--base, #ffffff)';
-    $overlay_color = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : 'var(--wp--preset--color--contrast, #000000)';
-    $sub_menu_width       = isset( $attributes['subMenuWidth'] ) ? (int) $attributes['subMenuWidth'] : 240;
+    $overlay_bg         = ! empty( $attributes['overlayBgColor'] ) ? $attributes['overlayBgColor'] : 'var(--wp--preset--color--base, #ffffff)';
+    $overlay_color      = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : 'var(--wp--preset--color--contrast, #000000)';
+    $sub_menu_width     = isset( $attributes['subMenuWidth'] ) ? (int) $attributes['subMenuWidth'] : 240;
     $sub_menu_text_align = isset( $attributes['subMenuTextAlign'] ) ? $attributes['subMenuTextAlign'] : 'right';
-    $nested_sub_menu_direction = isset( $attributes['nestedSubMenuDirection'] )
-        ? $attributes['nestedSubMenuDirection']
-        : 'right';
+    $nested_sub_menu_direction = isset( $attributes['nestedSubMenuDirection'] ) ? $attributes['nestedSubMenuDirection'] : 'right';
     $show_sub_menu_arrows = isset( $attributes['showSubMenuArrows'] ) ? (bool) $attributes['showSubMenuArrows'] : true;
+
+    // Extract new textTransform attribute
+    $text_transform     = isset( $attributes['textTransform'] ) ? $attributes['textTransform'] : 'none';
 
     $flex_direction = $orientation === 'vertical' ? 'column' : 'row';
     $align_items    = $orientation === 'vertical' ? 'stretch' : 'center';
@@ -81,7 +82,8 @@ return function( $attributes, $content ) {
             '--nav-sub-text-align: %11$s; ' .
             '--nav-overlay-bg: %12$s; ' .
             '--nav-overlay-color: %13$s; ' .
-            '--nav-nested-sub-direction: %14$s;',
+            '--nav-nested-sub-direction: %14$s; ' .
+            '--nav-text-transform: %15$s;',
             $gap,
             $mobile_gap,
             esc_attr( $parent_padding ),
@@ -95,7 +97,8 @@ return function( $attributes, $content ) {
             esc_attr( $sub_menu_text_align ),
             esc_attr( $overlay_bg ),
             esc_attr( $overlay_color ),
-            esc_attr( $nested_sub_menu_direction )
+            esc_attr( $nested_sub_menu_direction ),
+            esc_attr( $text_transform )
         );
 
     $wrapper_classes = [

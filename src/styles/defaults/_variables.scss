@@ -1,5 +1,5 @@
 @use "sass:color";
-
+@use "functions" as *;
 // ---- ---- ---- ---- VARIABLES ---- ---- ---- ----
 
 // Greys
@@ -12,15 +12,6 @@ $lightGrey:  color.scale($black, $lightness: 75%);  // ~#bfbfbf
 $lighterGrey:color.scale($black, $lightness: 90%);  // ~#e6e6e6
 $lightestGrey: #f0f0f0;
 $white: #fff;
-
-// "Brand" Colors
-$sitePrimary: #008dda;
-$sitePrimaryHighlight: #df4bdc;
-$sitePrimaryDark: #892686;
-$siteSecondary: #ffdb58;
-$siteAccent: #011936;
-$siteAccentLight: #465362;
-$siteAccentLighter: #f4fffd;
 
 // Utility Colors
 $appError: #b70a0a;
@@ -40,4 +31,6 @@ $breakpointWide: 79.625em;         // 1274px
 $breakpointSuperWide: 115em;       // 1840px
 $breakpointFinal: 133.25em;        // 1920px
 
-$baseFont: 'Overpass', sans-serif;
+// Admin bar
+$adminBarHeightMobile: rem(46);
+$adminBarHeightDesktop: rem(32);

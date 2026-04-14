@@ -40,6 +40,7 @@ export default function Edit(
         showSubMenuArrows = true,
         overlayBgColor = '',
         overlayColor = '',
+        textTransform = 'none'
     } = attributes;
 
     const blockProps = useBlockProps({
@@ -154,6 +155,11 @@ export default function Edit(
                         onChange={(value) => setAttributes({subMenuWidth: value ?? 240})}
                         min={100} max={600}
                     />
+
+                </PanelBody>
+
+                {/* Native Typography Tab Injection */}
+                <InspectorControls group="typography">
                     <SelectControl
                         label={__('Sub-Menu Text Align', namespace)}
                         value={subMenuTextAlign}
@@ -168,7 +174,22 @@ export default function Edit(
                             })
                         }
                     />
-                </PanelBody>
+                    <SelectControl
+                        label={__('Text Transform', namespace)}
+                        value={textTransform}
+                        options={[
+                            { label: __('None', namespace), value: 'none' },
+                            { label: __('Uppercase', namespace), value: 'uppercase' },
+                            { label: __('Lowercase', namespace), value: 'lowercase' },
+                            { label: __('Capitalize', namespace), value: 'capitalize' },
+                        ]}
+                        onChange={(value) =>
+                            setAttributes({
+                                textTransform: value as NavMenuAttributes['textTransform'],
+                            })
+                        }
+                    />
+                </InspectorControls>
 
                 <PanelColorSettings
                     title={__('Menu Colors', namespace)}
