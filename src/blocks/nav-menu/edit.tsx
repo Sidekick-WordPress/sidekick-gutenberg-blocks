@@ -47,7 +47,8 @@ export default function Edit(
         showSubMenuArrows = true,
         overlayBgColor = '',
         overlayColor = '',
-        textTransform = 'none'
+        textTransform = 'none',
+        fontWeight = '',
     } = attributes;
 
     const blockProps = useBlockProps({
@@ -206,6 +207,28 @@ export default function Edit(
                         onChange={(value) =>
                             setAttributes({
                                 textTransform: value as NavMenuAttributes['textTransform'],
+                            })
+                        }
+                    />
+                    {/* NEW FONT WEIGHT CONTROL */}
+                    <SelectControl
+                        label={__('Font Weight', namespace)}
+                        value={fontWeight}
+                        options={[
+                            { label: __('Default', namespace), value: '' },
+                            { label: __('Thin (100)', namespace), value: '100' },
+                            { label: __('Extra Light (200)', namespace), value: '200' },
+                            { label: __('Light (300)', namespace), value: '300' },
+                            { label: __('Normal (400)', namespace), value: '400' },
+                            { label: __('Medium (500)', namespace), value: '500' },
+                            { label: __('Semi Bold (600)', namespace), value: '600' },
+                            { label: __('Bold (700)', namespace), value: '700' },
+                            { label: __('Extra Bold (800)', namespace), value: '800' },
+                            { label: __('Black (900)', namespace), value: '900' },
+                        ]}
+                        onChange={(value) =>
+                            setAttributes({
+                                fontWeight: value as NavMenuAttributes['fontWeight'],
                             })
                         }
                     />

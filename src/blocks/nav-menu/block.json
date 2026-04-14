@@ -110,6 +110,10 @@
         "textTransform": {
             "type": "string",
             "default": "none"
+        },
+        "fontWeight": {
+            "type": "string",
+            "default": ""
         }
     },
     "supports": {

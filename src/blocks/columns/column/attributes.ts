@@ -1,5 +1,5 @@
 import { BlockAttribute } from '@wordpress/blocks';
-import {PaddingAttribute} from "../../../models/attr-shapes/padding-margin";
+import { PaddingAttribute } from "../../../models/attr-shapes/padding-margin";
 
 export interface ColumnAttributes {
     width: number;
@@ -16,9 +16,22 @@ export interface ColumnAttributes {
     backgroundFixedPosition: boolean;
     innerMaxWidth: string;
     contentHAlign: string;
-    // Both Border Attributes
     border: Record<string, any>;
     borderRadius: string;
+
+    // Advanced Layout - Base (All Screens)
+    extendTop: string;
+    extendBottom: string;
+    translateX: string;
+    translateY: string;
+
+    // Advanced Layout - Desktop Overrides
+    deskExtendTop: string;
+    deskExtendBottom: string;
+    deskTranslateX: string;
+    deskTranslateY: string;
+
+    zIndex: number;
 }
 
 export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any>> = {
@@ -39,7 +52,18 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
     backgroundFixedPosition: { type: 'boolean', default: false },
     innerMaxWidth: { type: 'string', default: '' },
     contentHAlign: { type: 'string', default: 'left' },
-    // Both Border Attributes
     border: { type: 'object' },
     borderRadius: { type: 'string', default: '' },
+
+    extendTop: { type: 'string', default: '' },
+    extendBottom: { type: 'string', default: '' },
+    translateX: { type: 'string', default: '' },
+    translateY: { type: 'string', default: '' },
+
+    deskExtendTop: { type: 'string', default: '' },
+    deskExtendBottom: { type: 'string', default: '' },
+    deskTranslateX: { type: 'string', default: '' },
+    deskTranslateY: { type: 'string', default: '' },
+
+    zIndex: { type: 'number', default: 1 },
 };

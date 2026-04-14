@@ -1,5 +1,14 @@
 @use "../../styles/defaults/namespace" as *;
 
+// Frontend Execution
+.wp-block-#{$namespace}-column.has-advanced-layout {
+    height: auto !important;
+    margin-top: calc(var(--curr-ext-top, 0px) * -1) !important;
+    margin-bottom: calc(var(--curr-ext-bottom, 0px) * -1) !important;
+    transform: translate(var(--curr-trans-x, 0px), var(--curr-trans-y, 0px)) !important;
+    z-index: var(--curr-z-index, 1) !important;
+}
+
 .wp-block-#{$namespace}-columns {
     &.is-mobile-layout {
         --current-gap: var(--gap-mobile) !important;
@@ -12,14 +21,27 @@
         }
 
         .#{$namespace}-columns-inner {
-            flex-direction: column !important; /* Forces stack */
+            flex-direction: column !important;
             gap: var(--gap-mobile) !important;
 
             & > * {
-                flex: 1 1 100% !important; /* Overrides the inline flex math */
+                flex: 1 1 100% !important;
                 max-width: 100% !important;
                 width: 100% !important;
             }
+        }
+    }
+
+    // THE BULLETPROOF OVERRIDE CASCADE
+    &.is-desktop-layout {
+        // Target Frontend
+        .wp-block-#{$namespace}-column,
+            // Target Editor (Prevents jump on click)
+        .block-editor-block-list__block[data-type="#{$namespace}/column"] {
+            --curr-ext-top: var(--desk-ext-top, var(--base-ext-top)) !important;
+            --curr-ext-bottom: var(--desk-ext-bottom, var(--base-ext-bottom)) !important;
+            --curr-trans-x: var(--desk-trans-x, var(--base-trans-x)) !important;
+            --curr-trans-y: var(--desk-trans-y, var(--base-trans-y)) !important;
         }
     }
 }

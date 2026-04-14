@@ -48,9 +48,8 @@ return function( $attributes, $content ) {
     $sub_menu_color_hover = !empty($attributes['subMenuColorHover']) ? $attributes['subMenuColorHover'] : $sub_menu_color;
     $overlay_bg_hover = !empty($attributes['overlayBgColorHover']) ? $attributes['overlayBgColorHover'] : 'transparent';
     $overlay_color_hover = !empty($attributes['overlayColorHover']) ? $attributes['overlayColorHover'] : $overlay_color;
-
-    // Extract new textTransform attribute
     $text_transform     = isset( $attributes['textTransform'] ) ? $attributes['textTransform'] : 'none';
+    $font_weight    = isset( $attributes['fontWeight'] ) ? $attributes['fontWeight'] : '';
 
     $flex_direction = $orientation === 'vertical' ? 'column' : 'row';
     $align_items    = $orientation === 'vertical' ? 'stretch' : 'center';
@@ -97,7 +96,8 @@ return function( $attributes, $content ) {
             '--nav-sub-bg-hover: %19$s; ' .
             '--nav-sub-color-hover: %20$s; ' .
             '--nav-overlay-bg-hover: %21$s; ' .
-            '--nav-overlay-color-hover: %22$s;',
+            '--nav-overlay-color-hover: %22$s; ' .
+            '--nav-font-weight: %23$s;', // <-- Add CSS variable (parameter 23)
             $gap, // 1
             $mobile_gap, // 2
             esc_attr( $parent_padding ), // 3
@@ -112,16 +112,15 @@ return function( $attributes, $content ) {
             esc_attr( $overlay_bg ), // 12
             esc_attr( $overlay_color ), // 13
             esc_attr( $nested_sub_menu_direction ), // 14
-            esc_attr( $sub_menu_alignment ), // 15 (if you added this in previous step)
+            esc_attr( $sub_menu_alignment ), // 15
             esc_attr( $text_transform ), // 16
-
-            // NEW VARIABLES
             esc_attr( $parent_bg_hover ), // 17
             esc_attr( $parent_color_hover ), // 18
             esc_attr( $sub_menu_bg_hover ), // 19
             esc_attr( $sub_menu_color_hover ), // 20
             esc_attr( $overlay_bg_hover ), // 21
-            esc_attr( $overlay_color_hover ) // 22
+            esc_attr( $overlay_color_hover ), // 22
+            esc_attr( $font_weight ) // 23
         );
 
     $wrapper_classes = [

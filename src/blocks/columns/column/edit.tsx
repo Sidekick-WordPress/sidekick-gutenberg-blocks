@@ -23,11 +23,9 @@ import {PaddingAttribute} from "../../../models/attr-shapes/padding-margin";
 import {ColumnAttributes} from './attributes';
 import VersatileMessage from "../../../components/VersitileMessage";
 
-// Helper to safely parse the Gutenberg Border object into React inline styles
 const getBorderStyles = (borderAttr: any): CSSProperties => {
     if (!borderAttr) return {};
 
-    // Handle "flat" border (all sides the same)
     if (borderAttr.width || borderAttr.color || borderAttr.style) {
         return {
             borderWidth: borderAttr.width,
@@ -36,7 +34,6 @@ const getBorderStyles = (borderAttr: any): CSSProperties => {
         };
     }
 
-    // Handle "split" border (individual sides)
     return {
         borderTopWidth: borderAttr.top?.width,
         borderTopStyle: borderAttr.top?.style,
@@ -55,28 +52,18 @@ const getBorderStyles = (borderAttr: any): CSSProperties => {
 
 export default function Edit({attributes, setAttributes, className, context}: BlockEditProps<ColumnAttributes>) {
     const {
-            width,
-            padding,
-            mobilePadding,
-            vAlign,
-            mobileOrder,
-            backgroundImage,
-            backgroundColor,
-            backgroundImageOpacity,
-            backgroundSize,
-            backgroundPosition,
-            backgroundRepeat,
-            backgroundFixedPosition,
-            innerMaxWidth,
-            contentHAlign,
-            border,
-            borderRadius, // <-- Restored
+            width, padding, mobilePadding, vAlign, mobileOrder,
+            backgroundImage, backgroundColor, backgroundImageOpacity,
+            backgroundSize, backgroundPosition, backgroundRepeat, backgroundFixedPosition,
+            innerMaxWidth, contentHAlign, border, borderRadius,
+
+            // Advanced Layout
+            extendTop, extendBottom, translateX, translateY,
+            deskExtendTop, deskExtendBottom, deskTranslateX, deskTranslateY, zIndex
         } = attributes,
         { themeColors } = useSelect((select: any) => {
             const settings = select('core/block-editor').getSettings();
-            return {
-                themeColors: settings.colors || [],
-            };
+            return { themeColors: settings.colors || [] };
         }, []),
         desktopBreakpoint = context[`${namespace}/desktopBreakpoint`],
         safePadding = parsePadding(padding),
@@ -86,46 +73,66 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         cssPadDesktop = hasDesktopPadding ? getPaddingStr(padding, '10px') : 'var(--col-pad-mobile)',
         preciseWidth = width ? Number(width) : 0,
         isAuto = preciseWidth <= 0,
-        computedWidth = isAuto
-            ? undefined
-            : `calc(${preciseWidth}% - (var(--current-gap) * ${(100 - preciseWidth) / 100}))`,
+        computedWidth = isAuto ? undefined : `calc(${preciseWidth}% - (var(--current-gap) * ${(100 - preciseWidth) / 100}))`,
         flexValue = isAuto ? '1 1 0px' : `0 0 ${computedWidth}`,
         maxWidthValue = isAuto ? undefined : computedWidth,
 
-        innerAlignMap: Record<string, string> = {
-            left: 'flex-start',
-            center: 'center',
-            right: 'flex-end'
-        },
+        innerAlignMap: Record<string, string> = { left: 'flex-start', center: 'center', right: 'flex-end' },
         innerAlignSelf = innerAlignMap[contentHAlign] || 'flex-start',
         borderStyles = getBorderStyles(border),
 
-        blockProps = useBlockProps({
-            className,
-            style: {
-                '--col-pad-desktop': cssPadDesktop,
-                '--col-pad-mobile': cssPadMobile,
-                '--col-current-pad': 'var(--col-pad-desktop)',
-                '--mobile-order': mobileOrder,
-                padding: 'var(--col-current-pad)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: vAlign,
-                alignItems: 'stretch',
-                flex: flexValue,
-                maxWidth: maxWidthValue,
-                boxSizing: 'border-box',
-                position: 'relative',
-                overflow: 'hidden',
-                minWidth: 0,
-                height: 'auto',
-                borderRadius: borderRadius || undefined, // <-- Applied Radius
-                ...borderStyles, // <-- Applied Border Box
-            } as CSSProperties
-        }),
-        innerBlocksProps = useInnerBlocksProps({
-            style: {width: '100%', minWidth: '0'}
-        });
+        isAdvancedLayout = !!(
+            extendTop || extendBottom || translateX || translateY ||
+            deskExtendTop || deskExtendBottom || deskTranslateX || deskTranslateY || zIndex !== 1
+        );
+
+    // ONLY pass variables inline. The SCSS does the actual CSS manipulation (margin/transform).
+    const customStyles: Record<string, any> = {
+        '--col-pad-desktop': cssPadDesktop,
+        '--col-pad-mobile': cssPadMobile,
+        '--col-current-pad': 'var(--col-pad-desktop)',
+        '--mobile-order': mobileOrder,
+
+        // Base Layout Vars (Applies to all)
+        '--base-ext-top': extendTop || '0px',
+        '--base-ext-bottom': extendBottom || '0px',
+        '--base-trans-x': translateX || '0px',
+        '--base-trans-y': translateY || '0px',
+
+        // Set Current to default to Base map
+        '--curr-ext-top': 'var(--base-ext-top)',
+        '--curr-ext-bottom': 'var(--base-ext-bottom)',
+        '--curr-trans-x': 'var(--base-trans-x)',
+        '--curr-trans-y': 'var(--base-trans-y)',
+        '--curr-z-index': zIndex,
+
+        padding: 'var(--col-current-pad)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: vAlign,
+        alignItems: 'stretch',
+        flex: flexValue,
+        maxWidth: maxWidthValue,
+        boxSizing: 'border-box',
+        position: 'relative',
+        overflow: 'hidden',
+        minWidth: 0,
+        borderRadius: borderRadius || undefined,
+        ...borderStyles,
+    };
+
+    // Inject Desktop Overrides ONLY if they have values
+    if (deskExtendTop) customStyles['--desk-ext-top'] = deskExtendTop;
+    if (deskExtendBottom) customStyles['--desk-ext-bottom'] = deskExtendBottom;
+    if (deskTranslateX) customStyles['--desk-trans-x'] = deskTranslateX;
+    if (deskTranslateY) customStyles['--desk-trans-y'] = deskTranslateY;
+
+    const blockProps = useBlockProps({
+        className: `${className} ${isAdvancedLayout ? 'has-advanced-layout' : ''}`,
+        style: customStyles as CSSProperties
+    });
+
+    const innerBlocksProps = useInnerBlocksProps({ style: {width: '100%', minWidth: '0'} });
 
     return (
         <>
@@ -152,7 +159,6 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         onChange={(v) => setAttributes({vAlign: v})}
                     />
 
-                    {/* Border Width/Style/Color Control */}
                     <BorderBoxControl
                         label={__('Borders', namespace)}
                         colors={themeColors}
@@ -160,7 +166,6 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         onChange={(v) => setAttributes({ border: v })}
                     />
 
-                    {/* Border Radius Control */}
                     <TextControl
                         label={__('Border Radius', namespace)}
                         value={borderRadius}
@@ -212,6 +217,48 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         onChange={(v) => setAttributes({backgroundColor: v || ''})}
                         clearable={true}
                     />
+                </PanelBody>
+
+                <PanelBody title={__('Advanced Layout & Overlaps', namespace)} initialOpen={false}>
+                    <VersatileMessage
+                        msg="Extend makes the column taller, bleeding out while keeping flow. Translate visually shifts the column."
+                        type="normal"
+                    />
+
+                    <RangeControl
+                        label={__('Z-Index', namespace)}
+                        value={zIndex}
+                        onChange={(v) => setAttributes({zIndex: v !== undefined ? v : 1})}
+                        min={0} max={100}
+                    />
+
+                    <div style={{ marginTop: '24px', marginBottom: '8px', fontWeight: 600 }}>
+                        {__('Base Layout (All Screens)', namespace)}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                        <TextControl label={__('Extend Top', namespace)} value={extendTop} onChange={(v) => setAttributes({extendTop: v})} />
+                        <TextControl label={__('Extend Bottom', namespace)} value={extendBottom} onChange={(v) => setAttributes({extendBottom: v})} />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                        <TextControl label={__('Translate X', namespace)} value={translateX} onChange={(v) => setAttributes({translateX: v})} />
+                        <TextControl label={__('Translate Y', namespace)} value={translateY} onChange={(v) => setAttributes({translateY: v})} />
+                    </div>
+
+                    <div style={{ marginTop: '24px', marginBottom: '8px', fontWeight: 600 }}>
+                        {__(`Desktop Overrides (> ${desktopBreakpoint}px)`, namespace)}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                        <TextControl label={__('Extend Top', namespace)} value={deskExtendTop} onChange={(v) => setAttributes({deskExtendTop: v})} />
+                        <TextControl label={__('Extend Bottom', namespace)} value={deskExtendBottom} onChange={(v) => setAttributes({deskExtendBottom: v})} />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                        <TextControl label={__('Translate X', namespace)} value={deskTranslateX} onChange={(v) => setAttributes({deskTranslateX: v})} />
+                        <TextControl label={__('Translate Y', namespace)} value={deskTranslateY} onChange={(v) => setAttributes({deskTranslateY: v})} />
+                    </div>
                 </PanelBody>
 
                 <PanelBody title={__('Base Layout (All Screens)', namespace)} initialOpen={false}>

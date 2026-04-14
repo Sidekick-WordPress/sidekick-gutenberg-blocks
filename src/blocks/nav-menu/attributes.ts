@@ -30,6 +30,7 @@ export interface NavMenuAttributes {
     overlayBgColor?: string;
     overlayColor?: string;
     textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+    fontWeight?: string;
 }
 
 export const navMenuAttributes = {
@@ -63,4 +64,5 @@ export const navMenuAttributes = {
     overlayBgColor: { type: 'string', default: '' },
     overlayColor: { type: 'string', default: '' },
     textTransform: { type: 'string', default: 'none' },
+    fontWeight: { type: 'string', default: '' }
 } as const;

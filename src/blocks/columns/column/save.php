@@ -19,10 +19,17 @@ return function( $attributes, $content ) {
     $inner_max_width = isset( $attributes['innerMaxWidth'] ) ? $attributes['innerMaxWidth'] : '';
     $content_h_align = isset( $attributes['contentHAlign'] ) ? $attributes['contentHAlign'] : 'left';
 
-    // Combine Border CSS
-    $border_css = '';
+    // Advanced Layout Check
+    $is_advanced_layout = ! empty( $attributes['extendTop'] ) || ! empty( $attributes['extendBottom'] ) ||
+        ! empty( $attributes['translateX'] ) || ! empty( $attributes['translateY'] ) ||
+        ! empty( $attributes['deskExtendTop'] ) || ! empty( $attributes['deskExtendBottom'] ) ||
+        ! empty( $attributes['deskTranslateX'] ) || ! empty( $attributes['deskTranslateY'] ) ||
+        ( isset( $attributes['zIndex'] ) && $attributes['zIndex'] !== 1 );
 
-    // 1. Process Border Box (Width/Style/Color)
+    $classes = $is_advanced_layout ? 'has-advanced-layout' : '';
+
+    // Border Processing
+    $border_css = '';
     $border = isset( $attributes['border'] ) ? $attributes['border'] : null;
     if ( is_array( $border ) ) {
         if ( isset( $border['width'] ) || isset( $border['color'] ) || isset( $border['style'] ) ) {
@@ -41,31 +48,19 @@ return function( $attributes, $content ) {
         }
     }
 
-    // 2. Process Border Radius
     $border_radius = isset( $attributes['borderRadius'] ) ? $attributes['borderRadius'] : '';
     if ( ! empty( $border_radius ) ) {
         $border_css .= ' border-radius:' . esc_attr( $border_radius ) . ';';
     }
 
-    $default_mobile_padding = [
-        'top'    => '10px',
-        'right'  => '10px',
-        'bottom' => '10px',
-        'left'   => '10px'
-    ];
-
+    $default_mobile_padding = [ 'top' => '10px', 'right' => '10px', 'bottom' => '10px', 'left' => '10px' ];
     $mobile_padding = isset( $attributes['mobilePadding'] ) ? $attributes['mobilePadding'] : $default_mobile_padding;
     $has_desk_pad   = ! empty( $attributes['padding'] ) && count( array_filter( (array) $attributes['padding'] ) ) > 0;
-
     $css_pad_mobile  = sgb_get_padding_str( $mobile_padding, '10px' );
     $css_pad_desktop = $has_desk_pad ? sgb_get_padding_str( $attributes['padding'], '10px' ) : 'var(--col-pad-mobile)';
 
     if ( $width > 0 ) {
-        $computed_width = sprintf(
-            'calc(%1$s%% - (var(--current-gap) * %2$s))',
-            $width,
-            ( 100 - $width ) / 100
-        );
+        $computed_width = sprintf( 'calc(%1$s%% - (var(--current-gap) * %2$s))', $width, ( 100 - $width ) / 100 );
         $flex_style      = '0 0 ' . $computed_width;
         $max_width_style = $computed_width;
     } else {
@@ -73,20 +68,51 @@ return function( $attributes, $content ) {
         $max_width_style = 'none';
     }
 
-    // Injected $border_css at the end
-    $style = sprintf(
-        '--col-pad-desktop:%s; --col-pad-mobile:%s; --col-current-pad:var(--col-pad-desktop); --mobile-order:%d; padding:var(--col-current-pad); display:flex; flex-direction:column; justify-content:%s; align-items:stretch; flex:%s; max-width:%s; box-sizing:border-box; position:relative; overflow:hidden; min-width:0; %s',
-        esc_attr( $css_pad_desktop ),
-        esc_attr( $css_pad_mobile ),
-        $mobile_order,
-        esc_attr( $v_align ),
-        esc_attr( $flex_style ),
-        esc_attr( $max_width_style ),
-        $border_css
+    $styles = [
+        '--col-pad-desktop:' . esc_attr( $css_pad_desktop ),
+        '--col-pad-mobile:' . esc_attr( $css_pad_mobile ),
+        '--col-current-pad:var(--col-pad-desktop)',
+        '--mobile-order:' . $mobile_order,
+
+        // Base Variables
+        '--base-ext-top:' . esc_attr( !empty($attributes['extendTop']) ? $attributes['extendTop'] : '0px' ),
+        '--base-ext-bottom:' . esc_attr( !empty($attributes['extendBottom']) ? $attributes['extendBottom'] : '0px' ),
+        '--base-trans-x:' . esc_attr( !empty($attributes['translateX']) ? $attributes['translateX'] : '0px' ),
+        '--base-trans-y:' . esc_attr( !empty($attributes['translateY']) ? $attributes['translateY'] : '0px' ),
+    ];
+
+    // Desktop Overrides
+    if ( !empty($attributes['deskExtendTop']) )    $styles[] = '--desk-ext-top:' . esc_attr($attributes['deskExtendTop']);
+    if ( !empty($attributes['deskExtendBottom']) ) $styles[] = '--desk-ext-bottom:' . esc_attr($attributes['deskExtendBottom']);
+    if ( !empty($attributes['deskTranslateX']) )   $styles[] = '--desk-trans-x:' . esc_attr($attributes['deskTranslateX']);
+    if ( !empty($attributes['deskTranslateY']) )   $styles[] = '--desk-trans-y:' . esc_attr($attributes['deskTranslateY']);
+
+    array_push($styles,
+        '--curr-ext-top:var(--base-ext-top)',
+        '--curr-ext-bottom:var(--base-ext-bottom)',
+        '--curr-trans-x:var(--base-trans-x)',
+        '--curr-trans-y:var(--base-trans-y)',
+        '--curr-z-index:' . (isset($attributes['zIndex']) ? (int)$attributes['zIndex'] : 1),
+
+        // ONLY inline variables here. Math happens in the SCSS block.
+        'padding:var(--col-current-pad)',
+        'display:flex',
+        'flex-direction:column',
+        'justify-content:' . esc_attr($v_align),
+        'align-items:stretch',
+        'flex:' . esc_attr($flex_style),
+        'max-width:' . esc_attr($max_width_style),
+        'box-sizing:border-box',
+        'position:relative',
+        'overflow:hidden',
+        'min-width:0'
     );
 
+    $final_style = implode('; ', $styles) . '; ' . $border_css;
+
     $wrapper_attributes = get_block_wrapper_attributes( [
-        'style' => $style,
+        'class' => trim( $classes ),
+        'style' => $final_style,
     ] );
 
     $align_map = [
