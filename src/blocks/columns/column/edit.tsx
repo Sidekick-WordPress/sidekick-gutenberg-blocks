@@ -117,6 +117,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         position: 'relative',
         overflow: 'hidden',
         minWidth: 0,
+        height: 'auto',
         borderRadius: borderRadius || undefined,
         ...borderStyles,
     };
