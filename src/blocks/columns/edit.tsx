@@ -146,6 +146,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                     maxWidth: 'var(--current-max-width)',
                     marginLeft: innerMarginLeft,
                     marginRight: innerMarginRight,
+                    height: 'auto',
                     boxSizing: 'border-box',
                 } as CSSProperties
             },
