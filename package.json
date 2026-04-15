@@ -3,7 +3,7 @@
     "version": "a0.8.0",
     "description": "",
     "main": "index.js",
-    "author": "Josh Baker / Black Tie Digital",
+    "author": "Josh Baker",
     "license": "ISC",
     "scripts": {
         "start": "webpack --config webpack/dev.config.js",
