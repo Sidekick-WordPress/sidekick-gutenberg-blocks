@@ -17,6 +17,8 @@ export interface CoreColumnsAttributes {
     backgroundPosition: string;
     backgroundRepeat: string;
     backgroundFixedPosition: boolean;
+    backgroundVideo: string;
+    backgroundVideoOpacity: number;
     horizontalAlignment: string;
     desktopMaxHeight: number;
     mobileMaxHeight: number;
@@ -48,5 +50,7 @@ export const parentAttributes: Record<keyof CoreColumnsAttributes, BlockAttribut
     backgroundPosition: { type: 'string', default: 'center' },
     backgroundRepeat: { type: 'string', default: 'no-repeat' },
     backgroundFixedPosition: { type: 'boolean', default: false },
+    backgroundVideo: { type: 'string', default: '' },
+    backgroundVideoOpacity: { type: 'number', default: 100 },
     horizontalAlignment: { type: 'string', default: 'center' }
 };

@@ -8,6 +8,8 @@ return function( $attributes, $content ) {
     $width        = isset( $attributes['width'] ) ? (float) $attributes['width'] : 0;
     $mobile_order = isset( $attributes['mobileOrder'] ) ? (int) $attributes['mobileOrder'] : 0;
 
+    $bg_video      = isset( $attributes['backgroundVideo'] ) ? $attributes['backgroundVideo'] : '';
+    $video_opacity = isset( $attributes['backgroundVideoOpacity'] ) ? $attributes['backgroundVideoOpacity'] : 100;
     $bg_image      = isset( $attributes['backgroundImage'] ) ? $attributes['backgroundImage'] : '';
     $bg_color      = isset( $attributes['backgroundColor'] ) ? $attributes['backgroundColor'] : '';
     $bg_opacity    = isset( $attributes['backgroundImageOpacity'] ) ? $attributes['backgroundImageOpacity'] : 100;
@@ -138,7 +140,22 @@ return function( $attributes, $content ) {
             ></div>
         <?php endif; ?>
 
-        <?php if ( ! empty( $bg_image ) ) : ?>
+        <?php
+        // BACKGROUND VIDEO
+        if ( ! empty( $bg_video ) ) :
+            ?>
+            <video
+                class="u-full_cover_absolute"
+                autoplay muted loop playsinline
+                <?php if ( ! empty( $bg_image ) ) echo 'poster="' . esc_url( $bg_image ) . '"'; ?>
+                style="width: 100%; height: 100%; object-fit: cover; opacity: <?php echo esc_attr( $video_opacity / 100 ); ?>; pointer-events:none; z-index:0;"
+            >
+                <source src="<?php echo esc_url( $bg_video ); ?>" type="video/mp4">
+            </video>
+        <?php
+        // BACKGROUND IMAGE FALLBACK
+        elseif ( ! empty( $bg_image ) ) :
+            ?>
             <div
                 class="u-full_cover_absolute"
                 style="background-image:url('<?php echo esc_url( $bg_image ); ?>'); background-size:<?php echo esc_attr( $bg_size ); ?>; background-position:<?php echo esc_attr( $bg_position ); ?>; background-repeat:<?php echo esc_attr( $bg_repeat ); ?>; background-attachment:<?php echo esc_attr( $bg_attachment ); ?>; opacity:<?php echo esc_attr( $bg_opacity / 100 ); ?>; pointer-events:none; z-index:0;"

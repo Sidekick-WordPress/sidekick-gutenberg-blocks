@@ -1,5 +1,5 @@
 import {__} from '@wordpress/i18n';
-import {useBlockProps, useInnerBlocksProps, InspectorControls} from '@wordpress/block-editor';
+import {useBlockProps, useInnerBlocksProps, InspectorControls, MediaUpload, MediaUploadCheck} from '@wordpress/block-editor';
 import {useMemo, useState, useEffect} from '@wordpress/element';
 import {
     PanelBody,
@@ -55,6 +55,8 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             backgroundPosition,
             backgroundRepeat,
             backgroundFixedPosition,
+            backgroundVideo,
+            backgroundVideoOpacity,
             desktopMaxWidth,
             mobileMaxWidth,
             horizontalAlignment,
@@ -184,18 +186,11 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         </div>
 
                         <div style={{marginTop: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-                            <Button
-                                variant="tertiary"
-                                onClick={() => addColumn(0)}
-                            >
+                            <Button variant="tertiary" onClick={() => addColumn(0)}>
                                 {__('Add Auto Column', namespace)}
                             </Button>
 
-                            <Button
-                                variant="tertiary"
-                                onClick={removeLastColumn}
-                                disabled={(innerBlocks?.length || 0) <= 1}
-                            >
+                            <Button variant="tertiary" onClick={removeLastColumn} disabled={(innerBlocks?.length || 0) <= 1}>
                                 {__('Remove Last Column', namespace)}
                             </Button>
                         </div>
@@ -209,8 +204,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         label={__('Desktop Breakpoint (px)', namespace)}
                         value={desktopBreakpoint}
                         onChange={(v) => setAttributes({desktopBreakpoint: v})}
-                        min={300}
-                        max={1200}
+                        min={300} max={1200}
                     />
 
                     <SelectControl
@@ -243,101 +237,93 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                     onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
                 />
 
+                <PanelBody title={__('Background Video', namespace)} initialOpen={false}>
+                    <MediaUploadCheck>
+                        <MediaUpload
+                            onSelect={(media) => setAttributes({ backgroundVideo: media.url })}
+                            allowedTypes={['video']}
+                            value={backgroundVideo}
+                            render={({ open }) => (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {backgroundVideo ? (
+                                        <>
+                                            <video src={backgroundVideo} style={{ width: '100%', height: 'auto', borderRadius: '4px' }} muted />
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <Button variant="secondary" onClick={open} style={{ flex: 1, justifyContent: 'center' }}>
+                                                    {__('Replace', namespace)}
+                                                </Button>
+                                                <Button variant="secondary" isDestructive onClick={() => setAttributes({ backgroundVideo: '' })} style={{ flex: 1, justifyContent: 'center' }}>
+                                                    {__('Remove', namespace)}
+                                                </Button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <Button variant="primary" onClick={open} style={{ justifyContent: 'center' }}>
+                                            {__('Select Video', namespace)}
+                                        </Button>
+                                    )}
+                                    <p style={{ fontSize: '12px', opacity: 0.75, margin: 0 }}>
+                                        {__('If a Background Image is also set above, it will be used as the poster fallback while the video loads.', namespace)}
+                                    </p>
+                                </div>
+                            )}
+                        />
+                    </MediaUploadCheck>
+
+                    {backgroundVideo && (
+                        <div style={{ marginTop: '24px' }}>
+                            <RangeControl
+                                label={__('Video Opacity (%)', namespace)}
+                                value={backgroundVideoOpacity !== undefined ? backgroundVideoOpacity : 100}
+                                onChange={(val) => setAttributes({ backgroundVideoOpacity: val })}
+                                min={0}
+                                max={100}
+                            />
+                        </div>
+                    )}
+                </PanelBody>
+
                 <PanelBody title={__('Background Color', namespace)} initialOpen={false}>
-                    <ColorPalette
-                        colors={themeColors}
-                        value={backgroundColor}
-                        onChange={(v) => setAttributes({backgroundColor: v || ''})}
-                        clearable={true}
-                    />
+                    <ColorPalette colors={themeColors} value={backgroundColor} onChange={(v) => setAttributes({backgroundColor: v || ''})} clearable={true} />
                 </PanelBody>
 
                 <PanelBody title={__('Base Layout (All Screens)', namespace)} initialOpen={false}>
-                    <RangeControl
-                        label={__('Space Between Columns (px)', namespace)}
-                        className={`${namespace}-custom-control`}
-                        value={mobileGap}
-                        onChange={(v) => setAttributes({mobileGap: v !== undefined ? v : 0})}
-                        min={0}
-                        max={1200}
-                        allowReset={true}
-                    />
-
-                    <BoxControl
-                        label={__('Space Around Columns', namespace)}
-                        className={`${namespace}-custom-control`}
-                        values={safeMobilePadding}
-                        onChange={(v) => {
-                            const isReset = !v || Object.values(v).every(val => val === undefined || val === '');
-                            setAttributes({
-                                mobilePadding: isReset
-                                    ? {top: '0px', right: '0px', bottom: '0px', left: '0px'}
-                                    : v as PaddingAttribute
-                            });
-                        }}
-                    />
-
-                    <RangeControl
-                        label={__('Inner Content Max Width (px)', namespace)}
-                        className={`${namespace}-custom-control`}
-                        value={mobileMaxWidth}
-                        onChange={(v) => setAttributes({mobileMaxWidth: v})}
-                        min={0}
-                        max={2000}
-                        allowReset={true}
-                        help={__('Set to 0 for full width', namespace)}
-                    />
+                    <RangeControl label={__('Space Between Columns (px)', namespace)} className={`${namespace}-custom-control`} value={mobileGap} onChange={(v) => setAttributes({mobileGap: v !== undefined ? v : 0})} min={0} max={1200} allowReset={true} />
+                    <BoxControl label={__('Space Around Columns', namespace)} className={`${namespace}-custom-control`} values={safeMobilePadding} onChange={(v) => { const isReset = !v || Object.values(v).every(val => val === undefined || val === ''); setAttributes({ mobilePadding: isReset ? {top: '0px', right: '0px', bottom: '0px', left: '0px'} : v as PaddingAttribute }); }} />
+                    <RangeControl label={__('Inner Content Max Width (px)', namespace)} className={`${namespace}-custom-control`} value={mobileMaxWidth} onChange={(v) => setAttributes({mobileMaxWidth: v})} min={0} max={2000} allowReset={true} help={__('Set to 0 for full width', namespace)} />
                 </PanelBody>
 
                 <PanelBody title={__('Desktop Layout (Overrides)', namespace)} initialOpen={false}>
-                    <VersatileMessage
-                        msg={`Optional overrides for screens WIDER than ${desktopBreakpoint}px. If left blank, base layout values are used.`}
-                        type="warning"
-                        textAlign="center"
-                    />
-
-                    <RangeControl
-                        label={__('Space Between Columns (px)', namespace)}
-                        className={`${namespace}-custom-control`}
-                        value={gap}
-                        onChange={(v) => setAttributes({gap: v})}
-                        min={0}
-                        max={1200}
-                        allowReset={true}
-                    />
-
-                    <BoxControl
-                        label={__('Space Around Columns', namespace)}
-                        className={`${namespace}-custom-control`}
-                        values={safePadding}
-                        onChange={(v) => setAttributes({padding: v as PaddingAttribute})}
-                    />
-
-                    <RangeControl
-                        label={__('Inner Content Max Width (px)', namespace)}
-                        className={`${namespace}-custom-control`}
-                        value={desktopMaxWidth}
-                        onChange={(v) => setAttributes({desktopMaxWidth: v})}
-                        min={0}
-                        max={2000}
-                        allowReset={true}
-                        help={__('Set to 0 to inherit from Base Layout', namespace)}
-                    />
+                    <VersatileMessage msg={`Optional overrides for screens WIDER than ${desktopBreakpoint}px. If left blank, base layout values are used.`} type="warning" textAlign="center" />
+                    <RangeControl label={__('Space Between Columns (px)', namespace)} className={`${namespace}-custom-control`} value={gap} onChange={(v) => setAttributes({gap: v})} min={0} max={1200} allowReset={true} />
+                    <BoxControl label={__('Space Around Columns', namespace)} className={`${namespace}-custom-control`} values={safePadding} onChange={(v) => setAttributes({padding: v as PaddingAttribute})} />
+                    <RangeControl label={__('Inner Content Max Width (px)', namespace)} className={`${namespace}-custom-control`} value={desktopMaxWidth} onChange={(v) => setAttributes({desktopMaxWidth: v})} min={0} max={2000} allowReset={true} help={__('Set to 0 to inherit from Base Layout', namespace)} />
                 </PanelBody>
             </InspectorControls>
 
             <div {...blockProps}>
                 <ColumnsExtraLogic attributes={attributes} blockRef={blockElement}/>
 
-                {backgroundImage && (
+                {backgroundVideo ? (
+                    <video
+                        autoPlay muted loop playsInline
+                        poster={backgroundImage || undefined}
+                        style={{
+                            position: 'absolute',
+                            top: 0, right: 0, bottom: 0, left: 0,
+                            width: '100%', height: '100%', objectFit: 'cover',
+                            pointerEvents: 'none', zIndex: 0,
+                            opacity: (backgroundVideoOpacity !== undefined ? backgroundVideoOpacity : 100) / 100
+                        }}
+                    >
+                        <source src={backgroundVideo} type="video/mp4" />
+                    </video>
+                ) : backgroundImage ? (
                     <div
                         className="u-full_cover_absolute"
                         style={{
                             position: 'absolute',
-                            top: 0,
-                            right: 0,
-                            bottom: 0,
-                            left: 0,
+                            top: 0, right: 0, bottom: 0, left: 0,
                             backgroundImage: `url(${backgroundImage})`,
                             backgroundSize: backgroundSize || 'cover',
                             backgroundPosition: backgroundPosition || 'center',
@@ -348,7 +334,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             zIndex: 0
                         }}
                     />
-                )}
+                ) : null}
 
                 <div {...innerBlocksProps} />
             </div>

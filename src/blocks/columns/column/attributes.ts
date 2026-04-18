@@ -14,6 +14,8 @@ export interface ColumnAttributes {
     backgroundPosition: string;
     backgroundRepeat: string;
     backgroundFixedPosition: boolean;
+    backgroundVideo: string;
+    backgroundVideoOpacity: number;
     innerMaxWidth: string;
     contentHAlign: string;
     border: Record<string, any>;
@@ -50,6 +52,8 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
     backgroundPosition: { type: 'string', default: 'center' },
     backgroundRepeat: { type: 'string', default: 'no-repeat' },
     backgroundFixedPosition: { type: 'boolean', default: false },
+    backgroundVideo: { type: 'string', default: '' },
+    backgroundVideoOpacity: { type: 'number', default: 100 },
     innerMaxWidth: { type: 'string', default: '' },
     contentHAlign: { type: 'string', default: 'left' },
     border: { type: 'object' },

@@ -1,6 +1,6 @@
 import {__} from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
-import {useBlockProps, useInnerBlocksProps, InspectorControls} from '@wordpress/block-editor';
+import {useBlockProps, useInnerBlocksProps, InspectorControls, MediaUpload, MediaUploadCheck} from '@wordpress/block-editor';
 import {
     PanelBody,
     SelectControl,
@@ -8,7 +8,8 @@ import {
     BoxControl,
     BorderBoxControl,
     RangeControl,
-    TextControl
+    TextControl,
+    Button
 } from '@wordpress/components';
 import {BlockEditProps} from '@wordpress/blocks';
 import type {CSSProperties} from 'react';
@@ -27,26 +28,14 @@ const getBorderStyles = (borderAttr: any): CSSProperties => {
     if (!borderAttr) return {};
 
     if (borderAttr.width || borderAttr.color || borderAttr.style) {
-        return {
-            borderWidth: borderAttr.width,
-            borderStyle: borderAttr.style,
-            borderColor: borderAttr.color,
-        };
+        return { borderWidth: borderAttr.width, borderStyle: borderAttr.style, borderColor: borderAttr.color };
     }
 
     return {
-        borderTopWidth: borderAttr.top?.width,
-        borderTopStyle: borderAttr.top?.style,
-        borderTopColor: borderAttr.top?.color,
-        borderRightWidth: borderAttr.right?.width,
-        borderRightStyle: borderAttr.right?.style,
-        borderRightColor: borderAttr.right?.color,
-        borderBottomWidth: borderAttr.bottom?.width,
-        borderBottomStyle: borderAttr.bottom?.style,
-        borderBottomColor: borderAttr.bottom?.color,
-        borderLeftWidth: borderAttr.left?.width,
-        borderLeftStyle: borderAttr.left?.style,
-        borderLeftColor: borderAttr.left?.color,
+        borderTopWidth: borderAttr.top?.width, borderTopStyle: borderAttr.top?.style, borderTopColor: borderAttr.top?.color,
+        borderRightWidth: borderAttr.right?.width, borderRightStyle: borderAttr.right?.style, borderRightColor: borderAttr.right?.color,
+        borderBottomWidth: borderAttr.bottom?.width, borderBottomStyle: borderAttr.bottom?.style, borderBottomColor: borderAttr.bottom?.color,
+        borderLeftWidth: borderAttr.left?.width, borderLeftStyle: borderAttr.left?.style, borderLeftColor: borderAttr.left?.color,
     };
 };
 
@@ -55,6 +44,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             width, padding, mobilePadding, vAlign, mobileOrder,
             backgroundImage, backgroundColor, backgroundImageOpacity,
             backgroundSize, backgroundPosition, backgroundRepeat, backgroundFixedPosition,
+            backgroundVideo, backgroundVideoOpacity,
             innerMaxWidth, contentHAlign, border, borderRadius,
 
             // Advanced Layout
@@ -86,20 +76,17 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             deskExtendTop || deskExtendBottom || deskTranslateX || deskTranslateY || zIndex !== 1
         );
 
-    // ONLY pass variables inline. The SCSS does the actual CSS manipulation (margin/transform).
     const customStyles: Record<string, any> = {
         '--col-pad-desktop': cssPadDesktop,
         '--col-pad-mobile': cssPadMobile,
         '--col-current-pad': 'var(--col-pad-desktop)',
         '--mobile-order': mobileOrder,
 
-        // Base Layout Vars (Applies to all)
         '--base-ext-top': extendTop || '0px',
         '--base-ext-bottom': extendBottom || '0px',
         '--base-trans-x': translateX || '0px',
         '--base-trans-y': translateY || '0px',
 
-        // Set Current to default to Base map
         '--curr-ext-top': 'var(--base-ext-top)',
         '--curr-ext-bottom': 'var(--base-ext-bottom)',
         '--curr-trans-x': 'var(--base-trans-x)',
@@ -107,22 +94,15 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         '--curr-z-index': zIndex,
 
         padding: 'var(--col-current-pad)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: vAlign,
-        alignItems: 'stretch',
-        flex: flexValue,
-        maxWidth: maxWidthValue,
-        boxSizing: 'border-box',
-        position: 'relative',
-        overflow: 'hidden',
-        minWidth: 0,
-        height: 'auto',
+        display: 'flex', flexDirection: 'column',
+        justifyContent: vAlign, alignItems: 'stretch',
+        flex: flexValue, maxWidth: maxWidthValue,
+        boxSizing: 'border-box', position: 'relative',
+        overflow: 'hidden', minWidth: 0, height: 'auto',
         borderRadius: borderRadius || undefined,
         ...borderStyles,
     };
 
-    // Inject Desktop Overrides ONLY if they have values
     if (deskExtendTop) customStyles['--desk-ext-top'] = deskExtendTop;
     if (deskExtendBottom) customStyles['--desk-ext-bottom'] = deskExtendBottom;
     if (deskTranslateX) customStyles['--desk-trans-x'] = deskTranslateX;
@@ -139,59 +119,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         <>
             <InspectorControls>
                 <PanelBody title={__('Column Settings', namespace)}>
-                    <RangeControl
-                        label={__('Width (%)', namespace)}
-                        value={width}
-                        onChange={(v) => setAttributes({width: v !== undefined ? v : 0})}
-                        min={0} max={100}
-                        allowReset={true}
-                        help={__('Set to 0 to automatically share available space.', namespace)}
-                    />
-
-                    <SelectControl
-                        label={__('Vertical Position', namespace)}
-                        className={`${namespace}-custom-control`}
-                        value={vAlign as any}
-                        options={[
-                            {label: 'Top', value: 'flex-start'},
-                            {label: 'Middle', value: 'center'},
-                            {label: 'Bottom', value: 'flex-end'},
-                        ]}
-                        onChange={(v) => setAttributes({vAlign: v})}
-                    />
-
-                    <BorderBoxControl
-                        label={__('Borders', namespace)}
-                        colors={themeColors}
-                        value={border}
-                        onChange={(v) => setAttributes({ border: v })}
-                    />
-
-                    <TextControl
-                        label={__('Border Radius', namespace)}
-                        value={borderRadius}
-                        onChange={(v) => setAttributes({borderRadius: v})}
-                        help={__('e.g., 10px, 50%, or 10px 10px 0 0', namespace)}
-                    />
-
-                    <TextControl
-                        label={__('Inner Content Max Width', namespace)}
-                        value={innerMaxWidth}
-                        onChange={(v) => setAttributes({innerMaxWidth: v})}
-                        help={__('E.g., 500px, 80%, etc. Leave blank for default full width.', namespace)}
-                    />
-
-                    <SelectControl
-                        label={__('Inner Content Align', namespace)}
-                        className={`${namespace}-custom-control`}
-                        value={contentHAlign as any}
-                        options={[
-                            {label: 'Left', value: 'left'},
-                            {label: 'Center', value: 'center'},
-                            {label: 'Right', value: 'right'},
-                        ]}
-                        onChange={(v) => setAttributes({contentHAlign: v})}
-                    />
+                    <RangeControl label={__('Width (%)', namespace)} value={width} onChange={(v) => setAttributes({width: v !== undefined ? v : 0})} min={0} max={100} allowReset={true} help={__('Set to 0 to automatically share available space.', namespace)} />
+                    <SelectControl label={__('Vertical Position', namespace)} className={`${namespace}-custom-control`} value={vAlign as any} options={[{label: 'Top', value: 'flex-start'}, {label: 'Middle', value: 'center'}, {label: 'Bottom', value: 'flex-end'} ]} onChange={(v) => setAttributes({vAlign: v})} />
+                    <BorderBoxControl label={__('Borders', namespace)} colors={themeColors} value={border} onChange={(v) => setAttributes({ border: v })} />
+                    <TextControl label={__('Border Radius', namespace)} value={borderRadius} onChange={(v) => setAttributes({borderRadius: v})} help={__('e.g., 10px, 50%, or 10px 10px 0 0', namespace)} />
+                    <TextControl label={__('Inner Content Max Width', namespace)} value={innerMaxWidth} onChange={(v) => setAttributes({innerMaxWidth: v})} help={__('E.g., 500px, 80%, etc. Leave blank for default full width.', namespace)} />
+                    <SelectControl label={__('Inner Content Align', namespace)} className={`${namespace}-custom-control`} value={contentHAlign as any} options={[{label: 'Left', value: 'left'}, {label: 'Center', value: 'center'}, {label: 'Right', value: 'right'} ]} onChange={(v) => setAttributes({contentHAlign: v})} />
                 </PanelBody>
 
                 <ControlsMedia
@@ -211,51 +144,73 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                     onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
                 />
 
+                <PanelBody title={__('Column Background Video', namespace)} initialOpen={false}>
+                    <MediaUploadCheck>
+                        <MediaUpload
+                            onSelect={(media) => setAttributes({ backgroundVideo: media.url })}
+                            allowedTypes={['video']}
+                            value={backgroundVideo}
+                            render={({ open }) => (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {backgroundVideo ? (
+                                        <>
+                                            <video src={backgroundVideo} style={{ width: '100%', height: 'auto', borderRadius: '4px' }} muted />
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <Button variant="secondary" onClick={open} style={{ flex: 1, justifyContent: 'center' }}>
+                                                    {__('Replace', namespace)}
+                                                </Button>
+                                                <Button variant="secondary" isDestructive onClick={() => setAttributes({ backgroundVideo: '' })} style={{ flex: 1, justifyContent: 'center' }}>
+                                                    {__('Remove', namespace)}
+                                                </Button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <Button variant="primary" onClick={open} style={{ justifyContent: 'center' }}>
+                                            {__('Select Video', namespace)}
+                                        </Button>
+                                    )}
+                                    <p style={{ fontSize: '12px', opacity: 0.75, margin: 0 }}>
+                                        {__('If a Background Image is also set above, it will be used as the poster fallback while the video loads.', namespace)}
+                                    </p>
+                                </div>
+                            )}
+                        />
+                    </MediaUploadCheck>
+
+                    {backgroundVideo && (
+                        <div style={{ marginTop: '24px' }}>
+                            <RangeControl
+                                label={__('Video Opacity (%)', namespace)}
+                                value={backgroundVideoOpacity !== undefined ? backgroundVideoOpacity : 100}
+                                onChange={(val) => setAttributes({ backgroundVideoOpacity: val })}
+                                min={0}
+                                max={100}
+                            />
+                        </div>
+                    )}
+                </PanelBody>
+
                 <PanelBody title={__('Column Background Color', namespace)} initialOpen={false}>
-                    <ColorPalette
-                        colors={themeColors}
-                        value={backgroundColor}
-                        onChange={(v) => setAttributes({backgroundColor: v || ''})}
-                        clearable={true}
-                    />
+                    <ColorPalette colors={themeColors} value={backgroundColor} onChange={(v) => setAttributes({backgroundColor: v || ''})} clearable={true} />
                 </PanelBody>
 
                 <PanelBody title={__('Advanced Layout & Overlaps', namespace)} initialOpen={false}>
-                    <VersatileMessage
-                        msg="Extend makes the column taller, bleeding out while keeping flow. Translate visually shifts the column."
-                        type="normal"
-                    />
-
-                    <RangeControl
-                        label={__('Z-Index', namespace)}
-                        value={zIndex}
-                        onChange={(v) => setAttributes({zIndex: v !== undefined ? v : 1})}
-                        min={0} max={100}
-                    />
-
-                    <div style={{ marginTop: '24px', marginBottom: '8px', fontWeight: 600 }}>
-                        {__('Base Layout (All Screens)', namespace)}
-                    </div>
-
+                    <VersatileMessage msg="Extend makes the column taller, bleeding out while keeping flow. Translate visually shifts the column." type="normal" />
+                    <RangeControl label={__('Z-Index', namespace)} value={zIndex} onChange={(v) => setAttributes({zIndex: v !== undefined ? v : 1})} min={0} max={100} />
+                    <div style={{ marginTop: '24px', marginBottom: '8px', fontWeight: 600 }}>{__('Base Layout (All Screens)', namespace)}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                         <TextControl label={__('Extend Top', namespace)} value={extendTop} onChange={(v) => setAttributes({extendTop: v})} />
                         <TextControl label={__('Extend Bottom', namespace)} value={extendBottom} onChange={(v) => setAttributes({extendBottom: v})} />
                     </div>
-
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                         <TextControl label={__('Translate X', namespace)} value={translateX} onChange={(v) => setAttributes({translateX: v})} />
                         <TextControl label={__('Translate Y', namespace)} value={translateY} onChange={(v) => setAttributes({translateY: v})} />
                     </div>
-
-                    <div style={{ marginTop: '24px', marginBottom: '8px', fontWeight: 600 }}>
-                        {__(`Desktop Overrides (> ${desktopBreakpoint}px)`, namespace)}
-                    </div>
-
+                    <div style={{ marginTop: '24px', marginBottom: '8px', fontWeight: 600 }}>{__(`Desktop Overrides (> ${desktopBreakpoint}px)`, namespace)}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                         <TextControl label={__('Extend Top', namespace)} value={deskExtendTop} onChange={(v) => setAttributes({deskExtendTop: v})} />
                         <TextControl label={__('Extend Bottom', namespace)} value={deskExtendBottom} onChange={(v) => setAttributes({deskExtendBottom: v})} />
                     </div>
-
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                         <TextControl label={__('Translate X', namespace)} value={deskTranslateX} onChange={(v) => setAttributes({deskTranslateX: v})} />
                         <TextControl label={__('Translate Y', namespace)} value={deskTranslateY} onChange={(v) => setAttributes({deskTranslateY: v})} />
@@ -263,47 +218,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                 </PanelBody>
 
                 <PanelBody title={__('Base Layout (All Screens)', namespace)} initialOpen={false}>
-                    <BoxControl
-                        label={__('Column Padding', namespace)}
-                        values={safeMobilePadding}
-                        onChange={(v) => {
-                            const isReset = !v || Object.keys(v).length === 0 || Object.values(v).every(val => !val);
-
-                            if (isReset) {
-                                setAttributes({
-                                    mobilePadding: {top: '0px', right: '0px', bottom: '0px', left: '0px'}
-                                });
-                            } else {
-                                setAttributes({mobilePadding: v as PaddingAttribute});
-                            }
-                        }}
-                    />
-
-                    <RangeControl
-                        label={__('Mobile Flex Order', namespace)}
-                        value={mobileOrder}
-                        onChange={(v) => setAttributes({mobileOrder: v !== undefined ? v : 0})}
-                        min={-10} max={10}
-                        allowReset={true}
-                        help={__('Change the display order on mobile. Lower numbers appear first. 0 is default.', namespace)}
-                    />
+                    <BoxControl label={__('Column Padding', namespace)} values={safeMobilePadding} onChange={(v) => { const isReset = !v || Object.keys(v).length === 0 || Object.values(v).every(val => !val); if (isReset) { setAttributes({ mobilePadding: {top: '0px', right: '0px', bottom: '0px', left: '0px'} }); } else { setAttributes({mobilePadding: v as PaddingAttribute}); } }} />
+                    <RangeControl label={__('Mobile Flex Order', namespace)} value={mobileOrder} onChange={(v) => setAttributes({mobileOrder: v !== undefined ? v : 0})} min={-10} max={10} allowReset={true} help={__('Change the display order on mobile. Lower numbers appear first. 0 is default.', namespace)} />
                 </PanelBody>
 
                 <PanelBody title={__('Desktop Overrides', namespace)} initialOpen={false}>
-                    <VersatileMessage
-                        msg={`Optional overrides for screens WIDER than ${desktopBreakpoint}px. If left blank, base layout values are used.`}
-                        type="normal" textAlign="center"/>
-
-                    <BoxControl
-                        label={__('Column Padding', namespace)}
-                        values={safePadding}
-                        onChange={(v) => {
-                            const isReset = !v || Object.keys(v).length === 0 || Object.values(v).every(val => !val);
-                            setAttributes({
-                                padding: isReset ? undefined : v as PaddingAttribute
-                            });
-                        }}
-                    />
+                    <VersatileMessage msg={`Optional overrides for screens WIDER than ${desktopBreakpoint}px. If left blank, base layout values are used.`} type="normal" textAlign="center"/>
+                    <BoxControl label={__('Column Padding', namespace)} values={safePadding} onChange={(v) => { const isReset = !v || Object.keys(v).length === 0 || Object.values(v).every(val => !val); setAttributes({ padding: isReset ? undefined : v as PaddingAttribute }); }} />
                 </PanelBody>
             </InspectorControls>
 
@@ -311,42 +232,40 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                 {backgroundColor && (
                     <div
                         className="u-full_cover_absolute"
-                        style={{
-                            position: 'absolute',
-                            inset: 0,
-                            backgroundColor,
-                            pointerEvents: 'none',
-                            zIndex: 0,
-                        }}
+                        style={{ position: 'absolute', inset: 0, backgroundColor, pointerEvents: 'none', zIndex: 0 }}
                     />
                 )}
 
-                {backgroundImage && (
+                {backgroundVideo ? (
+                    <video
+                        autoPlay muted loop playsInline
+                        poster={backgroundImage || undefined}
+                        style={{
+                            position: 'absolute', inset: 0,
+                            width: '100%', height: '100%', objectFit: 'cover',
+                            pointerEvents: 'none', zIndex: 0,
+                            opacity: (backgroundVideoOpacity !== undefined ? backgroundVideoOpacity : 100) / 100,
+                        }}
+                    >
+                        <source src={backgroundVideo} type="video/mp4" />
+                    </video>
+                ) : backgroundImage ? (
                     <div
                         className="u-full_cover_absolute"
                         style={{
-                            position: 'absolute',
-                            inset: 0,
+                            position: 'absolute', inset: 0,
                             backgroundImage: `url(${backgroundImage})`,
                             backgroundSize: backgroundSize || 'cover',
                             backgroundPosition: backgroundPosition || 'center',
                             backgroundRepeat: backgroundRepeat || 'no-repeat',
                             backgroundAttachment: backgroundFixedPosition ? 'fixed' : 'scroll',
                             opacity: (backgroundImageOpacity ?? 100) / 100,
-                            pointerEvents: 'none',
-                            zIndex: 0,
+                            pointerEvents: 'none', zIndex: 0,
                         }}
                     />
-                )}
+                ) : null}
 
-                <div style={{
-                    position: 'relative',
-                    zIndex: 1,
-                    width: '100%',
-                    minWidth: '0',
-                    maxWidth: innerMaxWidth || undefined,
-                    alignSelf: innerAlignSelf
-                }}>
+                <div style={{ position: 'relative', zIndex: 1, width: '100%', minWidth: '0', maxWidth: innerMaxWidth || undefined, alignSelf: innerAlignSelf }}>
                     <div {...innerBlocksProps} />
                 </div>
             </div>

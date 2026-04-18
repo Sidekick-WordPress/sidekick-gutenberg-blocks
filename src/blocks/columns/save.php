@@ -31,6 +31,8 @@ return function( $attributes, $content ) {
     $has_desk_max_height = ! empty( $attributes['desktopMaxHeight'] );
 
     // Background Attributes
+    $bg_video       = isset( $attributes['backgroundVideo'] ) ? $attributes['backgroundVideo'] : '';
+    $video_opacity  = isset( $attributes['backgroundVideoOpacity'] ) ? $attributes['backgroundVideoOpacity'] : 100;
     $bg_image       = isset( $attributes['backgroundImage'] ) ? $attributes['backgroundImage'] : '';
     $bg_color       = isset( $attributes['backgroundColor'] ) ? $attributes['backgroundColor'] : '';
     $bg_opacity     = isset( $attributes['backgroundImageOpacity'] ) ? $attributes['backgroundImageOpacity'] : 100;
@@ -44,13 +46,13 @@ return function( $attributes, $content ) {
     $css_gap_mobile = $mobile_gap . 'px';
     $css_pad_mobile = sgb_get_padding_str( $mobile_padding, '0px' );
     $css_max_mobile = $mobile_max === 0 ? 'none' : $mobile_max . 'px';
-    $css_max_height_mobile = $mobile_max_height === 0 ? 'none' : $mobile_max_height . 'px'; // NEW
+    $css_max_height_mobile = $mobile_max_height === 0 ? 'none' : $mobile_max_height . 'px';
 
     // Calculate Desktop CSS Variables (Fall back to mobile if unset)
     $css_gap_desktop = $has_desk_gap ? $attributes['gap'] . 'px' : 'var(--gap-mobile)';
     $css_pad_desktop = $has_desk_pad ? sgb_get_padding_str( $attributes['padding'], '0px' ) : 'var(--pad-mobile)';
     $css_max_desktop = $has_desk_max ? $attributes['desktopMaxWidth'] . 'px' : 'var(--max-width-mobile)';
-    $css_max_height_desktop = $has_desk_max_height ? $attributes['desktopMaxHeight'] . 'px' : 'var(--max-height-mobile)'; // NEW
+    $css_max_height_desktop = $has_desk_max_height ? $attributes['desktopMaxHeight'] . 'px' : 'var(--max-height-mobile)';
 
     // Alignment Margins
     $margin_left  = $align === 'left' ? '0' : 'auto';
@@ -85,13 +87,27 @@ return function( $attributes, $content ) {
     );
 
     $encoded_attributes = htmlspecialchars( wp_json_encode( $attributes ), ENT_QUOTES, 'UTF-8' );
-
     ob_start();
     ?>
     <div <?php echo $wrapper_attributes; ?>>
         <div data-attributes="<?php echo $encoded_attributes; ?>" class="<?php echo esc_attr( $namespace ); ?>-block__mount"></div>
 
-        <?php if ( ! empty( $bg_image ) ) : ?>
+        <?php
+        // BACKGROUND VIDEO
+        if ( ! empty( $bg_video ) ) :
+            ?>
+            <video
+                class="<?php echo esc_attr( $namespace ); ?>-background-video"
+                autoplay muted loop playsinline
+                <?php if ( ! empty( $bg_image ) ) echo 'poster="' . esc_url( $bg_image ) . '"'; ?>
+                style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; z-index: 0; opacity: <?php echo esc_attr( $video_opacity / 100 ); ?>;"
+            >
+                <source src="<?php echo esc_url( $bg_video ); ?>" type="video/mp4">
+            </video>
+        <?php
+        // BACKGROUND IMAGE FALLBACK
+        elseif ( ! empty( $bg_image ) ) :
+            ?>
             <div
                 class="<?php echo esc_attr( $namespace ); ?>-background-layer"
                 style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; background-image: url('<?php echo esc_url( $bg_image ); ?>'); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: <?php echo esc_attr( $bg_position ); ?>; background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
