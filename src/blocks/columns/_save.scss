@@ -1,47 +1,139 @@
 @use "../../styles/defaults/namespace" as *;
 
-// Frontend Execution
-.wp-block-#{$namespace}-column.has-advanced-layout {
-    height: auto !important;
-    margin-top: calc(var(--curr-ext-top, 0px) * -1) !important;
-    margin-bottom: calc(var(--curr-ext-bottom, 0px) * -1) !important;
-    transform: translate(var(--curr-trans-x, 0px), var(--curr-trans-y, 0px)) !important;
-    z-index: var(--curr-z-index, 1) !important;
+// Helper to calc width/flex based on a percentage variable
+@mixin col-width($w-var) {
+    flex: 0 0 calc(var(#{$w-var}) * 1% - (var(--current-gap) * (100 - var(#{$w-var})) / 100)) !important;
+    max-width: calc(var(#{$w-var}) * 1% - (var(--current-gap) * (100 - var(#{$w-var})) / 100)) !important;
+}
+
+// Global Frontend & Editor Column overrides
+.wp-block-#{$namespace}-column {
+    &.has-advanced-layout {
+        height: auto !important;
+        margin-top: calc(var(--curr-ext-top, 0px) * -1) !important;
+        margin-bottom: calc(var(--curr-ext-bottom, 0px) * -1) !important;
+        transform: translate(var(--curr-trans-x, 0px), var(--curr-trans-y, 0px)) !important;
+        z-index: var(--curr-z-index, 1) !important;
+    }
 }
 
 .wp-block-#{$namespace}-columns {
+    // DEFAULT POINTERS (Desktop/Base fallback)
+    --current-gap: var(--gap-desktop, var(--gap-mobile));
+    --current-pad: var(--pad-desktop, var(--pad-mobile));
+    --current-max-width: var(--max-width-desktop, var(--max-width-mobile));
+    --current-max-height: var(--max-height-desktop, var(--max-height-mobile));
+    --current-margin-left: var(--margin-l-desktop, var(--margin-l-mobile));
+    --current-margin-right: var(--margin-r-desktop, var(--margin-r-mobile));
+    --current-bg-image: var(--bg-image-desktop, var(--bg-image-mobile));
+    --current-bg-color: var(--bg-color-desktop, var(--bg-color-mobile));
+
+    // COLUMN DEFAULT POINTERS
+    .wp-block-#{$namespace}-column,
+    .block-editor-block-list__block[data-type="#{$namespace}/column"] {
+        @include col-width(--col-w-desktop);
+        --col-current-pad: var(--col-pad-desktop, var(--col-pad-mobile));
+        --current-valign: var(--col-valign-desktop, var(--col-valign-mobile));
+        --current-inner-max: var(--col-inner-max-desktop, var(--col-inner-max-mobile));
+        --current-halign: var(--col-halign-desktop, var(--col-halign-mobile));
+        --current-bg-image: var(--col-bg-image-desktop, var(--col-bg-image-mobile));
+        --current-bg-color: var(--col-bg-color-desktop, var(--col-bg-color-mobile));
+        
+        --curr-ext-top: var(--desk-ext-top, var(--base-ext-top));
+        --curr-ext-bottom: var(--desk-ext-bottom, var(--base-ext-bottom));
+        --curr-trans-x: var(--desk-trans-x, var(--base-trans-x));
+        --curr-trans-y: var(--desk-trans-y, var(--base-trans-y));
+    }
+
+    // EDITOR ONLY: These classes are toggled by ResizeObserver in ColumnsExtraLogic.tsx
+    
+    // BASE / MOBILE
     &.is-mobile-layout {
         --current-gap: var(--gap-mobile) !important;
         --current-pad: var(--pad-mobile) !important;
         --current-max-width: var(--max-width-mobile) !important;
+        --current-max-height: var(--max-height-mobile) !important;
+        --current-margin-left: var(--margin-l-mobile) !important;
+        --current-margin-right: var(--margin-r-mobile) !important;
+        --current-bg-image: var(--bg-image-mobile) !important;
+        --current-bg-color: var(--bg-color-mobile) !important;
 
-        .wp-block-#{$namespace}-column {
+        .wp-block-#{$namespace}-column,
+        .block-editor-block-list__block[data-type="#{$namespace}/column"] {
+            @include col-width(--col-w-mobile);
             --col-current-pad: var(--col-pad-mobile) !important;
+            --current-valign: var(--col-valign-mobile) !important;
+            --current-inner-max: var(--col-inner-max-mobile) !important;
+            --current-halign: var(--col-halign-mobile) !important;
+            --current-bg-image: var(--col-bg-image-mobile) !important;
+            --current-bg-color: var(--col-bg-color-mobile) !important;
+            
+            --curr-ext-top: var(--base-ext-top) !important;
+            --curr-ext-bottom: var(--base-ext-bottom) !important;
+            --curr-trans-x: var(--base-trans-x) !important;
+            --curr-trans-y: var(--base-trans-y) !important;
+            
             order: var(--mobile-order) !important;
-        }
-
-        .#{$namespace}-columns-inner {
-            flex-direction: column !important;
-            gap: var(--gap-mobile) !important;
-
-            & > * {
-                flex: 1 1 100% !important;
-                max-width: 100% !important;
-                width: 100% !important;
-            }
         }
     }
 
-    // THE BULLETPROOF OVERRIDE CASCADE
-    &.is-desktop-layout {
-        // Target Frontend
+    // TABLET
+    &.is-tablet-layout {
+        --current-gap: var(--gap-tablet) !important;
+        --current-pad: var(--pad-tablet) !important;
+        --current-max-width: var(--max-width-tablet) !important;
+        --current-max-height: var(--max-height-tablet) !important;
+        --current-margin-left: var(--margin-l-tablet) !important;
+        --current-margin-right: var(--margin-r-tablet) !important;
+        --current-bg-image: var(--bg-image-tablet) !important;
+        --current-bg-color: var(--bg-color-tablet) !important;
+
         .wp-block-#{$namespace}-column,
-            // Target Editor (Prevents jump on click)
         .block-editor-block-list__block[data-type="#{$namespace}/column"] {
-            --curr-ext-top: var(--desk-ext-top, var(--base-ext-top)) !important;
-            --curr-ext-bottom: var(--desk-ext-bottom, var(--base-ext-bottom)) !important;
-            --curr-trans-x: var(--desk-trans-x, var(--base-trans-x)) !important;
-            --curr-trans-y: var(--desk-trans-y, var(--base-trans-y)) !important;
+            @include col-width(--col-w-tablet);
+            --col-current-pad: var(--col-pad-tablet) !important;
+            --current-valign: var(--col-valign-tablet) !important;
+            --current-inner-max: var(--col-inner-max-tablet) !important;
+            --current-halign: var(--col-halign-tablet) !important;
+            --current-bg-image: var(--col-bg-image-tablet) !important;
+            --current-bg-color: var(--col-bg-color-tablet) !important;
+
+            --curr-ext-top: var(--tab-ext-top) !important;
+            --curr-ext-bottom: var(--tab-ext-bottom) !important;
+            --curr-trans-x: var(--tab-trans-x) !important;
+            --curr-trans-y: var(--tab-trans-y) !important;
         }
+    }
+
+    // DESKTOP
+    &.is-desktop-layout {
+        --current-gap: var(--gap-desktop) !important;
+        --current-pad: var(--pad-desktop) !important;
+        --current-max-width: var(--max-width-desktop) !important;
+        --current-max-height: var(--max-height-desktop) !important;
+        --current-margin-left: var(--margin-l-desktop) !important;
+        --current-margin-right: var(--margin-r-desktop) !important;
+        --current-bg-image: var(--bg-image-desktop) !important;
+        --current-bg-color: var(--bg-color-desktop) !important;
+
+        .wp-block-#{$namespace}-column,
+        .block-editor-block-list__block[data-type="#{$namespace}/column"] {
+            @include col-width(--col-w-desktop);
+            --col-current-pad: var(--col-pad-desktop) !important;
+            --current-valign: var(--col-valign-desktop) !important;
+            --current-inner-max: var(--col-inner-max-desktop) !important;
+            --current-halign: var(--col-halign-desktop) !important;
+            --current-bg-image: var(--col-bg-image-desktop) !important;
+            --current-bg-color: var(--col-bg-color-desktop) !important;
+
+            --curr-ext-top: var(--desk-ext-top) !important;
+            --curr-ext-bottom: var(--desk-ext-bottom) !important;
+            --curr-trans-x: var(--desk-trans-x) !important;
+            --curr-trans-y: var(--desk-trans-y) !important;
+        }
+    }
+
+    .#{$namespace}-columns-inner {
+        gap: var(--current-gap) !important;
     }
 }

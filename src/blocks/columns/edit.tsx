@@ -1,5 +1,5 @@
 import {__} from '@wordpress/i18n';
-import {useBlockProps, useInnerBlocksProps, InspectorControls, MediaUpload, MediaUploadCheck} from '@wordpress/block-editor';
+import {useBlockProps, useInnerBlocksProps, InspectorControls} from '@wordpress/block-editor';
 import {useMemo, useState, useEffect} from '@wordpress/element';
 import {
     PanelBody,
@@ -7,7 +7,8 @@ import {
     BoxControl,
     ColorPalette,
     SelectControl,
-    RangeControl
+    RangeControl,
+    TabPanel
 } from '@wordpress/components';
 import {useSelect, useDispatch} from '@wordpress/data';
 import {createBlock, BlockEditProps} from '@wordpress/blocks';
@@ -43,25 +44,41 @@ const COLUMN_PRESETS = [
 export default function Edit({attributes, setAttributes, clientId, className}: BlockEditProps<CoreColumnsAttributes>) {
     const {
             columns,
-            gap,
-            padding,
+            tabletBreakpoint,
+            desktopBreakpoint,
+
+            // Base Layout
             mobileGap,
             mobilePadding,
-            desktopBreakpoint,
+            mobileMaxWidth,
+            mobileMaxHeight,
+            horizontalAlignment,
             backgroundImage,
             backgroundColor,
+
+            // Tablet Layout
+            tabletGap,
+            tabletPadding,
+            tabletMaxWidth,
+            tabletMaxHeight,
+            tabletHorizontalAlignment,
+            tabletBackgroundImage,
+            tabletBackgroundColor,
+
+            // Desktop Layout
+            gap, // Desktop Gap
+            padding, // Desktop Padding
+            desktopMaxWidth,
+            desktopMaxHeight,
+            desktopHorizontalAlignment,
+            desktopBackgroundImage,
+            desktopBackgroundColor,
+
             backgroundImageOpacity,
             backgroundSize,
             backgroundPosition,
             backgroundRepeat,
-            backgroundFixedPosition,
-            backgroundVideo,
-            backgroundVideoOpacity,
-            desktopMaxWidth,
-            mobileMaxWidth,
-            horizontalAlignment,
-            desktopMaxHeight,
-            mobileMaxHeight
+            backgroundFixedPosition
         } = attributes,
         {replaceInnerBlocks} = useDispatch('core/block-editor'),
         {getBlocks, themeColors, innerBlocks} = useSelect((select: any) => {
@@ -73,26 +90,64 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             };
         }, [clientId]),
         [blockElement, setBlockElement] = useState<HTMLElement | null>(null),
-        safePadding = parsePadding(padding),
-        safeMobilePadding = parsePadding(mobilePadding),
+
+        // Detection Logic
+        hasTabletGap = tabletGap !== undefined && (tabletGap as any) !== '',
+        hasTabletPadding = tabletPadding && Object.values(tabletPadding).some(v => v !== undefined && v !== ''),
+        hasTabletMaxWidth = tabletMaxWidth !== undefined && tabletMaxWidth !== 0 && (tabletMaxWidth as any) !== '',
+        hasTabletMaxHeight = tabletMaxHeight !== undefined && tabletMaxHeight !== 0 && (tabletMaxHeight as any) !== '',
+        hasTabletHAlign = !!tabletHorizontalAlignment,
+        hasTabletBgImage = !!tabletBackgroundImage,
+        hasTabletBgColor = !!tabletBackgroundColor,
+
         hasDesktopGap = gap !== undefined && (gap as any) !== '',
-        hasDesktopMaxWidth = desktopMaxWidth !== undefined && desktopMaxWidth !== 0 && (desktopMaxWidth as any) !== '',
         hasDesktopPadding = padding && Object.values(padding).some(v => v !== undefined && v !== ''),
+        hasDesktopMaxWidth = desktopMaxWidth !== undefined && desktopMaxWidth !== 0 && (desktopMaxWidth as any) !== '',
         hasDesktopMaxHeight = desktopMaxHeight !== undefined && desktopMaxHeight !== 0 && (desktopMaxHeight as any) !== '',
-        cssGapMobile = mobileGap !== undefined ? `${mobileGap}px` : '0px',
-        cssGapDesktop = hasDesktopGap ? `${gap}px` : 'var(--gap-mobile)',
+        hasDesktopHAlign = !!desktopHorizontalAlignment,
+        hasDesktopBgImage = !!desktopBackgroundImage,
+        hasDesktopBgColor = !!desktopBackgroundColor,
+
+        // CSS Variables
+        cssGapMobile = `${mobileGap || 0}px`,
+        cssGapTablet = hasTabletGap ? `${tabletGap}px` : 'var(--gap-mobile)',
+        cssGapDesktop = hasDesktopGap ? `${gap}px` : 'var(--gap-tablet)',
+
         cssPadMobile = getPaddingStr(mobilePadding, '0px'),
-        cssPadDesktop = hasDesktopPadding ? getPaddingStr(padding, '0px') : 'var(--pad-mobile)',
-        cssMaxWidthMobile = (mobileMaxWidth === undefined || mobileMaxWidth === 0 || (mobileMaxWidth as any) === '') ? 'none' : `${mobileMaxWidth}px`,
-        cssMaxWidthDesktop = hasDesktopMaxWidth ? `${desktopMaxWidth}px` : 'var(--max-width-mobile)',
-        cssMaxHeightMobile = (mobileMaxHeight === undefined || mobileMaxHeight === 0 || (mobileMaxHeight as any) === '') ? 'none' : `${mobileMaxHeight}px`,
-        cssMaxHeightDesktop = hasDesktopMaxHeight ? `${desktopMaxHeight}px` : 'var(--max-height-mobile)',
-        innerMarginLeft = horizontalAlignment === 'left' ? '0' : 'auto',
-        innerMarginRight = horizontalAlignment === 'right' ? '0' : 'auto',
+        cssPadTablet = hasTabletPadding ? getPaddingStr(tabletPadding, '0px') : 'var(--pad-mobile)',
+        cssPadDesktop = hasDesktopPadding ? getPaddingStr(padding, '0px') : 'var(--pad-tablet)',
+
+        cssMaxWidthMobile = !mobileMaxWidth ? 'none' : `${mobileMaxWidth}px`,
+        cssMaxWidthTablet = hasTabletMaxWidth ? `${tabletMaxWidth}px` : 'var(--max-width-mobile)',
+        cssMaxWidthDesktop = hasDesktopMaxWidth ? `${desktopMaxWidth}px` : 'var(--max-width-tablet)',
+
+        cssMaxHeightMobile = !mobileMaxHeight ? 'none' : `${mobileMaxHeight}px`,
+        cssMaxHeightTablet = hasTabletMaxHeight ? `${tabletMaxHeight}px` : 'var(--max-height-mobile)',
+        cssMaxHeightDesktop = hasDesktopMaxHeight ? `${desktopMaxHeight}px` : 'var(--max-height-tablet)',
+
+        cssHAlignMobile = horizontalAlignment,
+        cssHAlignTablet = hasTabletHAlign ? tabletHorizontalAlignment : 'var(--h-align-mobile)',
+        cssHAlignDesktop = hasDesktopHAlign ? desktopHorizontalAlignment : 'var(--h-align-tablet)',
+
+        // Responsive Backgrounds
+        cssBgImageMobile = backgroundImage ? `url(${backgroundImage})` : 'none',
+        cssBgImageTablet = hasTabletBgImage ? `url(${tabletBackgroundImage})` : 'var(--bg-image-mobile)',
+        cssBgImageDesktop = hasDesktopBgImage ? `url(${desktopBackgroundImage})` : 'var(--bg-image-tablet)',
+
+        cssBgColorMobile = backgroundColor || 'transparent',
+        cssBgColorTablet = hasTabletBgColor ? tabletBackgroundColor : 'var(--bg-color-mobile)',
+        cssBgColorDesktop = hasDesktopBgColor ? desktopBackgroundColor : 'var(--bg-color-tablet)',
+
+        getMarginLeft = (align: string) => align === 'left' ? '0' : 'auto',
+        getMarginRight = (align: string) => align === 'right' ? '0' : 'auto',
 
         addColumn = (width: number) => {
             const currentBlocks = getBlocks(clientId);
-            const newBlock = createBlock(`${namespace}/column`, {width});
+            const newBlock = createBlock(`${namespace}/column`, {
+                width: 100,
+                tabletWidth: width,
+                desktopWidth: width
+            });
             replaceInnerBlocks(clientId, [...currentBlocks, newBlock], false);
             setAttributes({columns: currentBlocks.length + 1});
         },
@@ -110,22 +165,39 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             className,
             style: {
                 '--gap-desktop': cssGapDesktop,
+                '--gap-tablet': cssGapTablet,
                 '--gap-mobile': cssGapMobile,
                 '--pad-desktop': cssPadDesktop,
+                '--pad-tablet': cssPadTablet,
                 '--pad-mobile': cssPadMobile,
                 '--max-width-desktop': cssMaxWidthDesktop,
+                '--max-width-tablet': cssMaxWidthTablet,
                 '--max-width-mobile': cssMaxWidthMobile,
                 '--max-height-desktop': cssMaxHeightDesktop,
+                '--max-height-tablet': cssMaxHeightTablet,
                 '--max-height-mobile': cssMaxHeightMobile,
 
-                '--current-max-width': 'var(--max-width-desktop)',
-                '--current-max-height': 'var(--max-height-desktop)',
-                '--current-pad': 'var(--pad-desktop)',
-                '--current-gap': 'var(--gap-desktop)',
+                '--h-align-desktop': cssHAlignDesktop,
+                '--h-align-tablet': cssHAlignTablet,
+                '--h-align-mobile': cssHAlignMobile,
+
+                '--bg-image-mobile': cssBgImageMobile,
+                '--bg-image-tablet': cssBgImageTablet,
+                '--bg-image-desktop': cssBgImageDesktop,
+                '--bg-color-mobile': cssBgColorMobile,
+                '--bg-color-tablet': cssBgColorTablet,
+                '--bg-color-desktop': cssBgColorDesktop,
+
+                '--margin-l-desktop': getMarginLeft(cssHAlignDesktop),
+                '--margin-r-desktop': getMarginRight(cssHAlignDesktop),
+                '--margin-l-tablet': getMarginLeft(cssHAlignTablet),
+                '--margin-r-tablet': getMarginRight(cssHAlignTablet),
+                '--margin-l-mobile': getMarginLeft(cssHAlignMobile),
+                '--margin-r-mobile': getMarginRight(cssHAlignMobile),
 
                 padding: 'var(--current-pad)',
                 position: 'relative',
-                backgroundColor: backgroundColor || 'transparent',
+                backgroundColor: 'var(--current-bg-color)',
             } as CSSProperties
         }),
         template = useMemo(() => {
@@ -145,9 +217,10 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                     gap: 'var(--current-gap)',
                     position: 'relative',
                     zIndex: 1,
+                    width: '100%',
                     maxWidth: 'var(--current-max-width)',
-                    marginLeft: innerMarginLeft,
-                    marginRight: innerMarginRight,
+                    marginLeft: 'var(--current-margin-left)',
+                    marginRight: 'var(--current-margin-right)',
                     boxSizing: 'border-box',
                 } as CSSProperties
             },
@@ -163,6 +236,213 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             setAttributes({columns: innerBlocks.length});
         }
     }, [innerBlocks, columns, setAttributes]);
+
+    const renderLayoutTab = (tabName: string) => {
+        switch (tabName) {
+            case 'mobile':
+                return (
+                    <div style={{ paddingTop: '16px' }}>
+                        <VersatileMessage
+                            msg={__('Base layout values used for ALL screen sizes unless overridden.', namespace)}
+                            type="normal"
+                        />
+                        <RangeControl
+                            label={__('Space Between Columns (px)', namespace)}
+                            value={mobileGap}
+                            onChange={(v) => setAttributes({mobileGap: v ?? 0})}
+                            min={0} max={1200}
+                        />
+                        <BoxControl
+                            label={__('Space Around Columns', namespace)}
+                            values={parsePadding(mobilePadding)}
+                            onChange={(v) => setAttributes({mobilePadding: v as PaddingAttribute})}
+                        />
+                        <RangeControl
+                            label={__('Inner Content Max Width (px)', namespace)}
+                            value={mobileMaxWidth}
+                            onChange={(v) => setAttributes({mobileMaxWidth: v})}
+                            min={0} max={2000}
+                            help={__('0 for full width', namespace)}
+                        />
+                        <RangeControl
+                            label={__('Inner Content Max Height (px)', namespace)}
+                            value={mobileMaxHeight}
+                            onChange={(v) => setAttributes({mobileMaxHeight: v})}
+                            min={0} max={2000}
+                        />
+                        <SelectControl
+                            label={__('Horizontal Alignment', namespace)}
+                            value={horizontalAlignment}
+                            options={[
+                                {label: __('Left', namespace), value: 'left'},
+                                {label: __('Center', namespace), value: 'center'},
+                                {label: __('Right', namespace), value: 'right'}
+                            ]}
+                            onChange={(v) => setAttributes({horizontalAlignment: v})}
+                        />
+                        
+                        <div style={{ marginTop: '24px', fontWeight: 600 }}>{__('Background', namespace)}</div>
+                        <ColorPalette
+                            colors={themeColors}
+                            value={backgroundColor}
+                            onChange={(v) => setAttributes({backgroundColor: v || ''})}
+                            clearable
+                        />
+                        <ControlsMedia
+                            panelLabel={__('Background Image', namespace)}
+                            imageUrl={backgroundImage}
+                            onSelectMedia={(media) => setAttributes({backgroundImage: media.url})}
+                            onRemoveMedia={() => setAttributes({backgroundImage: ''})}
+                            opacity={backgroundImageOpacity}
+                            onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
+                            backgroundSize={backgroundSize}
+                            onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
+                            backgroundPosition={backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
+                            backgroundRepeat={backgroundRepeat}
+                            onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
+                            parallax={backgroundFixedPosition}
+                            onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
+                        />
+                    </div>
+                );
+            case 'tablet':
+                return (
+                    <div style={{ paddingTop: '16px' }}>
+                        <RangeControl
+                            label={__('Space Between Columns (px)', namespace)}
+                            value={tabletGap}
+                            onChange={(v) => setAttributes({tabletGap: v})}
+                            min={0} max={1200}
+                            allowReset
+                        />
+                        <BoxControl
+                            label={__('Space Around Columns', namespace)}
+                            values={parsePadding(tabletPadding)}
+                            onChange={(v) => setAttributes({tabletPadding: v as PaddingAttribute})}
+                        />
+                        <RangeControl
+                            label={__('Inner Content Max Width (px)', namespace)}
+                            value={tabletMaxWidth}
+                            onChange={(v) => setAttributes({tabletMaxWidth: v})}
+                            min={0} max={2000}
+                            allowReset
+                        />
+                        <RangeControl
+                            label={__('Inner Content Max Height (px)', namespace)}
+                            value={tabletMaxHeight}
+                            onChange={(v) => setAttributes({tabletMaxHeight: v})}
+                            min={0} max={2000}
+                            allowReset
+                        />
+                        <SelectControl
+                            label={__('Horizontal Alignment', namespace)}
+                            value={tabletHorizontalAlignment}
+                            options={[
+                                {label: __('Inherit', namespace), value: ''},
+                                {label: __('Left', namespace), value: 'left'},
+                                {label: __('Center', namespace), value: 'center'},
+                                {label: __('Right', namespace), value: 'right'}
+                            ]}
+                            onChange={(v) => setAttributes({tabletHorizontalAlignment: v})}
+                        />
+
+                        <div style={{ marginTop: '24px', fontWeight: 600 }}>{__('Background Override', namespace)}</div>
+                        <ColorPalette
+                            colors={themeColors}
+                            value={tabletBackgroundColor}
+                            onChange={(v) => setAttributes({tabletBackgroundColor: v || ''})}
+                            clearable
+                        />
+                        <ControlsMedia
+                            panelLabel={__('Background Image Override', namespace)}
+                            imageUrl={tabletBackgroundImage}
+                            onSelectMedia={(media) => setAttributes({tabletBackgroundImage: media.url})}
+                            onRemoveMedia={() => setAttributes({tabletBackgroundImage: ''})}
+                            // Use same opacity/settings for now as they are shared
+                            opacity={backgroundImageOpacity}
+                            onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
+                            backgroundSize={backgroundSize}
+                            onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
+                            backgroundPosition={backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
+                            backgroundRepeat={backgroundRepeat}
+                            onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
+                            parallax={backgroundFixedPosition}
+                            onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
+                        />
+                    </div>
+                );
+            case 'desktop':
+                return (
+                    <div style={{ paddingTop: '16px' }}>
+                        <RangeControl
+                            label={__('Space Between Columns (px)', namespace)}
+                            value={gap}
+                            onChange={(v) => setAttributes({gap: v})}
+                            min={0} max={1200}
+                            allowReset
+                        />
+                        <BoxControl
+                            label={__('Space Around Columns', namespace)}
+                            values={parsePadding(padding)}
+                            onChange={(v) => setAttributes({padding: v as PaddingAttribute})}
+                        />
+                        <RangeControl
+                            label={__('Inner Content Max Width (px)', namespace)}
+                            value={desktopMaxWidth}
+                            onChange={(v) => setAttributes({desktopMaxWidth: v})}
+                            min={0} max={2000}
+                            allowReset
+                        />
+                        <RangeControl
+                            label={__('Inner Content Max Height (px)', namespace)}
+                            value={desktopMaxHeight}
+                            onChange={(v) => setAttributes({desktopMaxHeight: v})}
+                            min={0} max={2000}
+                            allowReset
+                        />
+                        <SelectControl
+                            label={__('Horizontal Alignment', namespace)}
+                            value={desktopHorizontalAlignment}
+                            options={[
+                                {label: __('Inherit', namespace), value: ''},
+                                {label: __('Left', namespace), value: 'left'},
+                                {label: __('Center', namespace), value: 'center'},
+                                {label: __('Right', namespace), value: 'right'}
+                            ]}
+                            onChange={(v) => setAttributes({desktopHorizontalAlignment: v})}
+                        />
+
+                        <div style={{ marginTop: '24px', fontWeight: 600 }}>{__('Background Override', namespace)}</div>
+                        <ColorPalette
+                            colors={themeColors}
+                            value={desktopBackgroundColor}
+                            onChange={(v) => setAttributes({desktopBackgroundColor: v || ''})}
+                            clearable
+                        />
+                        <ControlsMedia
+                            panelLabel={__('Background Image Override', namespace)}
+                            imageUrl={desktopBackgroundImage}
+                            onSelectMedia={(media) => setAttributes({desktopBackgroundImage: media.url})}
+                            onRemoveMedia={() => setAttributes({desktopBackgroundImage: ''})}
+                            opacity={backgroundImageOpacity}
+                            onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
+                            backgroundSize={backgroundSize}
+                            onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
+                            backgroundPosition={backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
+                            backgroundRepeat={backgroundRepeat}
+                            onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
+                            parallax={backgroundFixedPosition}
+                            onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
+                        />
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
 
     return (
         <>
@@ -186,155 +466,84 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         </div>
 
                         <div style={{marginTop: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-                            <Button variant="tertiary" onClick={() => addColumn(0)}>
+                            <Button
+                                variant="tertiary"
+                                onClick={() => addColumn(0)}
+                            >
                                 {__('Add Auto Column', namespace)}
                             </Button>
 
-                            <Button variant="tertiary" onClick={removeLastColumn} disabled={(innerBlocks?.length || 0) <= 1}>
+                            <Button
+                                variant="tertiary"
+                                onClick={removeLastColumn}
+                                disabled={(innerBlocks?.length || 0) <= 1}
+                            >
                                 {__('Remove Last Column', namespace)}
                             </Button>
                         </div>
-
-                        <p style={{marginTop: '10px', marginBottom: 0, fontSize: '12px', opacity: 0.75}}>
-                            {__('Preset buttons add a new column with that width. Columns can wrap to a new line if their combined widths exceed 100%.', namespace)}
-                        </p>
                     </div>
 
-                    <RangeControl
-                        label={__('Desktop Breakpoint (px)', namespace)}
-                        value={desktopBreakpoint}
-                        onChange={(v) => setAttributes({desktopBreakpoint: v})}
-                        min={300} max={1200}
-                    />
-
-                    <SelectControl
-                        label={__('Horizontal Alignment', namespace)}
-                        value={horizontalAlignment as any}
-                        options={[
-                            {label: __('Left', namespace), value: 'left'},
-                            {label: __('Center', namespace), value: 'center'},
-                            {label: __('Right', namespace), value: 'right'}
-                        ]}
-                        onChange={(v) => setAttributes({horizontalAlignment: v})}
-                        help={__('Aligns the inner columns when a Max Width is set.', namespace)}
-                    />
-                </PanelBody>
-
-                <ControlsMedia
-                    panelLabel={__('Background Image', namespace)}
-                    imageUrl={backgroundImage}
-                    onSelectMedia={(media) => setAttributes({backgroundImage: media.url})}
-                    onRemoveMedia={() => setAttributes({backgroundImage: ''})}
-                    opacity={backgroundImageOpacity}
-                    onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
-                    backgroundSize={backgroundSize}
-                    onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                    backgroundPosition={backgroundPosition}
-                    onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
-                    backgroundRepeat={backgroundRepeat}
-                    onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
-                    parallax={backgroundFixedPosition}
-                    onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
-                />
-
-                <PanelBody title={__('Background Video', namespace)} initialOpen={false}>
-                    <MediaUploadCheck>
-                        <MediaUpload
-                            onSelect={(media) => setAttributes({ backgroundVideo: media.url })}
-                            allowedTypes={['video']}
-                            value={backgroundVideo}
-                            render={({ open }) => (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {backgroundVideo ? (
-                                        <>
-                                            <video src={backgroundVideo} style={{ width: '100%', height: 'auto', borderRadius: '4px' }} muted />
-                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                <Button variant="secondary" onClick={open} style={{ flex: 1, justifyContent: 'center' }}>
-                                                    {__('Replace', namespace)}
-                                                </Button>
-                                                <Button variant="secondary" isDestructive onClick={() => setAttributes({ backgroundVideo: '' })} style={{ flex: 1, justifyContent: 'center' }}>
-                                                    {__('Remove', namespace)}
-                                                </Button>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <Button variant="primary" onClick={open} style={{ justifyContent: 'center' }}>
-                                            {__('Select Video', namespace)}
-                                        </Button>
-                                    )}
-                                    <p style={{ fontSize: '12px', opacity: 0.75, margin: 0 }}>
-                                        {__('If a Background Image is also set above, it will be used as the poster fallback while the video loads.', namespace)}
-                                    </p>
-                                </div>
-                            )}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <RangeControl
+                            label={__('Tablet BP', namespace)}
+                            value={tabletBreakpoint}
+                            onChange={(v) => {
+                                const val = v ?? 768;
+                                setAttributes({ 
+                                    tabletBreakpoint: val,
+                                    desktopBreakpoint: Math.max(val + 1, desktopBreakpoint)
+                                });
+                            }}
+                            min={300} max={1500}
                         />
-                    </MediaUploadCheck>
-
-                    {backgroundVideo && (
-                        <div style={{ marginTop: '24px' }}>
-                            <RangeControl
-                                label={__('Video Opacity (%)', namespace)}
-                                value={backgroundVideoOpacity !== undefined ? backgroundVideoOpacity : 100}
-                                onChange={(val) => setAttributes({ backgroundVideoOpacity: val })}
-                                min={0}
-                                max={100}
-                            />
-                        </div>
-                    )}
+                        <RangeControl
+                            label={__('Desktop BP', namespace)}
+                            value={desktopBreakpoint}
+                            onChange={(v) => {
+                                const val = v ?? 1024;
+                                setAttributes({ 
+                                    desktopBreakpoint: val,
+                                    tabletBreakpoint: Math.min(val - 1, tabletBreakpoint)
+                                });
+                            }}
+                            min={300} max={2500}
+                        />
+                    </div>
                 </PanelBody>
 
-                <PanelBody title={__('Background Color', namespace)} initialOpen={false}>
-                    <ColorPalette colors={themeColors} value={backgroundColor} onChange={(v) => setAttributes({backgroundColor: v || ''})} clearable={true} />
-                </PanelBody>
-
-                <PanelBody title={__('Base Layout (All Screens)', namespace)} initialOpen={false}>
-                    <RangeControl label={__('Space Between Columns (px)', namespace)} className={`${namespace}-custom-control`} value={mobileGap} onChange={(v) => setAttributes({mobileGap: v !== undefined ? v : 0})} min={0} max={1200} allowReset={true} />
-                    <BoxControl label={__('Space Around Columns', namespace)} className={`${namespace}-custom-control`} values={safeMobilePadding} onChange={(v) => { const isReset = !v || Object.values(v).every(val => val === undefined || val === ''); setAttributes({ mobilePadding: isReset ? {top: '0px', right: '0px', bottom: '0px', left: '0px'} : v as PaddingAttribute }); }} />
-                    <RangeControl label={__('Inner Content Max Width (px)', namespace)} className={`${namespace}-custom-control`} value={mobileMaxWidth} onChange={(v) => setAttributes({mobileMaxWidth: v})} min={0} max={2000} allowReset={true} help={__('Set to 0 for full width', namespace)} />
-                </PanelBody>
-
-                <PanelBody title={__('Desktop Layout (Overrides)', namespace)} initialOpen={false}>
-                    <VersatileMessage msg={`Optional overrides for screens WIDER than ${desktopBreakpoint}px. If left blank, base layout values are used.`} type="warning" textAlign="center" />
-                    <RangeControl label={__('Space Between Columns (px)', namespace)} className={`${namespace}-custom-control`} value={gap} onChange={(v) => setAttributes({gap: v})} min={0} max={1200} allowReset={true} />
-                    <BoxControl label={__('Space Around Columns', namespace)} className={`${namespace}-custom-control`} values={safePadding} onChange={(v) => setAttributes({padding: v as PaddingAttribute})} />
-                    <RangeControl label={__('Inner Content Max Width (px)', namespace)} className={`${namespace}-custom-control`} value={desktopMaxWidth} onChange={(v) => setAttributes({desktopMaxWidth: v})} min={0} max={2000} allowReset={true} help={__('Set to 0 to inherit from Base Layout', namespace)} />
+                <PanelBody title={__('Responsive Layout', namespace)}>
+                    <TabPanel
+                        className={`${namespace}-responsive-tabs`}
+                        activeClass="is-active"
+                        tabs={[
+                            { name: 'mobile', title: __('Base', namespace), className: 'tab-mobile' },
+                            { name: 'tablet', title: __('Tablet', namespace), className: 'tab-tablet' },
+                            { name: 'desktop', title: __('Desktop', namespace), className: 'tab-desktop' },
+                        ]}
+                    >
+                        {(tab) => renderLayoutTab(tab.name)}
+                    </TabPanel>
                 </PanelBody>
             </InspectorControls>
 
             <div {...blockProps}>
                 <ColumnsExtraLogic attributes={attributes} blockRef={blockElement}/>
 
-                {backgroundVideo ? (
-                    <video
-                        autoPlay muted loop playsInline
-                        poster={backgroundImage || undefined}
-                        style={{
-                            position: 'absolute',
-                            top: 0, right: 0, bottom: 0, left: 0,
-                            width: '100%', height: '100%', objectFit: 'cover',
-                            pointerEvents: 'none', zIndex: 0,
-                            opacity: (backgroundVideoOpacity !== undefined ? backgroundVideoOpacity : 100) / 100
-                        }}
-                    >
-                        <source src={backgroundVideo} type="video/mp4" />
-                    </video>
-                ) : backgroundImage ? (
-                    <div
-                        className="u-full_cover_absolute"
-                        style={{
-                            position: 'absolute',
-                            top: 0, right: 0, bottom: 0, left: 0,
-                            backgroundImage: `url(${backgroundImage})`,
-                            backgroundSize: backgroundSize || 'cover',
-                            backgroundPosition: backgroundPosition || 'center',
-                            backgroundRepeat: backgroundRepeat || 'no-repeat',
-                            backgroundAttachment: backgroundFixedPosition ? 'fixed' : 'scroll',
-                            opacity: (backgroundImageOpacity !== undefined ? backgroundImageOpacity : 100) / 100,
-                            pointerEvents: 'none',
-                            zIndex: 0
-                        }}
-                    />
-                ) : null}
+                <div
+                    className="u-full_cover_absolute"
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        backgroundImage: 'var(--current-bg-image)',
+                        backgroundSize: backgroundSize || 'cover',
+                        backgroundPosition: backgroundPosition || 'center',
+                        backgroundRepeat: backgroundRepeat || 'no-repeat',
+                        backgroundAttachment: backgroundFixedPosition ? 'fixed' : 'scroll',
+                        opacity: (backgroundImageOpacity !== undefined ? backgroundImageOpacity : 100) / 100,
+                        pointerEvents: 'none',
+                        zIndex: 0
+                    }}
+                />
 
                 <div {...innerBlocksProps} />
             </div>

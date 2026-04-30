@@ -7,7 +7,7 @@ interface LogicProps {
 }
 
 const ColumnsExtraLogic = ({ attributes, blockRef }: LogicProps) => {
-    const { desktopBreakpoint = 768 } = attributes;
+    const { tabletBreakpoint = 768, desktopBreakpoint = 1024 } = attributes;
 
     useEffect(() => {
         if (!blockRef) return;
@@ -15,15 +15,14 @@ const ColumnsExtraLogic = ({ attributes, blockRef }: LogicProps) => {
         const onResize = (entries: ResizeObserverEntry[]) => {
             for (const entry of entries) {
                 const width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
-                const isMobile = width < desktopBreakpoint;
+                
+                const isMobile = width < tabletBreakpoint;
+                const isTablet = width >= tabletBreakpoint && width < desktopBreakpoint;
+                const isDesktop = width >= desktopBreakpoint;
 
-                if (isMobile) {
-                    blockRef.classList.add('is-mobile-layout');
-                    blockRef.classList.remove('is-desktop-layout');
-                } else {
-                    blockRef.classList.add('is-desktop-layout');
-                    blockRef.classList.remove('is-mobile-layout');
-                }
+                blockRef.classList.toggle('is-mobile-layout', isMobile);
+                blockRef.classList.toggle('is-tablet-layout', isTablet);
+                blockRef.classList.toggle('is-desktop-layout', isDesktop);
             }
         };
 
@@ -35,7 +34,7 @@ const ColumnsExtraLogic = ({ attributes, blockRef }: LogicProps) => {
             observer.disconnect();
         };
 
-    }, [desktopBreakpoint, blockRef]);
+    }, [tabletBreakpoint, desktopBreakpoint, blockRef]);
 
     return null;
 };

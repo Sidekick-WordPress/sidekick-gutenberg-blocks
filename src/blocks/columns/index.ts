@@ -17,6 +17,7 @@ registerBlockType(`${namespace}/columns`, {
     category: 'layout',
     attributes: parentAttributes,
     providesContext: {
+        [`${namespace}/tabletBreakpoint`]: 'tabletBreakpoint',
         [`${namespace}/desktopBreakpoint`]: 'desktopBreakpoint'
     },
     edit: Edit,

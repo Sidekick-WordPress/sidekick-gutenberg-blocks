@@ -1,5 +1,6 @@
 @use "../../styles/defaults/namespace" as *;
 @use "../../styles/defaults/functions" as *;
+@use "save";
 
 .block-editor-block-list__block[data-type="#{$namespace}/column"] {
     margin: 0 !important; // Gutenberg default
@@ -8,34 +9,9 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-
-    // Override Gutenberg's margin lock for Advanced Layout
-    &.has-advanced-layout {
-        height: auto !important;
-        margin-top: calc(var(--curr-ext-top, 0px) * -1) !important;
-        margin-bottom: calc(var(--curr-ext-bottom, 0px) * -1) !important;
-        transform: translate(var(--curr-trans-x, 0px), var(--curr-trans-y, 0px)) !important;
-        z-index: var(--curr-z-index, 1) !important;
-    }
 }
 
 .wp-block-#{$namespace}-columns {
-    &.is-mobile-layout {
-        .block-editor-block-list__block[data-type="#{$namespace}/column"] {
-            order: var(--mobile-order, 0) !important;
-        }
-    }
-
-    // ADDED: The Desktop Override Cascade for the Editor
-    &.is-desktop-layout {
-        .block-editor-block-list__block[data-type="#{$namespace}/column"] {
-            --curr-ext-top: var(--desk-ext-top, var(--base-ext-top)) !important;
-            --curr-ext-bottom: var(--desk-ext-bottom, var(--base-ext-bottom)) !important;
-            --curr-trans-x: var(--desk-trans-x, var(--base-trans-x)) !important;
-            --curr-trans-y: var(--desk-trans-y, var(--base-trans-y)) !important;
-        }
-    }
-
     &:hover, &:focus, &:active {
         box-shadow: inset 0 0 0 rem(2) rgba(100, 100, 100, 0.15);
     }
