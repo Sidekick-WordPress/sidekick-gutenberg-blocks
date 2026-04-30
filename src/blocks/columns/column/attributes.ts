@@ -17,7 +17,25 @@ export interface ColumnAttributes {
     tabletVAlign: string;
     desktopVAlign: string;
 
-    mobileOrder: number;
+    // Order
+    mobileOrder: number; // Base
+    tabletOrder: number;
+    desktopOrder: number;
+
+    // Z-Index
+    zIndex: number; // Base
+    tabletZIndex: number;
+    desktopZIndex: number;
+
+    // Borders
+    border: Record<string, any>; // Base
+    tabletBorder: Record<string, any>;
+    desktopBorder: Record<string, any>;
+
+    borderRadius: string; // Base
+    tabletBorderRadius: string;
+    desktopBorderRadius: string;
+
     backgroundImage: string;
     backgroundColor: string;
     tabletBackgroundImage: string;
@@ -39,9 +57,6 @@ export interface ColumnAttributes {
     tabletContentHAlign: string;
     desktopContentHAlign: string;
 
-    border: Record<string, any>;
-    borderRadius: string;
-
     // Advanced Layout - Base (All Screens)
     extendTop: string;
     extendBottom: string;
@@ -59,8 +74,6 @@ export interface ColumnAttributes {
     deskExtendBottom: string;
     deskTranslateX: string;
     deskTranslateY: string;
-
-    zIndex: number;
 }
 
 export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any>> = {
@@ -82,7 +95,25 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
     tabletVAlign: { type: 'string' },
     desktopVAlign: { type: 'string' },
 
+    // Order
     mobileOrder: { type: 'number', default: 0 },
+    tabletOrder: { type: 'number' },
+    desktopOrder: { type: 'number' },
+
+    // Z-Index
+    zIndex: { type: 'number', default: 1 },
+    tabletZIndex: { type: 'number' },
+    desktopZIndex: { type: 'number' },
+
+    // Borders
+    border: { type: 'object' },
+    tabletBorder: { type: 'object' },
+    desktopBorder: { type: 'object' },
+
+    borderRadius: { type: 'string', default: '' },
+    tabletBorderRadius: { type: 'string' },
+    desktopBorderRadius: { type: 'string' },
+
     backgroundImage: { type: 'string', default: '' },
     backgroundColor: { type: 'string', default: '' },
     tabletBackgroundImage: { type: 'string' },
@@ -104,9 +135,6 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
     tabletContentHAlign: { type: 'string' },
     desktopContentHAlign: { type: 'string' },
 
-    border: { type: 'object' },
-    borderRadius: { type: 'string', default: '' },
-
     // Advanced Layout - Base
     extendTop: { type: 'string', default: '' },
     extendBottom: { type: 'string', default: '' },
@@ -124,6 +152,4 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
     deskExtendBottom: { type: 'string', default: '' },
     deskTranslateX: { type: 'string', default: '' },
     deskTranslateY: { type: 'string', default: '' },
-
-    zIndex: { type: 'number', default: 1 },
 };

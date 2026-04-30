@@ -73,7 +73,25 @@ return function( $attributes, $content, $block ) {
     $tra_x_desk = ! empty( $attributes['deskTranslateX'] ) ? $attributes['deskTranslateX'] : 'var(--tab-trans-x)';
     $tra_y_desk = ! empty( $attributes['deskTranslateY'] ) ? $attributes['deskTranslateY'] : 'var(--tab-trans-y)';
 
-    $z_index = isset( $attributes['zIndex'] ) ? (int) $attributes['zIndex'] : 1;
+    // Order
+    $order_mobile = isset( $attributes['mobileOrder'] ) ? (int) $attributes['mobileOrder'] : 0;
+    $order_tablet = isset( $attributes['tabletOrder'] ) ? (int) $attributes['tabletOrder'] : $order_mobile;
+    $order_desktop = isset( $attributes['desktopOrder'] ) ? (int) $attributes['desktopOrder'] : $order_tablet;
+
+    // Z-Index
+    $z_mobile = isset( $attributes['zIndex'] ) ? (int) $attributes['zIndex'] : 1;
+    $z_tablet = isset( $attributes['tabletZIndex'] ) ? (int) $attributes['tabletZIndex'] : $z_mobile;
+    $z_desktop = isset( $attributes['desktopZIndex'] ) ? (int) $attributes['desktopZIndex'] : $z_tablet;
+
+    // Border Radius
+    $rad_mobile = isset( $attributes['borderRadius'] ) ? $attributes['borderRadius'] : '0px';
+    $rad_tablet = ! empty( $attributes['tabletBorderRadius'] ) ? $attributes['tabletBorderRadius'] : $rad_mobile;
+    $rad_desktop = ! empty( $attributes['desktopBorderRadius'] ) ? $attributes['desktopBorderRadius'] : $rad_tablet;
+
+    // Borders
+    $border_mobile = sgb_get_border_styles( $attributes['border'] ?? [] );
+    $border_tablet = sgb_get_border_styles( $attributes['tabletBorder'] ?? [] );
+    $border_desktop = sgb_get_border_styles( $attributes['desktopBorder'] ?? [] );
 
     // Helper for Flex/Width Calc
     $get_flex = function($w) {
@@ -106,8 +124,8 @@ return function( $attributes, $content, $block ) {
         '--current-bg-image: var(--col-bg-image-mobile); --current-bg-color: var(--col-bg-color-mobile); ' .
         '--curr-ext-top: var(--base-ext-top); --curr-ext-bottom: var(--base-ext-bottom); ' .
         '--curr-trans-x: var(--base-trans-x); --curr-trans-y: var(--base-trans-y); ' .
-        '--curr-z-index: %d; ' .
-        'flex: %s; max-width: %s; padding: var(--col-current-pad); position: relative; min-width: 0; display: flex; flex-direction: column; justify-content: var(--current-valign); align-items: stretch; box-sizing: border-box; background-color: var(--current-bg-color);',
+        '--current-order: %d; --current-z-index: %d; --current-radius: %s; ' .
+        'flex: %s; max-width: %s; padding: var(--col-current-pad); position: relative; min-width: 0; display: flex; flex-direction: column; justify-content: var(--current-valign); align-items: stretch; box-sizing: border-box; background-color: var(--current-bg-color); order: var(--current-order); z-index: var(--current-z-index); border-radius: var(--current-radius); %s',
         esc_attr($css_pad_mobile), esc_attr($css_pad_tablet), esc_attr($css_pad_desktop),
         $w_mobile, $w_tablet, $w_desktop,
         esc_attr($va_mobile), esc_attr($va_tablet), esc_attr($va_desktop),
@@ -118,19 +136,10 @@ return function( $attributes, $content, $block ) {
         esc_attr($ext_t_base), esc_attr($ext_b_base), esc_attr($tra_x_base), esc_attr($tra_y_base),
         esc_attr($ext_t_tab), esc_attr($ext_b_tab), esc_attr($tra_x_tab), esc_attr($tra_y_tab),
         esc_attr($ext_t_desk), esc_attr($ext_b_desk), esc_attr($tra_x_desk), esc_attr($tra_y_desk),
-        $z_index,
-        $get_flex($w_mobile), $get_max_w($w_mobile)
+        $order_mobile, $z_mobile, esc_attr($rad_mobile),
+        $get_flex($w_mobile), $get_max_w($w_mobile),
+        $border_mobile
     );
-
-    if ( ! empty( $attributes['borderRadius'] ) ) { $style .= " border-radius: " . esc_attr($attributes['borderRadius']) . ";"; }
-
-    // Borders
-    if ( ! empty( $attributes['border'] ) ) {
-        $b = $attributes['border'];
-        if ( isset($b['width']) ) $style .= " border-width: {$b['width']};";
-        if ( isset($b['style']) ) $style .= " border-style: {$b['style']};";
-        if ( isset($b['color']) ) $style .= " border-color: {$b['color']};";
-    }
 
     $wrapper_attributes = get_block_wrapper_attributes( [ 
         'style' => $style,
@@ -155,6 +164,10 @@ return function( $attributes, $content, $block ) {
                     --curr-ext-bottom: var(--tab-ext-bottom);
                     --curr-trans-x: var(--tab-trans-x);
                     --curr-trans-y: var(--tab-trans-y);
+                    --current-order: <?php echo $order_tablet; ?>;
+                    --current-z-index: <?php echo $z_tablet; ?>;
+                    --current-radius: <?php echo esc_attr($rad_tablet); ?>;
+                    <?php echo $border_tablet ? $border_tablet : ''; ?>
                 }
             }
             @media (min-width: <?php echo $desktop_bp; ?>px) {
@@ -171,6 +184,10 @@ return function( $attributes, $content, $block ) {
                     --curr-ext-bottom: var(--desk-ext-bottom);
                     --curr-trans-x: var(--desk-trans-x);
                     --curr-trans-y: var(--desk-trans-y);
+                    --current-order: <?php echo $order_desktop; ?>;
+                    --current-z-index: <?php echo $z_desktop; ?>;
+                    --current-radius: <?php echo esc_attr($rad_desktop); ?>;
+                    <?php echo $border_desktop ? $border_desktop : ''; ?>
                 }
             }
         </style>

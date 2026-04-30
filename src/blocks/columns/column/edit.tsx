@@ -56,7 +56,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             width, tabletWidth, desktopWidth,
             mobilePadding, tabletPadding, padding,
             vAlign, tabletVAlign, desktopVAlign,
-            mobileOrder,
+            mobileOrder, tabletOrder, desktopOrder,
+            zIndex, tabletZIndex, desktopZIndex,
+            border, tabletBorder, desktopBorder,
+            borderRadius, tabletBorderRadius, desktopBorderRadius,
             backgroundImage, backgroundColor,
             tabletBackgroundImage, tabletBackgroundColor,
             desktopBackgroundImage, desktopBackgroundColor,
@@ -64,13 +67,11 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             backgroundSize, backgroundPosition, backgroundRepeat, backgroundFixedPosition,
             innerMaxWidth, tabletInnerMaxWidth, desktopInnerMaxWidth,
             contentHAlign, tabletContentHAlign, desktopContentHAlign,
-            border, borderRadius,
 
             // Advanced Layout
             extendTop, extendBottom, translateX, translateY,
             tabExtendTop, tabExtendBottom, tabTranslateX, tabTranslateY,
             deskExtendTop, deskExtendBottom, deskTranslateX, deskTranslateY, 
-            zIndex
         } = attributes,
         { themeColors } = useSelect((select: any) => {
             const settings = select('core/block-editor').getSettings();
@@ -101,6 +102,15 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         hasDesktopBgImage = !!desktopBackgroundImage,
         hasDesktopBgColor = !!desktopBackgroundColor,
 
+        hasTabletOrder = tabletOrder !== undefined && (tabletOrder as any) !== '',
+        hasDesktopOrder = desktopOrder !== undefined && (desktopOrder as any) !== '',
+
+        hasTabletZIndex = tabletZIndex !== undefined && (tabletZIndex as any) !== '',
+        hasDesktopZIndex = desktopZIndex !== undefined && (desktopZIndex as any) !== '',
+
+        hasTabletBorderRadius = !!tabletBorderRadius,
+        hasDesktopBorderRadius = !!desktopBorderRadius,
+
         // CSS Variables for Padding
         cssPadMobile = getPaddingStr(mobilePadding, '10px'),
         cssPadTablet = hasTabletPadding ? getPaddingStr(tabletPadding, '10px') : 'var(--col-pad-mobile)',
@@ -128,7 +138,18 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         '--col-pad-desktop': cssPadDesktop,
         '--col-pad-tablet': cssPadTablet,
         '--col-pad-mobile': cssPadMobile,
-        '--mobile-order': mobileOrder,
+
+        '--col-order-mobile': mobileOrder,
+        '--col-order-tablet': hasTabletOrder ? tabletOrder : 'var(--col-order-mobile)',
+        '--col-order-desktop': hasDesktopOrder ? desktopOrder : 'var(--col-order-tablet)',
+
+        '--col-zindex-mobile': zIndex,
+        '--col-zindex-tablet': hasTabletZIndex ? tabletZIndex : 'var(--col-zindex-mobile)',
+        '--col-zindex-desktop': hasDesktopZIndex ? desktopZIndex : 'var(--col-zindex-tablet)',
+
+        '--col-radius-mobile': borderRadius || '0px',
+        '--col-radius-tablet': hasTabletBorderRadius ? tabletBorderRadius : 'var(--col-radius-mobile)',
+        '--col-radius-desktop': hasDesktopBorderRadius ? desktopBorderRadius : 'var(--col-radius-tablet)',
 
         // Responsive Widths
         '--col-w-mobile': valWidthMobile,
@@ -188,9 +209,17 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         overflow: 'hidden',
         minWidth: 0,
         height: 'auto',
-        borderRadius: borderRadius || undefined,
+        
+        '--current-radius': 'var(--col-radius-mobile)',
+        '--current-z-index': 'var(--col-zindex-mobile)',
+        '--current-order': 'var(--col-order-mobile)',
+
+        borderRadius: 'var(--current-radius)',
         ...borderStyles,
+        zIndex: 'var(--current-z-index)',
+        order: 'var(--current-order)',
     };
+
 
     const blockProps = useBlockProps({
         className: `${className} ${ (extendTop || tabExtendTop || deskExtendTop) ? 'has-advanced-layout' : ''}`,
@@ -235,6 +264,31 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                                 {label: 'Bottom', value: 'flex-end'},
                             ]}
                             onChange={(v) => setAttributes({vAlign: v})}
+                        />
+                        <RangeControl
+                            label={__('Flex Order', namespace)}
+                            value={mobileOrder}
+                            onChange={(v) => setAttributes({mobileOrder: v ?? 0})}
+                            min={-10} max={10}
+                            help={__('Change the display order. Lower numbers appear first.', namespace)}
+                        />
+                        <RangeControl
+                            label={__('Z-Index', namespace)}
+                            value={zIndex}
+                            onChange={(v) => setAttributes({zIndex: v ?? 1})}
+                            min={0} max={100}
+                        />
+                        <BorderBoxControl
+                            label={__('Borders', namespace)}
+                            colors={themeColors}
+                            value={border}
+                            onChange={(v) => setAttributes({ border: v })}
+                        />
+                        <TextControl
+                            label={__('Border Radius', namespace)}
+                            value={borderRadius}
+                            onChange={(v) => setAttributes({borderRadius: v})}
+                            help={__('e.g., 10px, 50%, or 10px 10px 0 0', namespace)}
                         />
                         <TextControl
                             label={__('Inner Content Max Width', namespace)}
@@ -314,6 +368,32 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                                 {label: 'Bottom', value: 'flex-end'},
                             ]}
                             onChange={(v) => setAttributes({tabletVAlign: v})}
+                        />
+                        <RangeControl
+                            label={__('Flex Order', namespace)}
+                            value={tabletOrder}
+                            onChange={(v) => setAttributes({tabletOrder: v})}
+                            min={-10} max={10}
+                            allowReset
+                        />
+                        <RangeControl
+                            label={__('Z-Index', namespace)}
+                            value={tabletZIndex}
+                            onChange={(v) => setAttributes({tabletZIndex: v})}
+                            min={0} max={100}
+                            allowReset
+                        />
+                        <BorderBoxControl
+                            label={__('Borders Override', namespace)}
+                            colors={themeColors}
+                            value={tabletBorder}
+                            onChange={(v) => setAttributes({ tabletBorder: v })}
+                        />
+                        <TextControl
+                            label={__('Border Radius Override', namespace)}
+                            value={tabletBorderRadius}
+                            onChange={(v) => setAttributes({tabletBorderRadius: v})}
+                            placeholder={__('Inherit', namespace)}
                         />
                         <TextControl
                             label={__('Inner Content Max Width', namespace)}
@@ -396,6 +476,32 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             ]}
                             onChange={(v) => setAttributes({desktopVAlign: v})}
                         />
+                        <RangeControl
+                            label={__('Flex Order', namespace)}
+                            value={desktopOrder}
+                            onChange={(v) => setAttributes({desktopOrder: v})}
+                            min={-10} max={10}
+                            allowReset
+                        />
+                        <RangeControl
+                            label={__('Z-Index', namespace)}
+                            value={desktopZIndex}
+                            onChange={(v) => setAttributes({desktopZIndex: v})}
+                            min={0} max={100}
+                            allowReset
+                        />
+                        <BorderBoxControl
+                            label={__('Borders Override', namespace)}
+                            colors={themeColors}
+                            value={desktopBorder}
+                            onChange={(v) => setAttributes({ desktopBorder: v })}
+                        />
+                        <TextControl
+                            label={__('Border Radius Override', namespace)}
+                            value={desktopBorderRadius}
+                            onChange={(v) => setAttributes({desktopBorderRadius: v})}
+                            placeholder={__('Inherit', namespace)}
+                        />
                         <TextControl
                             label={__('Inner Content Max Width', namespace)}
                             value={desktopInnerMaxWidth}
@@ -455,35 +561,6 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
     return (
         <>
             <InspectorControls>
-                <PanelBody title={__('Column Settings', namespace)}>
-                    <RangeControl
-                        label={__('Mobile Flex Order', namespace)}
-                        value={mobileOrder}
-                        onChange={(v) => setAttributes({mobileOrder: v ?? 0})}
-                        min={-10} max={10}
-                        allowReset
-                        help={__('Change the display order on mobile. Lower numbers appear first.', namespace)}
-                    />
-                    <RangeControl
-                        label={__('Z-Index', namespace)}
-                        value={zIndex}
-                        onChange={(v) => setAttributes({zIndex: v ?? 1})}
-                        min={0} max={100}
-                    />
-                    <BorderBoxControl
-                        label={__('Borders', namespace)}
-                        colors={themeColors}
-                        value={border}
-                        onChange={(v) => setAttributes({ border: v })}
-                    />
-                    <TextControl
-                        label={__('Border Radius', namespace)}
-                        value={borderRadius}
-                        onChange={(v) => setAttributes({borderRadius: v})}
-                        help={__('e.g., 10px, 50%, or 10px 10px 0 0', namespace)}
-                    />
-                </PanelBody>
-
                 <PanelBody title={__('Responsive Layout', namespace)}>
                     <TabPanel
                         className={`${namespace}-responsive-tabs`}
