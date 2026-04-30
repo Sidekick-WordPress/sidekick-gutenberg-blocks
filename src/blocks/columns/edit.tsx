@@ -244,7 +244,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                     <div style={{ paddingTop: '16px' }}>
                         <VersatileMessage
                             msg={__('Base layout values used for ALL screen sizes unless overridden.', namespace)}
-                            type="normal"
+                            type="warning"
                         />
                         <RangeControl
                             label={__('Space Between Columns (px)', namespace)}
@@ -309,6 +309,10 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             case 'tablet':
                 return (
                     <div style={{ paddingTop: '16px' }}>
+                        <VersatileMessage
+                            msg={__(`Optional overrides for screens WIDER than ${tabletBreakpoint}px. If left blank, base layout values are used.`, namespace)}
+                            type="warning"
+                        />
                         <RangeControl
                             label={__('Space Between Columns (px)', namespace)}
                             value={tabletGap}
@@ -376,6 +380,10 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             case 'desktop':
                 return (
                     <div style={{ paddingTop: '16px' }}>
+                        <VersatileMessage
+                            msg={__(`Optional overrides for screens WIDER than ${desktopBreakpoint}px. If left blank, base layout values are used.`, namespace)}
+                            type="warning"
+                        />
                         <RangeControl
                             label={__('Space Between Columns (px)', namespace)}
                             value={gap}

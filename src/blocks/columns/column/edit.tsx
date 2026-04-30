@@ -211,6 +211,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             case 'mobile':
                 return (
                     <div style={{ paddingTop: '16px' }}>
+                        <VersatileMessage
+                            msg={__('Base layout values used for ALL screen sizes unless overridden.', namespace)}
+                            type="warning"
+                        />
                         <RangeControl
                             label={__('Width (%)', namespace)}
                             value={width}
@@ -284,6 +288,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             case 'tablet':
                 return (
                     <div style={{ paddingTop: '16px' }}>
+                        <VersatileMessage
+                            msg={__(`Optional overrides for screens WIDER than ${tabletBreakpoint}px. If left blank, base layout values are used.`, namespace)}
+                            type="warning"
+                        />
                         <RangeControl
                             label={__('Width (%)', namespace)}
                             value={tabletWidth}
@@ -361,6 +369,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             case 'desktop':
                 return (
                     <div style={{ paddingTop: '16px' }}>
+                        <VersatileMessage
+                            msg={__(`Optional overrides for screens WIDER than ${desktopBreakpoint}px. If left blank, base layout values are used.`, namespace)}
+                            type="warning"
+                        />
                         <RangeControl
                             label={__('Width (%)', namespace)}
                             value={desktopWidth}

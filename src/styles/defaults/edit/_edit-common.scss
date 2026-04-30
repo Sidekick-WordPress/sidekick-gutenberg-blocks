@@ -8,3 +8,37 @@
         margin: 0 !important;
     }
 }
+
+.#{$namespace}-responsive-tabs {
+    .components-tab-panel__tabs {
+        display: flex;
+        width: 100%;
+        margin-bottom: 0;
+        border-bottom: none;
+
+        .components-button.components-tab-panel__tabs-item {
+            flex: 1;
+            justify-content: center;
+            border-bottom: none !important;
+            margin-bottom: 0;
+            border-radius: 0;
+            height: rem(40);
+            transition: background 0.2s ease;
+            font-weight: 500;
+
+            &:hover, &:focus, &.is-active {
+                background: $lightestGrey !important;
+                box-shadow: none !important;
+                color: $black;
+            }
+
+            &::after {
+                display: none !important;
+            }
+        }
+    }
+
+    .components-tab-panel__tab-content {
+        padding-top: rem(8);
+    }
+}
