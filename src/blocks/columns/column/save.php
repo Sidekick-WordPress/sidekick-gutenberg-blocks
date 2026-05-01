@@ -90,8 +90,8 @@ return function( $attributes, $content, $block ) {
 
     // Borders
     $border_mobile = sgb_get_border_styles( $attributes['border'] ?? [] );
-    $border_tablet = sgb_get_border_styles( $attributes['tabletBorder'] ?? [] );
-    $border_desktop = sgb_get_border_styles( $attributes['desktopBorder'] ?? [] );
+    $border_tablet = sgb_get_border_styles( $attributes['tabletBorder'] ?? [], true ); // true for !important
+    $border_desktop = sgb_get_border_styles( $attributes['desktopBorder'] ?? [], true ); // true for !important
 
     // Helper for Flex/Width Calc
     $get_flex = function($w) {
@@ -106,17 +106,90 @@ return function( $attributes, $content, $block ) {
     // Unique ID for this block instance
     $block_id = 'sgb-column-' . wp_generate_uuid4();
 
+    // Helper to format border vars for PHP
+    $get_border_vars = function($b, $prefix) {
+        $vars = [];
+        if ( empty($b) ) return $vars;
+
+        if ( isset($b['width']) || isset($b['style']) || isset($b['color']) ) {
+            $vars["--col-border-width-{$prefix}"] = $b['width'] ?? '';
+            $vars["--col-border-style-{$prefix}"] = !empty($b['style']) ? $b['style'] : 'solid';
+            $vars["--col-border-color-{$prefix}"] = $b['color'] ?? '';
+        } else {
+            foreach (['top', 'right', 'bottom', 'left'] as $side) {
+                if ( isset($b[$side]) && (!empty($b[$side]['width']) || !empty($b[$side]['style']) || !empty($b[$side]['color'])) ) {
+                    $vars["--col-border-{$side}-width-{$prefix}"] = $b[$side]['width'] ?? '';
+                    $vars["--col-border-{$side}-style-{$prefix}"] = !empty($b[$side]['style']) ? $b[$side]['style'] : 'solid';
+                    $vars["--col-border-{$side}-color-{$prefix}"] = $b[$side]['color'] ?? '';
+                }
+            }
+        }
+        return $vars;
+    };
+
+    $border_vars_mobile = $get_border_vars( $attributes['border'] ?? [], 'mobile' );
+    $border_vars_tablet = $get_border_vars( $attributes['tabletBorder'] ?? [], 'tablet' );
+    $border_vars_desktop = $get_border_vars( $attributes['desktopBorder'] ?? [], 'desktop' );
+
+    $all_vars = array_merge(
+        [
+            '--col-pad-mobile' => $css_pad_mobile,
+            '--col-pad-tablet' => $css_pad_tablet,
+            '--col-pad-desktop' => $css_pad_desktop,
+            '--col-w-mobile' => $w_mobile,
+            '--col-w-tablet' => $w_tablet,
+            '--col-w-desktop' => $w_desktop,
+            '--col-valign-mobile' => $va_mobile,
+            '--col-valign-tablet' => $va_tablet,
+            '--col-valign-desktop' => $va_desktop,
+            '--col-inner-max-mobile' => $imw_mobile,
+            '--col-inner-max-tablet' => $imw_tablet,
+            '--col-inner-max-desktop' => $imw_desktop,
+            '--col-halign-mobile' => $ha_mobile,
+            '--col-halign-tablet' => $ha_tablet,
+            '--col-halign-desktop' => $ha_desktop,
+            '--col-bg-image-mobile' => $bg_img_base,
+            '--col-bg-image-tablet' => $bg_img_tab,
+            '--col-bg-image-desktop' => $bg_img_desk,
+            '--col-bg-color-mobile' => $bg_col_base,
+            '--col-bg-color-tablet' => $bg_col_tab,
+            '--col-bg-color-desktop' => $bg_col_desk,
+            '--base-ext-top' => $ext_t_base,
+            '--base-ext-bottom' => $ext_b_base,
+            '--base-trans-x' => $tra_x_base,
+            '--base-trans-y' => $tra_y_base,
+            '--tab-ext-top' => $ext_t_tab,
+            '--tab-ext-bottom' => $ext_b_tab,
+            '--tab-trans-x' => $tra_x_tab,
+            '--tab-trans-y' => $tra_y_tab,
+            '--desk-ext-top' => $ext_t_desk,
+            '--desk-ext-bottom' => $ext_b_desk,
+            '--desk-trans-x' => $tra_x_desk,
+            '--desk-trans-y' => $tra_y_desk,
+            '--col-order-mobile' => $order_mobile,
+            '--col-order-tablet' => $order_tablet,
+            '--col-order-desktop' => $order_desktop,
+            '--col-zindex-mobile' => $z_mobile,
+            '--col-zindex-tablet' => $z_tablet,
+            '--col-zindex-desktop' => $z_desktop,
+            '--col-radius-mobile' => is_numeric($rad_mobile) ? "{$rad_mobile}px" : $rad_mobile,
+            '--col-radius-tablet' => !empty($attributes['tabletBorderRadius']) ? (is_numeric($attributes['tabletBorderRadius']) ? "{$attributes['tabletBorderRadius']}px" : $attributes['tabletBorderRadius']) : 'var(--col-radius-mobile)',
+            '--col-radius-desktop' => !empty($attributes['desktopBorderRadius']) ? (is_numeric($attributes['desktopBorderRadius']) ? "{$attributes['desktopBorderRadius']}px" : $attributes['desktopBorderRadius']) : 'var(--col-radius-tablet)',
+        ],
+        $border_vars_mobile,
+        $border_vars_tablet,
+        $border_vars_desktop
+    );
+
+    $style_vars_str = '';
+    foreach ($all_vars as $k => $v) {
+        if ($v !== '') {
+            $style_vars_str .= "{$k}: {$v}; ";
+        }
+    }
+
     $style = sprintf(
-        '--col-pad-mobile: %s; --col-pad-tablet: %s; --col-pad-desktop: %s; ' .
-        '--col-w-mobile: %s; --col-w-tablet: %s; --col-w-desktop: %s; ' .
-        '--col-valign-mobile: %s; --col-valign-tablet: %s; --col-valign-desktop: %s; ' .
-        '--col-inner-max-mobile: %s; --col-inner-max-tablet: %s; --col-inner-max-desktop: %s; ' .
-        '--col-halign-mobile: %s; --col-halign-tablet: %s; --col-halign-desktop: %s; ' .
-        '--col-bg-image-mobile: %s; --col-bg-image-tablet: %s; --col-bg-image-desktop: %s; ' .
-        '--col-bg-color-mobile: %s; --col-bg-color-tablet: %s; --col-bg-color-desktop: %s; ' .
-        '--base-ext-top: %s; --base-ext-bottom: %s; --base-trans-x: %s; --base-trans-y: %s; ' .
-        '--tab-ext-top: %s; --tab-ext-bottom: %s; --tab-trans-x: %s; --tab-trans-y: %s; ' .
-        '--desk-ext-top: %s; --desk-ext-bottom: %s; --desk-trans-x: %s; --desk-trans-y: %s; ' .
+        '%s' .
         '--col-current-pad: var(--col-pad-mobile); ' .
         '--current-valign: var(--col-valign-mobile); ' .
         '--current-inner-max: var(--col-inner-max-mobile); ' .
@@ -124,21 +197,10 @@ return function( $attributes, $content, $block ) {
         '--current-bg-image: var(--col-bg-image-mobile); --current-bg-color: var(--col-bg-color-mobile); ' .
         '--curr-ext-top: var(--base-ext-top); --curr-ext-bottom: var(--base-ext-bottom); ' .
         '--curr-trans-x: var(--base-trans-x); --curr-trans-y: var(--base-trans-y); ' .
-        '--current-order: %d; --current-z-index: %d; --current-radius: %s; ' .
-        'flex: %s; max-width: %s; padding: var(--col-current-pad); position: relative; min-width: 0; display: flex; flex-direction: column; justify-content: var(--current-valign); align-items: stretch; box-sizing: border-box; background-color: var(--current-bg-color); order: var(--current-order); z-index: var(--current-z-index); border-radius: var(--current-radius); %s',
-        esc_attr($css_pad_mobile), esc_attr($css_pad_tablet), esc_attr($css_pad_desktop),
-        $w_mobile, $w_tablet, $w_desktop,
-        esc_attr($va_mobile), esc_attr($va_tablet), esc_attr($va_desktop),
-        esc_attr($imw_mobile), esc_attr($imw_tablet), esc_attr($imw_desktop),
-        esc_attr($ha_mobile), esc_attr($ha_tablet), esc_attr($ha_desktop),
-        esc_attr($bg_img_base), esc_attr($bg_img_tab), esc_attr($bg_img_desk),
-        esc_attr($bg_col_base), esc_attr($bg_col_tab), esc_attr($bg_col_desk),
-        esc_attr($ext_t_base), esc_attr($ext_b_base), esc_attr($tra_x_base), esc_attr($tra_y_base),
-        esc_attr($ext_t_tab), esc_attr($ext_b_tab), esc_attr($tra_x_tab), esc_attr($tra_y_tab),
-        esc_attr($ext_t_desk), esc_attr($ext_b_desk), esc_attr($tra_x_desk), esc_attr($tra_y_desk),
-        $order_mobile, $z_mobile, esc_attr($rad_mobile),
-        $get_flex($w_mobile), $get_max_w($w_mobile),
-        $border_mobile
+        '--current-order: var(--col-order-mobile); --current-z-index: var(--col-zindex-mobile); --current-radius: var(--col-radius-mobile); ' .
+        'flex: %s; max-width: %s; padding: var(--col-current-pad); position: relative; min-width: 0; display: flex; flex-direction: column; justify-content: var(--current-valign); align-items: stretch; box-sizing: border-box; background-color: var(--current-bg-color); order: var(--current-order); z-index: var(--current-z-index); border-radius: var(--current-radius);',
+        $style_vars_str,
+        $get_flex($w_mobile), $get_max_w($w_mobile)
     );
 
     $wrapper_attributes = get_block_wrapper_attributes( [ 
@@ -150,8 +212,22 @@ return function( $attributes, $content, $block ) {
     ?>
     <div <?php echo $wrapper_attributes; ?>>
         <style>
+            .<?php echo $block_id; ?> {
+                border-top-width: var(--col-border-top-width-mobile, var(--col-border-width-mobile));
+                border-top-style: var(--col-border-top-style-mobile, var(--col-border-style-mobile));
+                border-top-color: var(--col-border-top-color-mobile, var(--col-border-color-mobile));
+                border-right-width: var(--col-border-right-width-mobile, var(--col-border-width-mobile));
+                border-right-style: var(--col-border-right-style-mobile, var(--col-border-style-mobile));
+                border-right-color: var(--col-border-right-color-mobile, var(--col-border-color-mobile));
+                border-bottom-width: var(--col-border-bottom-width-mobile, var(--col-border-width-mobile));
+                border-bottom-style: var(--col-border-bottom-style-mobile, var(--col-border-style-mobile));
+                border-bottom-color: var(--col-border-bottom-color-mobile, var(--col-border-color-mobile));
+                border-left-width: var(--col-border-left-width-mobile, var(--col-border-width-mobile));
+                border-left-style: var(--col-border-left-style-mobile, var(--col-border-style-mobile));
+                border-left-color: var(--col-border-left-color-mobile, var(--col-border-color-mobile));
+            }
             @media (min-width: <?php echo $tablet_bp; ?>px) {
-                .<?php echo $block_id; ?> {
+                .wp-block-<?php echo $namespace; ?>-column.<?php echo $block_id; ?> {
                     flex: <?php echo $get_flex($w_tablet); ?> !important;
                     max-width: <?php echo $get_max_w($w_tablet); ?> !important;
                     --col-current-pad: var(--col-pad-tablet);
@@ -164,14 +240,25 @@ return function( $attributes, $content, $block ) {
                     --curr-ext-bottom: var(--tab-ext-bottom);
                     --curr-trans-x: var(--tab-trans-x);
                     --curr-trans-y: var(--tab-trans-y);
-                    --current-order: <?php echo $order_tablet; ?>;
-                    --current-z-index: <?php echo $z_tablet; ?>;
-                    --current-radius: <?php echo esc_attr($rad_tablet); ?>;
-                    <?php echo $border_tablet ? $border_tablet : ''; ?>
+                    --current-order: var(--col-order-tablet) !important;
+                    --current-z-index: var(--col-zindex-tablet) !important;
+                    --current-radius: var(--col-radius-tablet) !important;
+                    border-top-width: var(--col-border-top-width-tablet, var(--col-border-width-tablet, var(--col-border-top-width-mobile, var(--col-border-width-mobile)))) !important;
+                    border-top-style: var(--col-border-top-style-tablet, var(--col-border-style-tablet, var(--col-border-top-style-mobile, var(--col-border-style-mobile)))) !important;
+                    border-top-color: var(--col-border-top-color-tablet, var(--col-border-color-tablet, var(--col-border-top-color-mobile, var(--col-border-color-mobile)))) !important;
+                    border-right-width: var(--col-border-right-width-tablet, var(--col-border-width-tablet, var(--col-border-right-width-mobile, var(--col-border-width-mobile)))) !important;
+                    border-right-style: var(--col-border-right-style-tablet, var(--col-border-style-tablet, var(--col-border-right-style-mobile, var(--col-border-style-mobile)))) !important;
+                    border-right-color: var(--col-border-right-color-tablet, var(--col-border-color-tablet, var(--col-border-right-color-mobile, var(--col-border-color-mobile)))) !important;
+                    border-bottom-width: var(--col-border-bottom-width-tablet, var(--col-border-width-tablet, var(--col-border-bottom-width-mobile, var(--col-border-width-mobile)))) !important;
+                    border-bottom-style: var(--col-border-bottom-style-tablet, var(--col-border-style-tablet, var(--col-border-bottom-style-mobile, var(--col-border-style-mobile)))) !important;
+                    border-bottom-color: var(--col-border-bottom-color-tablet, var(--col-border-color-tablet, var(--col-border-bottom-color-mobile, var(--col-border-color-mobile)))) !important;
+                    border-left-width: var(--col-border-left-width-tablet, var(--col-border-width-tablet, var(--col-border-left-width-mobile, var(--col-border-width-mobile)))) !important;
+                    border-left-style: var(--col-border-left-style-tablet, var(--col-border-style-tablet, var(--col-border-left-style-mobile, var(--col-border-style-mobile)))) !important;
+                    border-left-color: var(--col-border-left-color-tablet, var(--col-border-color-tablet, var(--col-border-left-color-mobile, var(--col-border-color-mobile)))) !important;
                 }
             }
             @media (min-width: <?php echo $desktop_bp; ?>px) {
-                .<?php echo $block_id; ?> {
+                .wp-block-<?php echo $namespace; ?>-column.<?php echo $block_id; ?> {
                     flex: <?php echo $get_flex($w_desktop); ?> !important;
                     max-width: <?php echo $get_max_w($w_desktop); ?> !important;
                     --col-current-pad: var(--col-pad-desktop);
@@ -184,10 +271,21 @@ return function( $attributes, $content, $block ) {
                     --curr-ext-bottom: var(--desk-ext-bottom);
                     --curr-trans-x: var(--desk-trans-x);
                     --curr-trans-y: var(--desk-trans-y);
-                    --current-order: <?php echo $order_desktop; ?>;
-                    --current-z-index: <?php echo $z_desktop; ?>;
-                    --current-radius: <?php echo esc_attr($rad_desktop); ?>;
-                    <?php echo $border_desktop ? $border_desktop : ''; ?>
+                    --current-order: var(--col-order-desktop) !important;
+                    --current-z-index: var(--col-zindex-desktop) !important;
+                    --current-radius: var(--col-radius-desktop) !important;
+                    border-top-width: var(--col-border-top-width-desktop, var(--col-border-width-desktop, var(--col-border-top-width-tablet, var(--col-border-width-tablet, var(--col-border-top-width-mobile, var(--col-border-width-mobile)))))) !important;
+                    border-top-style: var(--col-border-top-style-desktop, var(--col-border-style-desktop, var(--col-border-top-style-tablet, var(--col-border-style-tablet, var(--col-border-top-style-mobile, var(--col-border-style-mobile)))))) !important;
+                    border-top-color: var(--col-border-top-color-desktop, var(--col-border-color-desktop, var(--col-border-top-color-tablet, var(--col-border-color-tablet, var(--col-border-top-color-mobile, var(--col-border-color-mobile)))))) !important;
+                    border-right-width: var(--col-border-right-width-desktop, var(--col-border-width-desktop, var(--col-border-right-width-tablet, var(--col-border-width-tablet, var(--col-border-right-width-mobile, var(--col-border-width-mobile)))))) !important;
+                    border-right-style: var(--col-border-right-style-desktop, var(--col-border-style-desktop, var(--col-border-right-style-tablet, var(--col-border-style-tablet, var(--col-border-right-style-mobile, var(--col-border-style-mobile)))))) !important;
+                    border-right-color: var(--col-border-right-color-desktop, var(--col-border-color-desktop, var(--col-border-right-color-tablet, var(--col-border-color-tablet, var(--col-border-right-color-mobile, var(--col-border-color-mobile)))))) !important;
+                    border-bottom-width: var(--col-border-bottom-width-desktop, var(--col-border-width-desktop, var(--col-border-bottom-width-tablet, var(--col-border-width-tablet, var(--col-border-bottom-width-mobile, var(--col-border-width-mobile)))))) !important;
+                    border-bottom-style: var(--col-border-bottom-style-desktop, var(--col-border-style-desktop, var(--col-border-bottom-style-tablet, var(--col-border-style-tablet, var(--col-border-bottom-style-mobile, var(--col-border-style-mobile)))))) !important;
+                    border-bottom-color: var(--col-border-bottom-color-desktop, var(--col-border-color-desktop, var(--col-border-bottom-color-tablet, var(--col-border-color-tablet, var(--col-border-bottom-color-mobile, var(--col-border-color-mobile)))))) !important;
+                    border-left-width: var(--col-border-left-width-desktop, var(--col-border-width-desktop, var(--col-border-left-width-tablet, var(--col-border-width-tablet, var(--col-border-left-width-mobile, var(--col-border-width-mobile)))))) !important;
+                    border-left-style: var(--col-border-left-style-desktop, var(--col-border-style-desktop, var(--col-border-left-style-tablet, var(--col-border-style-tablet, var(--col-border-left-style-mobile, var(--col-border-style-mobile)))))) !important;
+                    border-left-color: var(--col-border-left-color-desktop, var(--col-border-color-desktop, var(--col-border-left-color-tablet, var(--col-border-color-tablet, var(--col-border-left-color-mobile, var(--col-border-color-mobile)))))) !important;
                 }
             }
         </style>

@@ -25,6 +25,12 @@ export const parsePadding = (p: any): PaddingAttribute | {} => {
     return safeObj as PaddingAttribute;
 };
 
+export const ensureUnit = (val: string | number | undefined, defaultUnit = 'px') => {
+    if (val === undefined || val === '' || val === null) return '';
+    if (!isNaN(Number(val))) return `${val}${defaultUnit}`;
+    return String(val);
+};
+
 export const getPaddingStr = (p: PaddingAttribute | undefined, fallback = '0px') => {
     const parsed = parsePadding(p) as PaddingAttribute;
 

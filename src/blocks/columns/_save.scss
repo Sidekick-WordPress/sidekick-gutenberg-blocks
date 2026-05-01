@@ -6,6 +6,50 @@
     max-width: calc(var(#{$w-var}) * 1% - (var(--current-gap) * (100 - var(#{$w-var})) / 100)) !important;
 }
 
+// $fb1 / $fb2: optional fallback breakpoint prefixes (e.g. tablet → mobile, desktop → tablet → mobile)
+@mixin apply-borders($prefix, $fb1: null, $fb2: null) {
+    @if $fb2 {
+        border-top-width:    var(--col-border-top-width-#{$prefix},    var(--col-border-width-#{$prefix},    var(--col-border-top-width-#{$fb1},    var(--col-border-width-#{$fb1},    var(--col-border-top-width-#{$fb2},    var(--col-border-width-#{$fb2})))))) !important;
+        border-top-style:    var(--col-border-top-style-#{$prefix},    var(--col-border-style-#{$prefix},    var(--col-border-top-style-#{$fb1},    var(--col-border-style-#{$fb1},    var(--col-border-top-style-#{$fb2},    var(--col-border-style-#{$fb2})))))) !important;
+        border-top-color:    var(--col-border-top-color-#{$prefix},    var(--col-border-color-#{$prefix},    var(--col-border-top-color-#{$fb1},    var(--col-border-color-#{$fb1},    var(--col-border-top-color-#{$fb2},    var(--col-border-color-#{$fb2})))))) !important;
+        border-right-width:  var(--col-border-right-width-#{$prefix},  var(--col-border-width-#{$prefix},  var(--col-border-right-width-#{$fb1},  var(--col-border-width-#{$fb1},  var(--col-border-right-width-#{$fb2},  var(--col-border-width-#{$fb2})))))) !important;
+        border-right-style:  var(--col-border-right-style-#{$prefix},  var(--col-border-style-#{$prefix},  var(--col-border-right-style-#{$fb1},  var(--col-border-style-#{$fb1},  var(--col-border-right-style-#{$fb2},  var(--col-border-style-#{$fb2})))))) !important;
+        border-right-color:  var(--col-border-right-color-#{$prefix},  var(--col-border-color-#{$prefix},  var(--col-border-right-color-#{$fb1},  var(--col-border-color-#{$fb1},  var(--col-border-right-color-#{$fb2},  var(--col-border-color-#{$fb2})))))) !important;
+        border-bottom-width: var(--col-border-bottom-width-#{$prefix}, var(--col-border-width-#{$prefix}, var(--col-border-bottom-width-#{$fb1}, var(--col-border-width-#{$fb1}, var(--col-border-bottom-width-#{$fb2}, var(--col-border-width-#{$fb2})))))) !important;
+        border-bottom-style: var(--col-border-bottom-style-#{$prefix}, var(--col-border-style-#{$prefix}, var(--col-border-bottom-style-#{$fb1}, var(--col-border-style-#{$fb1}, var(--col-border-bottom-style-#{$fb2}, var(--col-border-style-#{$fb2})))))) !important;
+        border-bottom-color: var(--col-border-bottom-color-#{$prefix}, var(--col-border-color-#{$prefix}, var(--col-border-bottom-color-#{$fb1}, var(--col-border-color-#{$fb1}, var(--col-border-bottom-color-#{$fb2}, var(--col-border-color-#{$fb2})))))) !important;
+        border-left-width:   var(--col-border-left-width-#{$prefix},   var(--col-border-width-#{$prefix},   var(--col-border-left-width-#{$fb1},   var(--col-border-width-#{$fb1},   var(--col-border-left-width-#{$fb2},   var(--col-border-width-#{$fb2})))))) !important;
+        border-left-style:   var(--col-border-left-style-#{$prefix},   var(--col-border-style-#{$prefix},   var(--col-border-left-style-#{$fb1},   var(--col-border-style-#{$fb1},   var(--col-border-left-style-#{$fb2},   var(--col-border-style-#{$fb2})))))) !important;
+        border-left-color:   var(--col-border-left-color-#{$prefix},   var(--col-border-color-#{$prefix},   var(--col-border-left-color-#{$fb1},   var(--col-border-color-#{$fb1},   var(--col-border-left-color-#{$fb2},   var(--col-border-color-#{$fb2})))))) !important;
+    } @else if $fb1 {
+        border-top-width:    var(--col-border-top-width-#{$prefix},    var(--col-border-width-#{$prefix},    var(--col-border-top-width-#{$fb1},    var(--col-border-width-#{$fb1})))) !important;
+        border-top-style:    var(--col-border-top-style-#{$prefix},    var(--col-border-style-#{$prefix},    var(--col-border-top-style-#{$fb1},    var(--col-border-style-#{$fb1})))) !important;
+        border-top-color:    var(--col-border-top-color-#{$prefix},    var(--col-border-color-#{$prefix},    var(--col-border-top-color-#{$fb1},    var(--col-border-color-#{$fb1})))) !important;
+        border-right-width:  var(--col-border-right-width-#{$prefix},  var(--col-border-width-#{$prefix},  var(--col-border-right-width-#{$fb1},  var(--col-border-width-#{$fb1})))) !important;
+        border-right-style:  var(--col-border-right-style-#{$prefix},  var(--col-border-style-#{$prefix},  var(--col-border-right-style-#{$fb1},  var(--col-border-style-#{$fb1})))) !important;
+        border-right-color:  var(--col-border-right-color-#{$prefix},  var(--col-border-color-#{$prefix},  var(--col-border-right-color-#{$fb1},  var(--col-border-color-#{$fb1})))) !important;
+        border-bottom-width: var(--col-border-bottom-width-#{$prefix}, var(--col-border-width-#{$prefix}, var(--col-border-bottom-width-#{$fb1}, var(--col-border-width-#{$fb1})))) !important;
+        border-bottom-style: var(--col-border-bottom-style-#{$prefix}, var(--col-border-style-#{$prefix}, var(--col-border-bottom-style-#{$fb1}, var(--col-border-style-#{$fb1})))) !important;
+        border-bottom-color: var(--col-border-bottom-color-#{$prefix}, var(--col-border-color-#{$prefix}, var(--col-border-bottom-color-#{$fb1}, var(--col-border-color-#{$fb1})))) !important;
+        border-left-width:   var(--col-border-left-width-#{$prefix},   var(--col-border-width-#{$prefix},   var(--col-border-left-width-#{$fb1},   var(--col-border-width-#{$fb1})))) !important;
+        border-left-style:   var(--col-border-left-style-#{$prefix},   var(--col-border-style-#{$prefix},   var(--col-border-left-style-#{$fb1},   var(--col-border-style-#{$fb1})))) !important;
+        border-left-color:   var(--col-border-left-color-#{$prefix},   var(--col-border-color-#{$prefix},   var(--col-border-left-color-#{$fb1},   var(--col-border-color-#{$fb1})))) !important;
+    } @else {
+        border-top-width:    var(--col-border-top-width-#{$prefix},    var(--col-border-width-#{$prefix})) !important;
+        border-top-style:    var(--col-border-top-style-#{$prefix},    var(--col-border-style-#{$prefix})) !important;
+        border-top-color:    var(--col-border-top-color-#{$prefix},    var(--col-border-color-#{$prefix})) !important;
+        border-right-width:  var(--col-border-right-width-#{$prefix},  var(--col-border-width-#{$prefix})) !important;
+        border-right-style:  var(--col-border-right-style-#{$prefix},  var(--col-border-style-#{$prefix})) !important;
+        border-right-color:  var(--col-border-right-color-#{$prefix},  var(--col-border-color-#{$prefix})) !important;
+        border-bottom-width: var(--col-border-bottom-width-#{$prefix}, var(--col-border-width-#{$prefix})) !important;
+        border-bottom-style: var(--col-border-bottom-style-#{$prefix}, var(--col-border-style-#{$prefix})) !important;
+        border-bottom-color: var(--col-border-bottom-color-#{$prefix}, var(--col-border-color-#{$prefix})) !important;
+        border-left-width:   var(--col-border-left-width-#{$prefix},   var(--col-border-width-#{$prefix})) !important;
+        border-left-style:   var(--col-border-left-style-#{$prefix},   var(--col-border-style-#{$prefix})) !important;
+        border-left-color:   var(--col-border-left-color-#{$prefix},   var(--col-border-color-#{$prefix})) !important;
+    }
+}
+
 // Global Frontend & Editor Column overrides
 .wp-block-#{$namespace}-column {
     &.has-advanced-layout {
@@ -18,7 +62,9 @@
 }
 
 .wp-block-#{$namespace}-columns {
-    // DEFAULT POINTERS (Desktop/Base fallback)
+    // DEFAULT POINTERS — frontend cascade (no layout class = no editor breakpoint class active)
+    // Borders intentionally omitted here: PHP <style> tag owns frontend borders,
+    // and the is-*-layout editor classes below own editor borders.
     --current-gap: var(--gap-desktop, var(--gap-mobile));
     --current-pad: var(--pad-desktop, var(--pad-mobile));
     --current-max-width: var(--max-width-desktop, var(--max-width-mobile));
@@ -38,15 +84,27 @@
         --current-halign: var(--col-halign-desktop, var(--col-halign-mobile));
         --current-bg-image: var(--col-bg-image-desktop, var(--col-bg-image-mobile));
         --current-bg-color: var(--col-bg-color-desktop, var(--col-bg-color-mobile));
-        
+
         --curr-ext-top: var(--desk-ext-top, var(--base-ext-top));
         --curr-ext-bottom: var(--desk-ext-bottom, var(--base-ext-bottom));
         --curr-trans-x: var(--desk-trans-x, var(--base-trans-x));
         --curr-trans-y: var(--desk-trans-y, var(--base-trans-y));
+
+        // Default to mobile values; layout classes below override per breakpoint in the editor.
+        // Frontend cascade is handled by PHP inline style vars + media queries in save.php.
+        --current-radius: var(--col-radius-mobile);
+        --current-z-index: var(--col-zindex-mobile);
+        --current-order: var(--col-order-mobile);
+        // Mobile border vars as !important baseline; PHP tablet/desktop media queries
+        // (with equal specificity and later source order) override on the frontend.
+        @include apply-borders(mobile);
     }
 
-    // EDITOR ONLY: These classes are toggled by ResizeObserver in ColumnsExtraLogic.tsx
-    
+    // EDITOR ONLY: Classes toggled by ResizeObserver in ColumnsExtraLogic.tsx.
+    // Each breakpoint is SILOED — only shows its own values. Base cascades on the
+    // frontend via PHP, not here. Borders DO cascade to lower breakpoints so the
+    // user can see a border at all sizes without re-entering it at every breakpoint.
+
     // BASE / MOBILE
     &.is-mobile-layout {
         --current-gap: var(--gap-mobile) !important;
@@ -67,13 +125,20 @@
             --current-halign: var(--col-halign-mobile) !important;
             --current-bg-image: var(--col-bg-image-mobile) !important;
             --current-bg-color: var(--col-bg-color-mobile) !important;
-            
+
             --curr-ext-top: var(--base-ext-top) !important;
             --curr-ext-bottom: var(--base-ext-bottom) !important;
             --curr-trans-x: var(--base-trans-x) !important;
             --curr-trans-y: var(--base-trans-y) !important;
-            
-            order: var(--mobile-order) !important;
+
+            --current-radius: var(--col-radius-mobile) !important;
+            --current-z-index: var(--col-zindex-mobile) !important;
+            --current-order: var(--col-order-mobile) !important;
+
+            order: var(--current-order) !important;
+            z-index: var(--current-z-index) !important;
+            border-radius: var(--current-radius) !important;
+            @include apply-borders(mobile);
         }
     }
 
@@ -102,6 +167,17 @@
             --curr-ext-bottom: var(--tab-ext-bottom) !important;
             --curr-trans-x: var(--tab-trans-x) !important;
             --curr-trans-y: var(--tab-trans-y) !important;
+
+            // Siloed: only the tablet-specific value; no fallback to mobile in editor
+            --current-radius: var(--col-radius-tablet) !important;
+            --current-z-index: var(--col-zindex-tablet) !important;
+            --current-order: var(--col-order-tablet) !important;
+
+            order: var(--current-order) !important;
+            z-index: var(--current-z-index) !important;
+            border-radius: var(--current-radius) !important;
+            // Borders cascade so the user sees a border even when only base has one
+            @include apply-borders(tablet, mobile);
         }
     }
 
@@ -130,6 +206,17 @@
             --curr-ext-bottom: var(--desk-ext-bottom) !important;
             --curr-trans-x: var(--desk-trans-x) !important;
             --curr-trans-y: var(--desk-trans-y) !important;
+
+            // Siloed: only the desktop-specific value; no fallback to lower breakpoints in editor
+            --current-radius: var(--col-radius-desktop) !important;
+            --current-z-index: var(--col-zindex-desktop) !important;
+            --current-order: var(--col-order-desktop) !important;
+
+            order: var(--current-order) !important;
+            z-index: var(--current-z-index) !important;
+            border-radius: var(--current-radius) !important;
+            // Borders cascade so the user sees a border even when only base has one
+            @include apply-borders(desktop, tablet, mobile);
         }
     }
 

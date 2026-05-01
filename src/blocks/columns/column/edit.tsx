@@ -12,43 +12,38 @@ import {
     TabPanel
 } from '@wordpress/components';
 import {BlockEditProps} from '@wordpress/blocks';
+import {useState} from '@wordpress/element';
 import type {CSSProperties} from 'react';
 import ControlsMedia from "../../../components/edit-controls/ControlsMedia";
 
 // Plugin
 import namespace from '../../../namespace';
-import {getPaddingStr, parsePadding} from "../../../helpers/styles";
+import {getPaddingStr, parsePadding, ensureUnit} from "../../../helpers/styles";
 import {PaddingAttribute} from "../../../models/attr-shapes/padding-margin";
 
 // Block
 import {ColumnAttributes} from './attributes';
 import VersatileMessage from "../../../components/VersitileMessage";
 
-const getBorderStyles = (borderAttr: any): CSSProperties => {
-    if (!borderAttr) return {};
+const getBorderVars = (borderAttr: any, prefix: string): Record<string, string> => {
+    const vars: Record<string, string> = {};
+    if (!borderAttr) return vars;
 
     if (borderAttr.width || borderAttr.color || borderAttr.style) {
-        return {
-            borderWidth: borderAttr.width,
-            borderStyle: borderAttr.style,
-            borderColor: borderAttr.color,
-        };
+        if (borderAttr.width) vars[`--col-border-width-${prefix}`] = borderAttr.width;
+        vars[`--col-border-style-${prefix}`] = borderAttr.style || 'solid';
+        if (borderAttr.color) vars[`--col-border-color-${prefix}`] = borderAttr.color;
+    } else {
+        ['top', 'right', 'bottom', 'left'].forEach(side => {
+            const s = borderAttr[side];
+            if (s && (s.width || s.color || s.style)) {
+                if (s.width) vars[`--col-border-${side}-width-${prefix}`] = s.width;
+                vars[`--col-border-${side}-style-${prefix}`] = s.style || 'solid';
+                if (s.color) vars[`--col-border-${side}-color-${prefix}`] = s.color;
+            }
+        });
     }
-
-    return {
-        borderTopWidth: borderAttr.top?.width,
-        borderTopStyle: borderAttr.top?.style,
-        borderTopColor: borderAttr.top?.color,
-        borderRightWidth: borderAttr.right?.width,
-        borderRightStyle: borderAttr.right?.style,
-        borderRightColor: borderAttr.right?.color,
-        borderBottomWidth: borderAttr.bottom?.width,
-        borderBottomStyle: borderAttr.bottom?.style,
-        borderBottomColor: borderAttr.bottom?.color,
-        borderLeftWidth: borderAttr.left?.width,
-        borderLeftStyle: borderAttr.left?.style,
-        borderLeftColor: borderAttr.left?.color,
-    };
+    return vars;
 };
 
 export default function Edit({attributes, setAttributes, className, context}: BlockEditProps<ColumnAttributes>) {
@@ -73,6 +68,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             tabExtendTop, tabExtendBottom, tabTranslateX, tabTranslateY,
             deskExtendTop, deskExtendBottom, deskTranslateX, deskTranslateY, 
         } = attributes,
+        [activeTab, setActiveTab] = useState('mobile'),
         { themeColors } = useSelect((select: any) => {
             const settings = select('core/block-editor').getSettings();
             return { themeColors: settings.colors || [] };
@@ -111,6 +107,16 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         hasTabletBorderRadius = !!tabletBorderRadius,
         hasDesktopBorderRadius = !!desktopBorderRadius,
 
+        // Border Detection Logic
+        hasTabletBorder = tabletBorder && (
+            tabletBorder.width || tabletBorder.style || tabletBorder.color ||
+            ['top', 'right', 'bottom', 'left'].some((side: string) => tabletBorder[side] && (tabletBorder[side].width || tabletBorder[side].style || tabletBorder[side].color))
+        ),
+        hasDesktopBorder = desktopBorder && (
+            desktopBorder.width || desktopBorder.style || desktopBorder.color ||
+            ['top', 'right', 'bottom', 'left'].some((side: string) => desktopBorder[side] && (desktopBorder[side].width || desktopBorder[side].style || desktopBorder[side].color))
+        ),
+
         // CSS Variables for Padding
         cssPadMobile = getPaddingStr(mobilePadding, '10px'),
         cssPadTablet = hasTabletPadding ? getPaddingStr(tabletPadding, '10px') : 'var(--col-pad-mobile)',
@@ -131,47 +137,34 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         cssBgColorDesktop = hasDesktopBgColor ? desktopBackgroundColor : 'var(--col-bg-color-tablet)',
 
         innerAlignMap: Record<string, string> = { left: 'flex-start', center: 'center', right: 'flex-end' },
-        borderStyles = getBorderStyles(border);
 
-    // ONLY pass variables inline. The SCSS does the actual CSS manipulation (margin/transform).
+        // Generate Border Variables
+        borderVarsMobile = getBorderVars(border, 'mobile'),
+        borderVarsTablet = getBorderVars(tabletBorder, 'tablet'),
+        borderVarsDesktop = getBorderVars(desktopBorder, 'desktop');
+
+    // Pass ALL variables. The SCSS + ResizeObserver (in ColumnsExtraLogic) handles the actual toggling.
     const customStyles: Record<string, any> = {
         '--col-pad-desktop': cssPadDesktop,
         '--col-pad-tablet': cssPadTablet,
         '--col-pad-mobile': cssPadMobile,
 
-        '--col-order-mobile': mobileOrder,
-        '--col-order-tablet': hasTabletOrder ? tabletOrder : 'var(--col-order-mobile)',
-        '--col-order-desktop': hasDesktopOrder ? desktopOrder : 'var(--col-order-tablet)',
-
-        '--col-zindex-mobile': zIndex,
-        '--col-zindex-tablet': hasTabletZIndex ? tabletZIndex : 'var(--col-zindex-mobile)',
-        '--col-zindex-desktop': hasDesktopZIndex ? desktopZIndex : 'var(--col-zindex-tablet)',
-
-        '--col-radius-mobile': borderRadius || '0px',
-        '--col-radius-tablet': hasTabletBorderRadius ? tabletBorderRadius : 'var(--col-radius-mobile)',
-        '--col-radius-desktop': hasDesktopBorderRadius ? desktopBorderRadius : 'var(--col-radius-tablet)',
-
-        // Responsive Widths
         '--col-w-mobile': valWidthMobile,
         '--col-w-tablet': valWidthTablet,
         '--col-w-desktop': valWidthDesktop,
 
-        // Responsive VAlign
         '--col-valign-mobile': vAlign,
         '--col-valign-tablet': hasTabletVAlign ? tabletVAlign : 'var(--col-valign-mobile)',
         '--col-valign-desktop': hasDesktopVAlign ? desktopVAlign : 'var(--col-valign-tablet)',
 
-        // Responsive Inner Max Width
         '--col-inner-max-mobile': innerMaxWidth || '100%',
         '--col-inner-max-tablet': hasTabletInnerMax ? tabletInnerMaxWidth : 'var(--col-inner-max-mobile)',
         '--col-inner-max-desktop': hasDesktopInnerMax ? desktopInnerMaxWidth : 'var(--col-inner-max-tablet)',
 
-        // Responsive HAlign
         '--col-halign-mobile': innerAlignMap[contentHAlign] || 'flex-start',
         '--col-halign-tablet': hasTabletHAlign ? innerAlignMap[tabletContentHAlign] : 'var(--col-halign-mobile)',
         '--col-halign-desktop': hasDesktopHAlign ? innerAlignMap[desktopContentHAlign] : 'var(--col-halign-tablet)',
 
-        // Responsive Backgrounds
         '--col-bg-image-mobile': cssBgImageMobile,
         '--col-bg-image-tablet': cssBgImageTablet,
         '--col-bg-image-desktop': cssBgImageDesktop,
@@ -179,23 +172,36 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         '--col-bg-color-tablet': cssBgColorTablet,
         '--col-bg-color-desktop': cssBgColorDesktop,
 
-        // Advanced Layout Base
+        '--col-radius-mobile': ensureUnit(borderRadius) || '0px',
+        ...(hasTabletBorderRadius && { '--col-radius-tablet': ensureUnit(tabletBorderRadius) }),
+        ...(hasDesktopBorderRadius && { '--col-radius-desktop': ensureUnit(desktopBorderRadius) }),
+
+        '--col-zindex-mobile': zIndex,
+        ...(hasTabletZIndex && { '--col-zindex-tablet': tabletZIndex }),
+        ...(hasDesktopZIndex && { '--col-zindex-desktop': desktopZIndex }),
+
+        '--col-order-mobile': mobileOrder,
+        ...(hasTabletOrder && { '--col-order-tablet': tabletOrder }),
+        ...(hasDesktopOrder && { '--col-order-desktop': desktopOrder }),
+
         '--base-ext-top': extendTop || '0px',
         '--base-ext-bottom': extendBottom || '0px',
         '--base-trans-x': translateX || '0px',
         '--base-trans-y': translateY || '0px',
 
-        // Advanced Layout Tablet Overrides
         '--tab-ext-top': tabExtendTop || 'var(--base-ext-top)',
         '--tab-ext-bottom': tabExtendBottom || 'var(--base-ext-bottom)',
         '--tab-trans-x': tabTranslateX || 'var(--base-trans-x)',
         '--tab-trans-y': tabTranslateY || 'var(--base-trans-y)',
 
-        // Advanced Layout Desktop Overrides
         '--desk-ext-top': deskExtendTop || 'var(--tab-ext-top)',
         '--desk-ext-bottom': deskExtendBottom || 'var(--tab-ext-bottom)',
         '--desk-trans-x': deskTranslateX || 'var(--tab-trans-x)',
         '--desk-trans-y': deskTranslateY || 'var(--tab-trans-y)',
+
+        ...borderVarsMobile,
+        ...borderVarsTablet,
+        ...borderVarsDesktop,
 
         padding: 'var(--col-current-pad)',
         display: 'flex',
@@ -210,12 +216,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         minWidth: 0,
         height: 'auto',
         
-        '--current-radius': 'var(--col-radius-mobile)',
-        '--current-z-index': 'var(--col-zindex-mobile)',
-        '--current-order': 'var(--col-order-mobile)',
-
         borderRadius: 'var(--current-radius)',
-        ...borderStyles,
         zIndex: 'var(--current-z-index)',
         order: 'var(--current-order)',
     };
@@ -565,6 +566,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                     <TabPanel
                         className={`${namespace}-responsive-tabs`}
                         activeClass="is-active"
+                        onSelect={(tabName) => setActiveTab(tabName as string)}
                         tabs={[
                             { name: 'mobile', title: __('Base', namespace), className: 'tab-mobile' },
                             { name: 'tablet', title: __('Tablet', namespace), className: 'tab-tablet' },

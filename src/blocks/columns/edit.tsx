@@ -90,6 +90,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             };
         }, [clientId]),
         [blockElement, setBlockElement] = useState<HTMLElement | null>(null),
+        [layoutClass, setLayoutClass] = useState(''),
 
         // Detection Logic
         hasTabletGap = tabletGap !== undefined && (tabletGap as any) !== '',
@@ -144,9 +145,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
         addColumn = (width: number) => {
             const currentBlocks = getBlocks(clientId);
             const newBlock = createBlock(`${namespace}/column`, {
-                width: 100,
-                tabletWidth: width,
-                desktopWidth: width
+                width: width || 100
             });
             replaceInnerBlocks(clientId, [...currentBlocks, newBlock], false);
             setAttributes({columns: currentBlocks.length + 1});
@@ -162,7 +161,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
 
         blockProps = useBlockProps({
             ref: setBlockElement,
-            className,
+            className: [className, layoutClass].filter(Boolean).join(' '),
             style: {
                 '--gap-desktop': cssGapDesktop,
                 '--gap-tablet': cssGapTablet,
@@ -535,7 +534,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             </InspectorControls>
 
             <div {...blockProps}>
-                <ColumnsExtraLogic attributes={attributes} blockRef={blockElement}/>
+                <ColumnsExtraLogic attributes={attributes} blockRef={blockElement} onLayoutChange={setLayoutClass}/>
 
                 <div
                     className="u-full_cover_absolute"
