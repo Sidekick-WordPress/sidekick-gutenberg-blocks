@@ -38,6 +38,18 @@ export interface CoreColumnsAttributes {
     backgroundPosition: string;
     backgroundRepeat: string;
     backgroundFixedPosition: boolean;
+
+    tabletBackgroundImageOpacity: number;
+    tabletBackgroundSize: string;
+    tabletBackgroundPosition: string;
+    tabletBackgroundRepeat: string;
+    tabletBackgroundFixedPosition: boolean;
+
+    desktopBackgroundImageOpacity: number;
+    desktopBackgroundSize: string;
+    desktopBackgroundPosition: string;
+    desktopBackgroundRepeat: string;
+    desktopBackgroundFixedPosition: boolean;
 }
 
 export const parentAttributes: Record<keyof CoreColumnsAttributes, BlockAttribute<any>> = {
@@ -80,4 +92,16 @@ export const parentAttributes: Record<keyof CoreColumnsAttributes, BlockAttribut
     backgroundPosition: { type: 'string', default: 'center' },
     backgroundRepeat: { type: 'string', default: 'no-repeat' },
     backgroundFixedPosition: { type: 'boolean', default: false },
+
+    tabletBackgroundImageOpacity: { type: 'number' },
+    tabletBackgroundSize: { type: 'string' },
+    tabletBackgroundPosition: { type: 'string' },
+    tabletBackgroundRepeat: { type: 'string' },
+    tabletBackgroundFixedPosition: { type: 'boolean' },
+
+    desktopBackgroundImageOpacity: { type: 'number' },
+    desktopBackgroundSize: { type: 'string' },
+    desktopBackgroundPosition: { type: 'string' },
+    desktopBackgroundRepeat: { type: 'string' },
+    desktopBackgroundFixedPosition: { type: 'boolean' },
 };

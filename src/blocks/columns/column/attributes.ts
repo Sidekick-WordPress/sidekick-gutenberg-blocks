@@ -47,6 +47,16 @@ export interface ColumnAttributes {
     backgroundPosition: string;
     backgroundRepeat: string;
     backgroundFixedPosition: boolean;
+    tabletBackgroundImageOpacity: number;
+    tabletBackgroundSize: string;
+    tabletBackgroundPosition: string;
+    tabletBackgroundRepeat: string;
+    tabletBackgroundFixedPosition: boolean;
+    desktopBackgroundImageOpacity: number;
+    desktopBackgroundSize: string;
+    desktopBackgroundPosition: string;
+    desktopBackgroundRepeat: string;
+    desktopBackgroundFixedPosition: boolean;
 
     // Inner Content
     innerMaxWidth: string; // Base
@@ -125,6 +135,16 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
     backgroundPosition: { type: 'string', default: 'center' },
     backgroundRepeat: { type: 'string', default: 'no-repeat' },
     backgroundFixedPosition: { type: 'boolean', default: false },
+    tabletBackgroundImageOpacity: { type: 'number' },
+    tabletBackgroundSize: { type: 'string' },
+    tabletBackgroundPosition: { type: 'string' },
+    tabletBackgroundRepeat: { type: 'string' },
+    tabletBackgroundFixedPosition: { type: 'boolean' },
+    desktopBackgroundImageOpacity: { type: 'number' },
+    desktopBackgroundSize: { type: 'string' },
+    desktopBackgroundPosition: { type: 'string' },
+    desktopBackgroundRepeat: { type: 'string' },
+    desktopBackgroundFixedPosition: { type: 'boolean' },
 
     // Inner Content
     innerMaxWidth: { type: 'string', default: '' },

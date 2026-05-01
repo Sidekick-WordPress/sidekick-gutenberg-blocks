@@ -80,7 +80,19 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             backgroundSize,
             backgroundPosition,
             backgroundRepeat,
-            backgroundFixedPosition
+            backgroundFixedPosition,
+
+            tabletBackgroundImageOpacity,
+            tabletBackgroundSize,
+            tabletBackgroundPosition,
+            tabletBackgroundRepeat,
+            tabletBackgroundFixedPosition,
+
+            desktopBackgroundImageOpacity,
+            desktopBackgroundSize,
+            desktopBackgroundPosition,
+            desktopBackgroundRepeat,
+            desktopBackgroundFixedPosition,
         } = attributes,
         {replaceInnerBlocks} = useDispatch('core/block-editor'),
         {getBlocks, themeColors, innerBlocks} = useSelect((select: any) => {
@@ -93,6 +105,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
         }, [clientId]),
         [blockElement, setBlockElement] = useState<HTMLElement | null>(null),
         [layoutClass, setLayoutClass] = useState(''),
+        [activeTab, setActiveTab] = useState('mobile'),
 
         // Detection Logic
         hasTabletGap = tabletGap !== undefined && (tabletGap as any) !== '',
@@ -368,17 +381,16 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             imageUrl={tabletBackgroundImage}
                             onSelectMedia={(media) => setAttributes({tabletBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({tabletBackgroundImage: ''})}
-                            // Use same opacity/settings for now as they are shared
-                            opacity={backgroundImageOpacity}
-                            onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
-                            backgroundSize={backgroundSize}
-                            onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                            backgroundPosition={backgroundPosition}
-                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
-                            backgroundRepeat={backgroundRepeat}
-                            onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
-                            parallax={backgroundFixedPosition}
-                            onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
+                            opacity={tabletBackgroundImageOpacity ?? backgroundImageOpacity}
+                            onChangeOpacity={(val) => setAttributes({tabletBackgroundImageOpacity: val})}
+                            backgroundSize={tabletBackgroundSize ?? backgroundSize}
+                            onChangeBackgroundSize={(val) => setAttributes({tabletBackgroundSize: val})}
+                            backgroundPosition={tabletBackgroundPosition ?? backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({tabletBackgroundPosition: val})}
+                            backgroundRepeat={tabletBackgroundRepeat ?? backgroundRepeat}
+                            onChangeBackgroundRepeat={(val) => setAttributes({tabletBackgroundRepeat: val})}
+                            parallax={tabletBackgroundFixedPosition ?? backgroundFixedPosition}
+                            onChangeParallax={(val) => setAttributes({tabletBackgroundFixedPosition: val})}
                         />
                     </div>
                 );
@@ -439,16 +451,16 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             imageUrl={desktopBackgroundImage}
                             onSelectMedia={(media) => setAttributes({desktopBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({desktopBackgroundImage: ''})}
-                            opacity={backgroundImageOpacity}
-                            onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
-                            backgroundSize={backgroundSize}
-                            onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                            backgroundPosition={backgroundPosition}
-                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
-                            backgroundRepeat={backgroundRepeat}
-                            onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
-                            parallax={backgroundFixedPosition}
-                            onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
+                            opacity={desktopBackgroundImageOpacity ?? tabletBackgroundImageOpacity ?? backgroundImageOpacity}
+                            onChangeOpacity={(val) => setAttributes({desktopBackgroundImageOpacity: val})}
+                            backgroundSize={desktopBackgroundSize ?? tabletBackgroundSize ?? backgroundSize}
+                            onChangeBackgroundSize={(val) => setAttributes({desktopBackgroundSize: val})}
+                            backgroundPosition={desktopBackgroundPosition ?? tabletBackgroundPosition ?? backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({desktopBackgroundPosition: val})}
+                            backgroundRepeat={desktopBackgroundRepeat ?? tabletBackgroundRepeat ?? backgroundRepeat}
+                            onChangeBackgroundRepeat={(val) => setAttributes({desktopBackgroundRepeat: val})}
+                            parallax={desktopBackgroundFixedPosition ?? tabletBackgroundFixedPosition ?? backgroundFixedPosition}
+                            onChangeParallax={(val) => setAttributes({desktopBackgroundFixedPosition: val})}
                         />
                     </div>
                 );
@@ -533,6 +545,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             { name: 'tablet', title: __('Tablet', namespace), className: 'tab-tablet' },
                             { name: 'desktop', title: __('Desktop', namespace), className: 'tab-desktop' },
                         ]}
+                        onSelect={(tabName) => setActiveTab(tabName)}
                     >
                         {(tab) => renderLayoutTab(tab.name)}
                     </TabPanel>
@@ -548,11 +561,11 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         position: 'absolute',
                         inset: 0,
                         backgroundImage: 'var(--current-bg-image)',
-                        backgroundSize: backgroundSize || 'cover',
-                        backgroundPosition: backgroundPosition || 'center',
-                        backgroundRepeat: backgroundRepeat || 'no-repeat',
-                        backgroundAttachment: backgroundFixedPosition ? 'fixed' : 'scroll',
-                        opacity: (backgroundImageOpacity !== undefined ? backgroundImageOpacity : 100) / 100,
+                        backgroundSize: (activeTab === 'desktop' ? desktopBackgroundSize : activeTab === 'tablet' ? tabletBackgroundSize : undefined) || backgroundSize || 'cover',
+                        backgroundPosition: (activeTab === 'desktop' ? desktopBackgroundPosition : activeTab === 'tablet' ? tabletBackgroundPosition : undefined) || backgroundPosition || 'center',
+                        backgroundRepeat: (activeTab === 'desktop' ? desktopBackgroundRepeat : activeTab === 'tablet' ? tabletBackgroundRepeat : undefined) || backgroundRepeat || 'no-repeat',
+                        backgroundAttachment: ((activeTab === 'desktop' ? desktopBackgroundFixedPosition : activeTab === 'tablet' ? tabletBackgroundFixedPosition : undefined) ?? backgroundFixedPosition) ? 'fixed' : 'scroll',
+                        opacity: ((activeTab === 'desktop' ? desktopBackgroundImageOpacity : activeTab === 'tablet' ? tabletBackgroundImageOpacity : undefined) ?? backgroundImageOpacity ?? 100) / 100,
                         pointerEvents: 'none',
                         zIndex: 0
                     }}

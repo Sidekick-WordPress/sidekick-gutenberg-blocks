@@ -78,6 +78,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             desktopBackgroundImage, desktopBackgroundColor,
             backgroundImageOpacity,
             backgroundSize, backgroundPosition, backgroundRepeat, backgroundFixedPosition,
+            tabletBackgroundImageOpacity, tabletBackgroundSize, tabletBackgroundPosition, tabletBackgroundRepeat, tabletBackgroundFixedPosition,
+            desktopBackgroundImageOpacity, desktopBackgroundSize, desktopBackgroundPosition, desktopBackgroundRepeat, desktopBackgroundFixedPosition,
             innerMaxWidth, tabletInnerMaxWidth, desktopInnerMaxWidth,
             contentHAlign, tabletContentHAlign, desktopContentHAlign,
 
@@ -241,7 +243,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
 
 
     const blockProps = useBlockProps({
-        className: `${className} ${ (extendTop || tabExtendTop || deskExtendTop) ? 'has-advanced-layout' : ''}`,
+        className: `${className} ${ (extendTop || extendBottom || translateX || translateY || tabExtendTop || tabExtendBottom || tabTranslateX || tabTranslateY || deskExtendTop || deskExtendBottom || deskTranslateX || deskTranslateY) ? 'has-advanced-layout' : ''}`,
         style: customStyles as CSSProperties
     });
 
@@ -356,10 +358,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <TextControl label={__('Ext Top', namespace)} value={extendTop} onChange={(v) => setAttributes({extendTop: v})} />
-                            <TextControl label={__('Ext Bottom', namespace)} value={extendBottom} onChange={(v) => setAttributes({extendBottom: v})} />
-                            <TextControl label={__('Trans X', namespace)} value={translateX} onChange={(v) => setAttributes({translateX: v})} />
-                            <TextControl label={__('Trans Y', namespace)} value={translateY} onChange={(v) => setAttributes({translateY: v})} />
+                            <UnitControl label={__('Ext Top', namespace)} value={extendTop} onChange={(v) => setAttributes({extendTop: v || ''})} />
+                            <UnitControl label={__('Ext Bottom', namespace)} value={extendBottom} onChange={(v) => setAttributes({extendBottom: v || ''})} />
+                            <UnitControl label={__('Trans X', namespace)} value={translateX} onChange={(v) => setAttributes({translateX: v || ''})} />
+                            <UnitControl label={__('Trans Y', namespace)} value={translateY} onChange={(v) => setAttributes({translateY: v || ''})} />
                         </div>
                     </div>
                 );
@@ -456,24 +458,24 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             imageUrl={tabletBackgroundImage}
                             onSelectMedia={(media) => setAttributes({tabletBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({tabletBackgroundImage: ''})}
-                            opacity={backgroundImageOpacity}
-                            onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
-                            backgroundSize={backgroundSize}
-                            onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                            backgroundPosition={backgroundPosition}
-                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
-                            backgroundRepeat={backgroundRepeat}
-                            onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
-                            parallax={backgroundFixedPosition}
-                            onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
+                            opacity={tabletBackgroundImageOpacity ?? backgroundImageOpacity}
+                            onChangeOpacity={(val) => setAttributes({tabletBackgroundImageOpacity: val})}
+                            backgroundSize={tabletBackgroundSize || backgroundSize}
+                            onChangeBackgroundSize={(val) => setAttributes({tabletBackgroundSize: val})}
+                            backgroundPosition={tabletBackgroundPosition || backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({tabletBackgroundPosition: val})}
+                            backgroundRepeat={tabletBackgroundRepeat || backgroundRepeat}
+                            onChangeBackgroundRepeat={(val) => setAttributes({tabletBackgroundRepeat: val})}
+                            parallax={tabletBackgroundFixedPosition ?? backgroundFixedPosition}
+                            onChangeParallax={(val) => setAttributes({tabletBackgroundFixedPosition: val})}
                         />
                         <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <TextControl label={__('Ext Top', namespace)} value={tabExtendTop} onChange={(v) => setAttributes({tabExtendTop: v})} />
-                            <TextControl label={__('Ext Bottom', namespace)} value={tabExtendBottom} onChange={(v) => setAttributes({tabExtendBottom: v})} />
-                            <TextControl label={__('Trans X', namespace)} value={tabTranslateX} onChange={(v) => setAttributes({tabTranslateX: v})} />
-                            <TextControl label={__('Trans Y', namespace)} value={tabTranslateY} onChange={(v) => setAttributes({tabTranslateY: v})} />
+                            <UnitControl label={__('Ext Top', namespace)} value={tabExtendTop} onChange={(v) => setAttributes({tabExtendTop: v || ''})} />
+                            <UnitControl label={__('Ext Bottom', namespace)} value={tabExtendBottom} onChange={(v) => setAttributes({tabExtendBottom: v || ''})} />
+                            <UnitControl label={__('Trans X', namespace)} value={tabTranslateX} onChange={(v) => setAttributes({tabTranslateX: v || ''})} />
+                            <UnitControl label={__('Trans Y', namespace)} value={tabTranslateY} onChange={(v) => setAttributes({tabTranslateY: v || ''})} />
                         </div>
                     </div>
                 );
@@ -570,24 +572,24 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             imageUrl={desktopBackgroundImage}
                             onSelectMedia={(media) => setAttributes({desktopBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({desktopBackgroundImage: ''})}
-                            opacity={backgroundImageOpacity}
-                            onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
-                            backgroundSize={backgroundSize}
-                            onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                            backgroundPosition={backgroundPosition}
-                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
-                            backgroundRepeat={backgroundRepeat}
-                            onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
-                            parallax={backgroundFixedPosition}
-                            onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
+                            opacity={(desktopBackgroundImageOpacity ?? tabletBackgroundImageOpacity) ?? backgroundImageOpacity}
+                            onChangeOpacity={(val) => setAttributes({desktopBackgroundImageOpacity: val})}
+                            backgroundSize={desktopBackgroundSize || tabletBackgroundSize || backgroundSize}
+                            onChangeBackgroundSize={(val) => setAttributes({desktopBackgroundSize: val})}
+                            backgroundPosition={desktopBackgroundPosition || tabletBackgroundPosition || backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({desktopBackgroundPosition: val})}
+                            backgroundRepeat={desktopBackgroundRepeat || tabletBackgroundRepeat || backgroundRepeat}
+                            onChangeBackgroundRepeat={(val) => setAttributes({desktopBackgroundRepeat: val})}
+                            parallax={(desktopBackgroundFixedPosition ?? tabletBackgroundFixedPosition) ?? backgroundFixedPosition}
+                            onChangeParallax={(val) => setAttributes({desktopBackgroundFixedPosition: val})}
                         />
                         <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <TextControl label={__('Ext Top', namespace)} value={deskExtendTop} onChange={(v) => setAttributes({deskExtendTop: v})} />
-                            <TextControl label={__('Ext Bottom', namespace)} value={deskExtendBottom} onChange={(v) => setAttributes({deskExtendBottom: v})} />
-                            <TextControl label={__('Trans X', namespace)} value={deskTranslateX} onChange={(v) => setAttributes({deskTranslateX: v})} />
-                            <TextControl label={__('Trans Y', namespace)} value={deskTranslateY} onChange={(v) => setAttributes({deskTranslateY: v})} />
+                            <UnitControl label={__('Ext Top', namespace)} value={deskExtendTop} onChange={(v) => setAttributes({deskExtendTop: v || ''})} />
+                            <UnitControl label={__('Ext Bottom', namespace)} value={deskExtendBottom} onChange={(v) => setAttributes({deskExtendBottom: v || ''})} />
+                            <UnitControl label={__('Trans X', namespace)} value={deskTranslateX} onChange={(v) => setAttributes({deskTranslateX: v || ''})} />
+                            <UnitControl label={__('Trans Y', namespace)} value={deskTranslateY} onChange={(v) => setAttributes({deskTranslateY: v || ''})} />
                         </div>
                     </div>
                 );
@@ -633,11 +635,11 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         position: 'absolute',
                         inset: 0,
                         backgroundImage: 'var(--current-bg-image)',
-                        backgroundSize: backgroundSize || 'cover',
-                        backgroundPosition: backgroundPosition || 'center',
-                        backgroundRepeat: backgroundRepeat || 'no-repeat',
-                        backgroundAttachment: backgroundFixedPosition ? 'fixed' : 'scroll',
-                        opacity: (backgroundImageOpacity ?? 100) / 100,
+                        backgroundSize: (activeTab === 'desktop' ? desktopBackgroundSize : activeTab === 'tablet' ? tabletBackgroundSize : undefined) || backgroundSize || 'cover',
+                        backgroundPosition: (activeTab === 'desktop' ? desktopBackgroundPosition : activeTab === 'tablet' ? tabletBackgroundPosition : undefined) || backgroundPosition || 'center',
+                        backgroundRepeat: (activeTab === 'desktop' ? desktopBackgroundRepeat : activeTab === 'tablet' ? tabletBackgroundRepeat : undefined) || backgroundRepeat || 'no-repeat',
+                        backgroundAttachment: ((activeTab === 'desktop' ? desktopBackgroundFixedPosition : activeTab === 'tablet' ? tabletBackgroundFixedPosition : undefined) ?? backgroundFixedPosition) ? 'fixed' : 'scroll',
+                        opacity: ((activeTab === 'desktop' ? desktopBackgroundImageOpacity : activeTab === 'tablet' ? tabletBackgroundImageOpacity : undefined) ?? backgroundImageOpacity ?? 100) / 100,
                         pointerEvents: 'none',
                         zIndex: 0,
                     }}

@@ -69,12 +69,26 @@ return function( $attributes, $content ) {
     $bg_img_desk = ! empty( $attributes['desktopBackgroundImage'] ) ? 'url(' . esc_url( $attributes['desktopBackgroundImage'] ) . ')' : 'var(--bg-image-tablet)';
     $bg_col_desk = ! empty( $attributes['desktopBackgroundColor'] ) ? $attributes['desktopBackgroundColor'] : 'var(--bg-color-tablet)';
 
-    $bg_opacity     = isset( $attributes['backgroundImageOpacity'] ) ? $attributes['backgroundImageOpacity'] : 100;
-    $bg_size        = isset( $attributes['backgroundSize'] ) ? $attributes['backgroundSize'] : 'cover';
-    $bg_position    = isset( $attributes['backgroundPosition'] ) ? $attributes['backgroundPosition'] : 'center';
-    $bg_repeat      = isset( $attributes['backgroundRepeat'] ) ? $attributes['backgroundRepeat'] : 'no-repeat';
-    $bg_parallax    = ! empty( $attributes['backgroundFixedPosition'] );
-    $bg_attachment  = $bg_parallax ? 'fixed' : 'scroll';
+    // Base (Mobile) bg media
+    $bg_opacity_m  = isset( $attributes['backgroundImageOpacity'] ) ? (int) $attributes['backgroundImageOpacity'] : 100;
+    $bg_size_m     = isset( $attributes['backgroundSize'] ) ? $attributes['backgroundSize'] : 'cover';
+    $bg_pos_m      = isset( $attributes['backgroundPosition'] ) ? $attributes['backgroundPosition'] : 'center';
+    $bg_repeat_m   = isset( $attributes['backgroundRepeat'] ) ? $attributes['backgroundRepeat'] : 'no-repeat';
+    $bg_attach_m   = ! empty( $attributes['backgroundFixedPosition'] ) ? 'fixed' : 'scroll';
+
+    // Tablet bg media (nullable = inherit from mobile)
+    $bg_opacity_t  = isset( $attributes['tabletBackgroundImageOpacity'] ) ? (int) $attributes['tabletBackgroundImageOpacity'] : null;
+    $bg_size_t     = ! empty( $attributes['tabletBackgroundSize'] ) ? $attributes['tabletBackgroundSize'] : null;
+    $bg_pos_t      = ! empty( $attributes['tabletBackgroundPosition'] ) ? $attributes['tabletBackgroundPosition'] : null;
+    $bg_repeat_t   = ! empty( $attributes['tabletBackgroundRepeat'] ) ? $attributes['tabletBackgroundRepeat'] : null;
+    $bg_attach_t   = isset( $attributes['tabletBackgroundFixedPosition'] ) ? ( $attributes['tabletBackgroundFixedPosition'] ? 'fixed' : 'scroll' ) : null;
+
+    // Desktop bg media (nullable = inherit from tablet)
+    $bg_opacity_d  = isset( $attributes['desktopBackgroundImageOpacity'] ) ? (int) $attributes['desktopBackgroundImageOpacity'] : null;
+    $bg_size_d     = ! empty( $attributes['desktopBackgroundSize'] ) ? $attributes['desktopBackgroundSize'] : null;
+    $bg_pos_d      = ! empty( $attributes['desktopBackgroundPosition'] ) ? $attributes['desktopBackgroundPosition'] : null;
+    $bg_repeat_d   = ! empty( $attributes['desktopBackgroundRepeat'] ) ? $attributes['desktopBackgroundRepeat'] : null;
+    $bg_attach_d   = isset( $attributes['desktopBackgroundFixedPosition'] ) ? ( $attributes['desktopBackgroundFixedPosition'] ? 'fixed' : 'scroll' ) : null;
 
     // Unique ID for this block instance (for targeting style overrides)
     $block_id = 'sgb-columns-' . wp_generate_uuid4();
@@ -90,10 +104,16 @@ return function( $attributes, $content ) {
         '--margin-l-desktop: %s; --margin-r-desktop: %s; ' .
         '--bg-image-mobile: %s; --bg-image-tablet: %s; --bg-image-desktop: %s; ' .
         '--bg-color-mobile: %s; --bg-color-tablet: %s; --bg-color-desktop: %s; ' .
+        '--bg-sz-m: %s; --bg-sz-t: %s; --bg-sz-d: %s; ' .
+        '--bg-po-m: %s; --bg-po-t: %s; --bg-po-d: %s; ' .
+        '--bg-rp-m: %s; --bg-rp-t: %s; --bg-rp-d: %s; ' .
+        '--bg-at-m: %s; --bg-at-t: %s; --bg-at-d: %s; ' .
+        '--bg-op-m: %s; --bg-op-t: %s; --bg-op-d: %s; ' .
         '--current-gap: var(--gap-mobile); --current-pad: var(--pad-mobile); ' .
         '--current-max-width: var(--max-width-mobile); --current-max-height: var(--max-height-mobile); ' .
         '--current-margin-left: var(--margin-l-mobile); --current-margin-right: var(--margin-r-mobile); ' .
         '--current-bg-image: var(--bg-image-mobile); --current-bg-color: var(--bg-color-mobile); ' .
+        '--curr-bg-sz: var(--bg-sz-m); --curr-bg-po: var(--bg-po-m); --curr-bg-rp: var(--bg-rp-m); --curr-bg-at: var(--bg-at-m); --curr-bg-op: var(--bg-op-m); ' .
         'padding: var(--current-pad); position: relative; max-height: var(--current-max-height); box-sizing: border-box; display: block; width: 100%%; background-color: var(--current-bg-color);',
         esc_attr( $css_gap_mobile ), esc_attr( $css_gap_tablet ), esc_attr( $css_gap_desktop ),
         esc_attr( $css_pad_mobile ), esc_attr( $css_pad_tablet ), esc_attr( $css_pad_desktop ),
@@ -103,7 +123,14 @@ return function( $attributes, $content ) {
         $get_margin_l($align_tablet), $get_margin_r($align_tablet),
         $get_margin_l($align_desktop), $get_margin_r($align_desktop),
         esc_attr( $bg_img_base ), esc_attr( $bg_img_tab ), esc_attr( $bg_img_desk ),
-        esc_attr( $bg_col_base ), esc_attr( $bg_col_tab ), esc_attr( $bg_col_desk )
+        esc_attr( $bg_col_base ), esc_attr( $bg_col_tab ), esc_attr( $bg_col_desk ),
+        esc_attr( $bg_size_m ), esc_attr( $bg_size_t ?? 'var(--bg-sz-m)' ), esc_attr( $bg_size_d ?? 'var(--bg-sz-t)' ),
+        esc_attr( $bg_pos_m ),  esc_attr( $bg_pos_t  ?? 'var(--bg-po-m)' ), esc_attr( $bg_pos_d  ?? 'var(--bg-po-t)' ),
+        esc_attr( $bg_repeat_m ), esc_attr( $bg_repeat_t ?? 'var(--bg-rp-m)' ), esc_attr( $bg_repeat_d ?? 'var(--bg-rp-t)' ),
+        esc_attr( $bg_attach_m ), esc_attr( $bg_attach_t ?? 'var(--bg-at-m)' ), esc_attr( $bg_attach_d ?? 'var(--bg-at-t)' ),
+        esc_attr( round( $bg_opacity_m / 100, 2 ) ),
+        esc_attr( $bg_opacity_t !== null ? round( $bg_opacity_t / 100, 2 ) : 'var(--bg-op-m)' ),
+        esc_attr( $bg_opacity_d !== null ? round( $bg_opacity_d / 100, 2 ) : 'var(--bg-op-t)' )
     );
 
     $wrapper_attributes = get_block_wrapper_attributes( [
@@ -130,6 +157,11 @@ return function( $attributes, $content ) {
                     --current-margin-right: var(--margin-r-tablet);
                     --current-bg-image: var(--bg-image-tablet);
                     --current-bg-color: var(--bg-color-tablet);
+                    --curr-bg-sz: var(--bg-sz-t);
+                    --curr-bg-po: var(--bg-po-t);
+                    --curr-bg-rp: var(--bg-rp-t);
+                    --curr-bg-at: var(--bg-at-t);
+                    --curr-bg-op: var(--bg-op-t);
                 }
             }
             @media (min-width: <?php echo $desktop_bp; ?>px) {
@@ -142,6 +174,11 @@ return function( $attributes, $content ) {
                     --current-margin-right: var(--margin-r-desktop);
                     --current-bg-image: var(--bg-image-desktop);
                     --current-bg-color: var(--bg-color-desktop);
+                    --curr-bg-sz: var(--bg-sz-d);
+                    --curr-bg-po: var(--bg-po-d);
+                    --curr-bg-rp: var(--bg-rp-d);
+                    --curr-bg-at: var(--bg-at-d);
+                    --curr-bg-op: var(--bg-op-d);
                 }
             }
         </style>
@@ -149,7 +186,7 @@ return function( $attributes, $content ) {
 
         <div
             class="<?php echo esc_attr( $namespace ); ?>-background-layer"
-            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: <?php echo esc_attr( $bg_position ); ?>; background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
+            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-image); background-size: var(--curr-bg-sz); background-position: var(--curr-bg-po); background-repeat: var(--curr-bg-rp); background-attachment: var(--curr-bg-at); opacity: var(--curr-bg-op);"
         ></div>
 
         <div class="<?php echo esc_attr( $namespace ); ?>-columns-inner" style="<?php echo esc_attr( $inner_style ); ?>">
