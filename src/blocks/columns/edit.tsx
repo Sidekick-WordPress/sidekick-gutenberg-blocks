@@ -10,6 +10,7 @@ import {
     RangeControl,
     TabPanel,
     __experimentalDivider as Divider,
+    __experimentalUnitControl as UnitControl,
 } from '@wordpress/components';
 import {useSelect, useDispatch} from '@wordpress/data';
 import {createBlock, BlockEditProps} from '@wordpress/blocks';
@@ -96,16 +97,16 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
         // Detection Logic
         hasTabletGap = tabletGap !== undefined && (tabletGap as any) !== '',
         hasTabletPadding = tabletPadding && Object.values(tabletPadding).some(v => v !== undefined && v !== ''),
-        hasTabletMaxWidth = tabletMaxWidth !== undefined && tabletMaxWidth !== 0 && (tabletMaxWidth as any) !== '',
-        hasTabletMaxHeight = tabletMaxHeight !== undefined && tabletMaxHeight !== 0 && (tabletMaxHeight as any) !== '',
+        hasTabletMaxWidth = !!tabletMaxWidth,
+        hasTabletMaxHeight = !!tabletMaxHeight,
         hasTabletHAlign = !!tabletHorizontalAlignment,
         hasTabletBgImage = !!tabletBackgroundImage,
         hasTabletBgColor = !!tabletBackgroundColor,
 
         hasDesktopGap = gap !== undefined && (gap as any) !== '',
         hasDesktopPadding = padding && Object.values(padding).some(v => v !== undefined && v !== ''),
-        hasDesktopMaxWidth = desktopMaxWidth !== undefined && desktopMaxWidth !== 0 && (desktopMaxWidth as any) !== '',
-        hasDesktopMaxHeight = desktopMaxHeight !== undefined && desktopMaxHeight !== 0 && (desktopMaxHeight as any) !== '',
+        hasDesktopMaxWidth = !!desktopMaxWidth,
+        hasDesktopMaxHeight = !!desktopMaxHeight,
         hasDesktopHAlign = !!desktopHorizontalAlignment,
         hasDesktopBgImage = !!desktopBackgroundImage,
         hasDesktopBgColor = !!desktopBackgroundColor,
@@ -119,13 +120,13 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
         cssPadTablet = hasTabletPadding ? getPaddingStr(tabletPadding, '0px') : 'var(--pad-mobile)',
         cssPadDesktop = hasDesktopPadding ? getPaddingStr(padding, '0px') : 'var(--pad-tablet)',
 
-        cssMaxWidthMobile = !mobileMaxWidth ? 'none' : `${mobileMaxWidth}px`,
-        cssMaxWidthTablet = hasTabletMaxWidth ? `${tabletMaxWidth}px` : 'var(--max-width-mobile)',
-        cssMaxWidthDesktop = hasDesktopMaxWidth ? `${desktopMaxWidth}px` : 'var(--max-width-tablet)',
+        cssMaxWidthMobile = mobileMaxWidth || 'none',
+        cssMaxWidthTablet = hasTabletMaxWidth ? tabletMaxWidth : 'var(--max-width-mobile)',
+        cssMaxWidthDesktop = hasDesktopMaxWidth ? desktopMaxWidth : 'var(--max-width-tablet)',
 
-        cssMaxHeightMobile = !mobileMaxHeight ? 'none' : `${mobileMaxHeight}px`,
-        cssMaxHeightTablet = hasTabletMaxHeight ? `${tabletMaxHeight}px` : 'var(--max-height-mobile)',
-        cssMaxHeightDesktop = hasDesktopMaxHeight ? `${desktopMaxHeight}px` : 'var(--max-height-tablet)',
+        cssMaxHeightMobile = mobileMaxHeight || 'none',
+        cssMaxHeightTablet = hasTabletMaxHeight ? tabletMaxHeight : 'var(--max-height-mobile)',
+        cssMaxHeightDesktop = hasDesktopMaxHeight ? desktopMaxHeight : 'var(--max-height-tablet)',
 
         cssHAlignMobile = horizontalAlignment,
         cssHAlignTablet = hasTabletHAlign ? tabletHorizontalAlignment : 'var(--h-align-mobile)',
@@ -255,24 +256,24 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             onChange={(v) => setAttributes({mobileGap: v ?? 0})}
                             min={0} max={1200}
                         />
+                        <Divider />
                         <BoxControl
                             label={__('Space Around Columns', namespace)}
                             values={parsePadding(mobilePadding)}
                             onChange={(v) => setAttributes({mobilePadding: v as PaddingAttribute})}
                         />
-                        <RangeControl
-                            label={__('Inner Content Max Width (px)', namespace)}
+                        <Divider />
+                        <UnitControl
+                            label={__('Max Width', namespace)}
                             value={mobileMaxWidth}
-                            onChange={(v) => setAttributes({mobileMaxWidth: v})}
-                            min={0} max={2000}
-                            help={__('0 for full width', namespace)}
+                            onChange={(v) => setAttributes({mobileMaxWidth: v || ''})}
                         />
-                        <RangeControl
-                            label={__('Inner Content Max Height (px)', namespace)}
+                        <UnitControl
+                            label={__('Max Height', namespace)}
                             value={mobileMaxHeight}
-                            onChange={(v) => setAttributes({mobileMaxHeight: v})}
-                            min={0} max={2000}
+                            onChange={(v) => setAttributes({mobileMaxHeight: v || ''})}
                         />
+                        <Divider />
                         <SelectControl
                             label={__('Horizontal Alignment', namespace)}
                             value={horizontalAlignment}
@@ -283,7 +284,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             ]}
                             onChange={(v) => setAttributes({horizontalAlignment: v})}
                         />
-                        
+
                         <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background', namespace)}</p>
                         <ColorPalette
@@ -324,25 +325,24 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             min={0} max={1200}
                             allowReset
                         />
+                        <Divider />
                         <BoxControl
                             label={__('Space Around Columns', namespace)}
                             values={parsePadding(tabletPadding)}
                             onChange={(v) => setAttributes({tabletPadding: v as PaddingAttribute})}
                         />
-                        <RangeControl
-                            label={__('Inner Content Max Width (px)', namespace)}
+                        <Divider />
+                        <UnitControl
+                            label={__('Max Width', namespace)}
                             value={tabletMaxWidth}
-                            onChange={(v) => setAttributes({tabletMaxWidth: v})}
-                            min={0} max={2000}
-                            allowReset
+                            onChange={(v) => setAttributes({tabletMaxWidth: v || undefined})}
                         />
-                        <RangeControl
-                            label={__('Inner Content Max Height (px)', namespace)}
+                        <UnitControl
+                            label={__('Max Height', namespace)}
                             value={tabletMaxHeight}
-                            onChange={(v) => setAttributes({tabletMaxHeight: v})}
-                            min={0} max={2000}
-                            allowReset
+                            onChange={(v) => setAttributes({tabletMaxHeight: v || undefined})}
                         />
+                        <Divider />
                         <SelectControl
                             label={__('Horizontal Alignment', namespace)}
                             value={tabletHorizontalAlignment}
@@ -396,25 +396,24 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             min={0} max={1200}
                             allowReset
                         />
+                        <Divider />
                         <BoxControl
                             label={__('Space Around Columns', namespace)}
                             values={parsePadding(padding)}
                             onChange={(v) => setAttributes({padding: v as PaddingAttribute})}
                         />
-                        <RangeControl
-                            label={__('Inner Content Max Width (px)', namespace)}
+                        <Divider />
+                        <UnitControl
+                            label={__('Max Width', namespace)}
                             value={desktopMaxWidth}
-                            onChange={(v) => setAttributes({desktopMaxWidth: v})}
-                            min={0} max={2000}
-                            allowReset
+                            onChange={(v) => setAttributes({desktopMaxWidth: v || undefined})}
                         />
-                        <RangeControl
-                            label={__('Inner Content Max Height (px)', namespace)}
+                        <UnitControl
+                            label={__('Max Height', namespace)}
                             value={desktopMaxHeight}
-                            onChange={(v) => setAttributes({desktopMaxHeight: v})}
-                            min={0} max={2000}
-                            allowReset
+                            onChange={(v) => setAttributes({desktopMaxHeight: v || undefined})}
                         />
+                        <Divider />
                         <SelectControl
                             label={__('Horizontal Alignment', namespace)}
                             value={desktopHorizontalAlignment}
@@ -503,7 +502,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             value={tabletBreakpoint}
                             onChange={(v) => {
                                 const val = v ?? 768;
-                                setAttributes({ 
+                                setAttributes({
                                     tabletBreakpoint: val,
                                     desktopBreakpoint: Math.max(val + 1, desktopBreakpoint)
                                 });
@@ -515,7 +514,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             value={desktopBreakpoint}
                             onChange={(v) => {
                                 const val = v ?? 1024;
-                                setAttributes({ 
+                                setAttributes({
                                     desktopBreakpoint: val,
                                     tabletBreakpoint: Math.min(val - 1, tabletBreakpoint)
                                 });

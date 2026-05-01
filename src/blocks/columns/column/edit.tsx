@@ -11,6 +11,7 @@ import {
     TextControl,
     TabPanel,
     __experimentalDivider as Divider,
+    __experimentalUnitControl as UnitControl,
 } from '@wordpress/components';
 import {BlockEditProps} from '@wordpress/blocks';
 import {useState} from '@wordpress/element';
@@ -307,15 +308,16 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             value={border}
                             onChange={(v) => setAttributes({ border: v })}
                         />
+                        <Divider />
                         <BorderRadiusControl
                             values={borderRadius as any}
                             onChange={(v) => setAttributes({ borderRadius: v as any })}
                         />
                         <Divider />
-                        <TextControl
+                        <UnitControl
                             label={__('Inner Content Max Width', namespace)}
                             value={innerMaxWidth}
-                            onChange={(v) => setAttributes({innerMaxWidth: v})}
+                            onChange={(v) => setAttributes({innerMaxWidth: v || ''})}
                         />
                         <SelectControl
                             label={__('Inner Content Align', namespace)}
@@ -416,6 +418,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             value={tabletBorder}
                             onChange={(v) => setAttributes({ tabletBorder: v })}
                         />
+                        <Divider />
                         <BorderRadiusControl
                             values={tabletBorderRadius as any}
                             onChange={(v) => {
@@ -424,11 +427,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             }}
                         />
                         <Divider />
-                        <TextControl
+                        <UnitControl
                             label={__('Inner Content Max Width', namespace)}
                             value={tabletInnerMaxWidth}
-                            onChange={(v) => setAttributes({tabletInnerMaxWidth: v})}
-                            placeholder={__('Inherit', namespace)}
+                            onChange={(v) => setAttributes({tabletInnerMaxWidth: v || undefined})}
                         />
                         <SelectControl
                             label={__('Inner Content Align', namespace)}
@@ -530,6 +532,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             value={desktopBorder}
                             onChange={(v) => setAttributes({ desktopBorder: v })}
                         />
+                        <Divider />
                         <BorderRadiusControl
                             values={desktopBorderRadius as any}
                             onChange={(v) => {
@@ -538,11 +541,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             }}
                         />
                         <Divider />
-                        <TextControl
+                        <UnitControl
                             label={__('Inner Content Max Width', namespace)}
                             value={desktopInnerMaxWidth}
-                            onChange={(v) => setAttributes({desktopInnerMaxWidth: v})}
-                            placeholder={__('Inherit', namespace)}
+                            onChange={(v) => setAttributes({desktopInnerMaxWidth: v || undefined})}
                         />
                         <SelectControl
                             label={__('Inner Content Align', namespace)}

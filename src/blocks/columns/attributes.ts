@@ -9,22 +9,22 @@ export interface CoreColumnsAttributes {
     // Base Layout (Mobile)
     mobileGap: number;
     mobilePadding: PaddingAttribute;
-    mobileMaxWidth: number;
-    mobileMaxHeight: number;
+    mobileMaxWidth: string;
+    mobileMaxHeight: string;
     horizontalAlignment: string;
 
     // Tablet Layout (Overrides)
     tabletGap: number;
     tabletPadding: PaddingAttribute;
-    tabletMaxWidth: number;
-    tabletMaxHeight: number;
+    tabletMaxWidth: string;
+    tabletMaxHeight: string;
     tabletHorizontalAlignment: string;
 
     // Desktop Layout (Overrides)
     gap: number; // Keep 'gap' as desktop for backward compatibility
     padding: PaddingAttribute; // Keep 'padding' as desktop for backward compatibility
-    desktopMaxWidth: number;
-    desktopMaxHeight: number;
+    desktopMaxWidth: string;
+    desktopMaxHeight: string;
     desktopHorizontalAlignment: string;
 
     backgroundImage: string;
@@ -51,22 +51,22 @@ export const parentAttributes: Record<keyof CoreColumnsAttributes, BlockAttribut
         type: 'object',
         default: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
     },
-    mobileMaxWidth: { type: 'number', default: 0 },
-    mobileMaxHeight: { type: 'number', default: 0 },
+    mobileMaxWidth: { type: 'string', default: '' },
+    mobileMaxHeight: { type: 'string', default: '' },
     horizontalAlignment: { type: 'string', default: 'center' },
 
     // Tablet Layout (Overrides) - NO DEFAULTS
     tabletGap: { type: 'number' },
     tabletPadding: { type: 'object' },
-    tabletMaxWidth: { type: 'number' },
-    tabletMaxHeight: { type: 'number' },
+    tabletMaxWidth: { type: 'string' },
+    tabletMaxHeight: { type: 'string' },
     tabletHorizontalAlignment: { type: 'string' },
 
     // Desktop Layout (Overrides) - NO DEFAULTS
     gap: { type: 'number' },
     padding: { type: 'object' },
-    desktopMaxWidth: { type: 'number' },
-    desktopMaxHeight: { type: 'number' },
+    desktopMaxWidth: { type: 'string' },
+    desktopMaxHeight: { type: 'string' },
     desktopHorizontalAlignment: { type: 'string' },
 
     backgroundImage: { type: 'string', default: '' },

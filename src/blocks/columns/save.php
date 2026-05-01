@@ -16,8 +16,8 @@ return function( $attributes, $content ) {
         'bottom' => '20px',
         'left'   => '20px'
     ];
-    $mobile_max_w = isset( $attributes['mobileMaxWidth'] ) ? (int) $attributes['mobileMaxWidth'] : 0;
-    $mobile_max_h = isset( $attributes['mobileMaxHeight'] ) ? (int) $attributes['mobileMaxHeight'] : 0;
+    $mobile_max_w = ! empty( $attributes['mobileMaxWidth'] ) ? $attributes['mobileMaxWidth'] : '';
+    $mobile_max_h = ! empty( $attributes['mobileMaxHeight'] ) ? $attributes['mobileMaxHeight'] : '';
     $mobile_align = isset( $attributes['horizontalAlignment'] ) ? $attributes['horizontalAlignment'] : 'center';
 
     // Tablet Attributes (Overrides)
@@ -43,13 +43,13 @@ return function( $attributes, $content ) {
     $css_pad_tablet = $has_tab_pad ? sgb_get_padding_str( $attributes['tabletPadding'], '0px' ) : 'var(--pad-mobile)';
     $css_pad_desktop = $has_desk_pad ? sgb_get_padding_str( $attributes['padding'], '0px' ) : 'var(--pad-tablet)';
 
-    $css_max_w_mobile = $mobile_max_w === 0 ? 'none' : $mobile_max_w . 'px';
-    $css_max_w_tablet = $has_tab_max_w ? $attributes['tabletMaxWidth'] . 'px' : 'var(--max-width-mobile)';
-    $css_max_w_desktop = $has_desk_max_w ? $attributes['desktopMaxWidth'] . 'px' : 'var(--max-width-tablet)';
+    $css_max_w_mobile = $mobile_max_w ?: 'none';
+    $css_max_w_tablet = $has_tab_max_w ? $attributes['tabletMaxWidth'] : 'var(--max-width-mobile)';
+    $css_max_w_desktop = $has_desk_max_w ? $attributes['desktopMaxWidth'] : 'var(--max-width-tablet)';
 
-    $css_max_h_mobile = $mobile_max_h === 0 ? 'none' : $mobile_max_h . 'px';
-    $css_max_h_tablet = $has_tab_max_h ? $attributes['tabletMaxHeight'] . 'px' : 'var(--max-height-mobile)';
-    $css_max_h_desktop = $has_desk_max_h ? $attributes['desktopMaxHeight'] . 'px' : 'var(--max-height-tablet)';
+    $css_max_h_mobile = $mobile_max_h ?: 'none';
+    $css_max_h_tablet = $has_tab_max_h ? $attributes['tabletMaxHeight'] : 'var(--max-height-mobile)';
+    $css_max_h_desktop = $has_desk_max_h ? $attributes['desktopMaxHeight'] : 'var(--max-height-tablet)';
 
     // Alignment logic
     $get_margin_l = function($align) { return $align === 'left' ? '0' : 'auto'; };
