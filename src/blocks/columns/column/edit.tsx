@@ -458,15 +458,15 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             imageUrl={tabletBackgroundImage}
                             onSelectMedia={(media) => setAttributes({tabletBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({tabletBackgroundImage: ''})}
-                            opacity={tabletBackgroundImageOpacity ?? backgroundImageOpacity}
+                            opacity={tabletBackgroundImageOpacity ?? 100}
                             onChangeOpacity={(val) => setAttributes({tabletBackgroundImageOpacity: val})}
-                            backgroundSize={tabletBackgroundSize || backgroundSize}
+                            backgroundSize={tabletBackgroundSize || 'cover'}
                             onChangeBackgroundSize={(val) => setAttributes({tabletBackgroundSize: val})}
-                            backgroundPosition={tabletBackgroundPosition || backgroundPosition}
+                            backgroundPosition={tabletBackgroundPosition || 'center'}
                             onChangeBackgroundPosition={(val) => setAttributes({tabletBackgroundPosition: val})}
-                            backgroundRepeat={tabletBackgroundRepeat || backgroundRepeat}
+                            backgroundRepeat={tabletBackgroundRepeat || 'no-repeat'}
                             onChangeBackgroundRepeat={(val) => setAttributes({tabletBackgroundRepeat: val})}
-                            parallax={tabletBackgroundFixedPosition ?? backgroundFixedPosition}
+                            parallax={tabletBackgroundFixedPosition ?? false}
                             onChangeParallax={(val) => setAttributes({tabletBackgroundFixedPosition: val})}
                         />
                         <Divider />
@@ -572,15 +572,15 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             imageUrl={desktopBackgroundImage}
                             onSelectMedia={(media) => setAttributes({desktopBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({desktopBackgroundImage: ''})}
-                            opacity={(desktopBackgroundImageOpacity ?? tabletBackgroundImageOpacity) ?? backgroundImageOpacity}
+                            opacity={desktopBackgroundImageOpacity ?? 100}
                             onChangeOpacity={(val) => setAttributes({desktopBackgroundImageOpacity: val})}
-                            backgroundSize={desktopBackgroundSize || tabletBackgroundSize || backgroundSize}
+                            backgroundSize={desktopBackgroundSize || 'cover'}
                             onChangeBackgroundSize={(val) => setAttributes({desktopBackgroundSize: val})}
-                            backgroundPosition={desktopBackgroundPosition || tabletBackgroundPosition || backgroundPosition}
+                            backgroundPosition={desktopBackgroundPosition || 'center'}
                             onChangeBackgroundPosition={(val) => setAttributes({desktopBackgroundPosition: val})}
-                            backgroundRepeat={desktopBackgroundRepeat || tabletBackgroundRepeat || backgroundRepeat}
+                            backgroundRepeat={desktopBackgroundRepeat || 'no-repeat'}
                             onChangeBackgroundRepeat={(val) => setAttributes({desktopBackgroundRepeat: val})}
-                            parallax={(desktopBackgroundFixedPosition ?? tabletBackgroundFixedPosition) ?? backgroundFixedPosition}
+                            parallax={desktopBackgroundFixedPosition ?? false}
                             onChangeParallax={(val) => setAttributes({desktopBackgroundFixedPosition: val})}
                         />
                         <Divider />

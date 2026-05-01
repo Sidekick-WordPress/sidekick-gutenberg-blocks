@@ -381,15 +381,15 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             imageUrl={tabletBackgroundImage}
                             onSelectMedia={(media) => setAttributes({tabletBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({tabletBackgroundImage: ''})}
-                            opacity={tabletBackgroundImageOpacity ?? backgroundImageOpacity}
+                            opacity={tabletBackgroundImageOpacity ?? 100}
                             onChangeOpacity={(val) => setAttributes({tabletBackgroundImageOpacity: val})}
-                            backgroundSize={tabletBackgroundSize ?? backgroundSize}
+                            backgroundSize={tabletBackgroundSize || 'cover'}
                             onChangeBackgroundSize={(val) => setAttributes({tabletBackgroundSize: val})}
-                            backgroundPosition={tabletBackgroundPosition ?? backgroundPosition}
+                            backgroundPosition={tabletBackgroundPosition || 'center'}
                             onChangeBackgroundPosition={(val) => setAttributes({tabletBackgroundPosition: val})}
-                            backgroundRepeat={tabletBackgroundRepeat ?? backgroundRepeat}
+                            backgroundRepeat={tabletBackgroundRepeat || 'no-repeat'}
                             onChangeBackgroundRepeat={(val) => setAttributes({tabletBackgroundRepeat: val})}
-                            parallax={tabletBackgroundFixedPosition ?? backgroundFixedPosition}
+                            parallax={tabletBackgroundFixedPosition ?? false}
                             onChangeParallax={(val) => setAttributes({tabletBackgroundFixedPosition: val})}
                         />
                     </div>
@@ -451,15 +451,15 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             imageUrl={desktopBackgroundImage}
                             onSelectMedia={(media) => setAttributes({desktopBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({desktopBackgroundImage: ''})}
-                            opacity={desktopBackgroundImageOpacity ?? tabletBackgroundImageOpacity ?? backgroundImageOpacity}
+                            opacity={desktopBackgroundImageOpacity ?? 100}
                             onChangeOpacity={(val) => setAttributes({desktopBackgroundImageOpacity: val})}
-                            backgroundSize={desktopBackgroundSize ?? tabletBackgroundSize ?? backgroundSize}
+                            backgroundSize={desktopBackgroundSize || 'cover'}
                             onChangeBackgroundSize={(val) => setAttributes({desktopBackgroundSize: val})}
-                            backgroundPosition={desktopBackgroundPosition ?? tabletBackgroundPosition ?? backgroundPosition}
+                            backgroundPosition={desktopBackgroundPosition || 'center'}
                             onChangeBackgroundPosition={(val) => setAttributes({desktopBackgroundPosition: val})}
-                            backgroundRepeat={desktopBackgroundRepeat ?? tabletBackgroundRepeat ?? backgroundRepeat}
+                            backgroundRepeat={desktopBackgroundRepeat || 'no-repeat'}
                             onChangeBackgroundRepeat={(val) => setAttributes({desktopBackgroundRepeat: val})}
-                            parallax={desktopBackgroundFixedPosition ?? tabletBackgroundFixedPosition ?? backgroundFixedPosition}
+                            parallax={desktopBackgroundFixedPosition ?? false}
                             onChangeParallax={(val) => setAttributes({desktopBackgroundFixedPosition: val})}
                         />
                     </div>
@@ -561,11 +561,11 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         position: 'absolute',
                         inset: 0,
                         backgroundImage: 'var(--current-bg-image)',
-                        backgroundSize: (activeTab === 'desktop' ? desktopBackgroundSize : activeTab === 'tablet' ? tabletBackgroundSize : undefined) || backgroundSize || 'cover',
-                        backgroundPosition: (activeTab === 'desktop' ? desktopBackgroundPosition : activeTab === 'tablet' ? tabletBackgroundPosition : undefined) || backgroundPosition || 'center',
-                        backgroundRepeat: (activeTab === 'desktop' ? desktopBackgroundRepeat : activeTab === 'tablet' ? tabletBackgroundRepeat : undefined) || backgroundRepeat || 'no-repeat',
-                        backgroundAttachment: ((activeTab === 'desktop' ? desktopBackgroundFixedPosition : activeTab === 'tablet' ? tabletBackgroundFixedPosition : undefined) ?? backgroundFixedPosition) ? 'fixed' : 'scroll',
-                        opacity: ((activeTab === 'desktop' ? desktopBackgroundImageOpacity : activeTab === 'tablet' ? tabletBackgroundImageOpacity : undefined) ?? backgroundImageOpacity ?? 100) / 100,
+                        backgroundSize: (activeTab === 'desktop' ? desktopBackgroundSize : activeTab === 'tablet' ? tabletBackgroundSize : backgroundSize) || 'cover',
+                        backgroundPosition: (activeTab === 'desktop' ? desktopBackgroundPosition : activeTab === 'tablet' ? tabletBackgroundPosition : backgroundPosition) || 'center',
+                        backgroundRepeat: (activeTab === 'desktop' ? desktopBackgroundRepeat : activeTab === 'tablet' ? tabletBackgroundRepeat : backgroundRepeat) || 'no-repeat',
+                        backgroundAttachment: ((activeTab === 'desktop' ? desktopBackgroundFixedPosition : activeTab === 'tablet' ? tabletBackgroundFixedPosition : backgroundFixedPosition) ?? false) ? 'fixed' : 'scroll',
+                        opacity: ((activeTab === 'desktop' ? desktopBackgroundImageOpacity : activeTab === 'tablet' ? tabletBackgroundImageOpacity : backgroundImageOpacity) ?? 100) / 100,
                         pointerEvents: 'none',
                         zIndex: 0
                     }}
