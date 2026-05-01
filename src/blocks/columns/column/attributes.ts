@@ -32,9 +32,9 @@ export interface ColumnAttributes {
     tabletBorder: Record<string, any>;
     desktopBorder: Record<string, any>;
 
-    borderRadius: string; // Base
-    tabletBorderRadius: string;
-    desktopBorderRadius: string;
+    borderRadius: string | Record<string, string>; // Base
+    tabletBorderRadius: string | Record<string, string>;
+    desktopBorderRadius: string | Record<string, string>;
 
     backgroundImage: string;
     backgroundColor: string;
@@ -110,9 +110,9 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
     tabletBorder: { type: 'object' },
     desktopBorder: { type: 'object' },
 
-    borderRadius: { type: 'string', default: '' },
-    tabletBorderRadius: { type: 'string' },
-    desktopBorderRadius: { type: 'string' },
+    borderRadius: { type: 'object' },
+    tabletBorderRadius: { type: 'object' },
+    desktopBorderRadius: { type: 'object' },
 
     backgroundImage: { type: 'string', default: '' },
     backgroundColor: { type: 'string', default: '' },

@@ -1,6 +1,6 @@
 import {__} from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
-import {useBlockProps, useInnerBlocksProps, InspectorControls} from '@wordpress/block-editor';
+import {useBlockProps, useInnerBlocksProps, InspectorControls, __experimentalBorderRadiusControl as BorderRadiusControl} from '@wordpress/block-editor';
 import {
     PanelBody,
     SelectControl,
@@ -24,6 +24,22 @@ import {PaddingAttribute} from "../../../models/attr-shapes/padding-margin";
 // Block
 import {ColumnAttributes} from './attributes';
 import VersatileMessage from "../../../components/VersitileMessage";
+
+type BorderRadiusValue = string | Record<string, string> | undefined;
+
+const borderRadiusToCss = (val: BorderRadiusValue, fallback = '0px'): string => {
+    if (!val) return fallback;
+    if (typeof val === 'string') return val || fallback;
+    const { topLeft = '0px', topRight = '0px', bottomRight = '0px', bottomLeft = '0px' } = val;
+    if (!topLeft && !topRight && !bottomRight && !bottomLeft) return fallback;
+    return `${topLeft} ${topRight} ${bottomRight} ${bottomLeft}`;
+};
+
+const hasBorderRadiusValue = (val: BorderRadiusValue): boolean => {
+    if (!val) return false;
+    if (typeof val === 'string') return !!val;
+    return Object.values(val).some(v => !!v);
+};
 
 const getBorderVars = (borderAttr: any, prefix: string): Record<string, string> => {
     const vars: Record<string, string> = {};
@@ -104,8 +120,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         hasTabletZIndex = tabletZIndex !== undefined && (tabletZIndex as any) !== '',
         hasDesktopZIndex = desktopZIndex !== undefined && (desktopZIndex as any) !== '',
 
-        hasTabletBorderRadius = !!tabletBorderRadius,
-        hasDesktopBorderRadius = !!desktopBorderRadius,
+        hasTabletBorderRadius = hasBorderRadiusValue(tabletBorderRadius),
+        hasDesktopBorderRadius = hasBorderRadiusValue(desktopBorderRadius),
 
         // Border Detection Logic
         hasTabletBorder = tabletBorder && (
@@ -172,9 +188,9 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         '--col-bg-color-tablet': cssBgColorTablet,
         '--col-bg-color-desktop': cssBgColorDesktop,
 
-        '--col-radius-mobile': ensureUnit(borderRadius) || '0px',
-        ...(hasTabletBorderRadius && { '--col-radius-tablet': ensureUnit(tabletBorderRadius) }),
-        ...(hasDesktopBorderRadius && { '--col-radius-desktop': ensureUnit(desktopBorderRadius) }),
+        '--col-radius-mobile': borderRadiusToCss(borderRadius),
+        ...(hasTabletBorderRadius && { '--col-radius-tablet': borderRadiusToCss(tabletBorderRadius) }),
+        ...(hasDesktopBorderRadius && { '--col-radius-desktop': borderRadiusToCss(desktopBorderRadius) }),
 
         '--col-zindex-mobile': zIndex,
         ...(hasTabletZIndex && { '--col-zindex-tablet': tabletZIndex }),
@@ -285,11 +301,9 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             value={border}
                             onChange={(v) => setAttributes({ border: v })}
                         />
-                        <TextControl
-                            label={__('Border Radius', namespace)}
-                            value={borderRadius}
-                            onChange={(v) => setAttributes({borderRadius: v})}
-                            help={__('e.g., 10px, 50%, or 10px 10px 0 0', namespace)}
+                        <BorderRadiusControl
+                            values={borderRadius as any}
+                            onChange={(v) => setAttributes({ borderRadius: v as any })}
                         />
                         <TextControl
                             label={__('Inner Content Max Width', namespace)}
@@ -390,11 +404,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             value={tabletBorder}
                             onChange={(v) => setAttributes({ tabletBorder: v })}
                         />
-                        <TextControl
-                            label={__('Border Radius Override', namespace)}
-                            value={tabletBorderRadius}
-                            onChange={(v) => setAttributes({tabletBorderRadius: v})}
-                            placeholder={__('Inherit', namespace)}
+                        <BorderRadiusControl
+                            values={tabletBorderRadius as any}
+                            onChange={(v) => {
+                                const isEmpty = !v || (typeof v === 'object' && !Object.values(v).some(x => !!x));
+                                setAttributes({ tabletBorderRadius: isEmpty ? undefined : v as any });
+                            }}
                         />
                         <TextControl
                             label={__('Inner Content Max Width', namespace)}
@@ -497,11 +512,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             value={desktopBorder}
                             onChange={(v) => setAttributes({ desktopBorder: v })}
                         />
-                        <TextControl
-                            label={__('Border Radius Override', namespace)}
-                            value={desktopBorderRadius}
-                            onChange={(v) => setAttributes({desktopBorderRadius: v})}
-                            placeholder={__('Inherit', namespace)}
+                        <BorderRadiusControl
+                            values={desktopBorderRadius as any}
+                            onChange={(v) => {
+                                const isEmpty = !v || (typeof v === 'object' && !Object.values(v).some(x => !!x));
+                                setAttributes({ desktopBorderRadius: isEmpty ? undefined : v as any });
+                            }}
                         />
                         <TextControl
                             label={__('Inner Content Max Width', namespace)}

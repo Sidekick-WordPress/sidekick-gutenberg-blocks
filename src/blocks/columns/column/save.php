@@ -83,10 +83,23 @@ return function( $attributes, $content, $block ) {
     $z_tablet = isset( $attributes['tabletZIndex'] ) ? (int) $attributes['tabletZIndex'] : $z_mobile;
     $z_desktop = isset( $attributes['desktopZIndex'] ) ? (int) $attributes['desktopZIndex'] : $z_tablet;
 
-    // Border Radius
-    $rad_mobile = isset( $attributes['borderRadius'] ) ? $attributes['borderRadius'] : '0px';
-    $rad_tablet = ! empty( $attributes['tabletBorderRadius'] ) ? $attributes['tabletBorderRadius'] : $rad_mobile;
-    $rad_desktop = ! empty( $attributes['desktopBorderRadius'] ) ? $attributes['desktopBorderRadius'] : $rad_tablet;
+    // Border Radius — value may be a flat string or a per-corner array {topLeft, topRight, bottomRight, bottomLeft}
+    $sgb_radius_css = function( $val, $fallback = '0px' ) {
+        if ( empty( $val ) ) return $fallback;
+        if ( is_string( $val ) ) return $val;
+        if ( is_array( $val ) ) {
+            $tl = $val['topLeft']     ?? '0px';
+            $tr = $val['topRight']    ?? '0px';
+            $br = $val['bottomRight'] ?? '0px';
+            $bl = $val['bottomLeft']  ?? '0px';
+            if ( ! $tl && ! $tr && ! $br && ! $bl ) return $fallback;
+            return "$tl $tr $br $bl";
+        }
+        return $fallback;
+    };
+    $rad_mobile  = $sgb_radius_css( $attributes['borderRadius']       ?? null );
+    $rad_tablet  = ! empty( $attributes['tabletBorderRadius'] )  ? $sgb_radius_css( $attributes['tabletBorderRadius'] )  : $rad_mobile;
+    $rad_desktop = ! empty( $attributes['desktopBorderRadius'] ) ? $sgb_radius_css( $attributes['desktopBorderRadius'] ) : $rad_tablet;
 
     // Borders
     $border_mobile = sgb_get_border_styles( $attributes['border'] ?? [] );
@@ -172,9 +185,9 @@ return function( $attributes, $content, $block ) {
             '--col-zindex-mobile' => $z_mobile,
             '--col-zindex-tablet' => $z_tablet,
             '--col-zindex-desktop' => $z_desktop,
-            '--col-radius-mobile' => is_numeric($rad_mobile) ? "{$rad_mobile}px" : $rad_mobile,
-            '--col-radius-tablet' => !empty($attributes['tabletBorderRadius']) ? (is_numeric($attributes['tabletBorderRadius']) ? "{$attributes['tabletBorderRadius']}px" : $attributes['tabletBorderRadius']) : 'var(--col-radius-mobile)',
-            '--col-radius-desktop' => !empty($attributes['desktopBorderRadius']) ? (is_numeric($attributes['desktopBorderRadius']) ? "{$attributes['desktopBorderRadius']}px" : $attributes['desktopBorderRadius']) : 'var(--col-radius-tablet)',
+            '--col-radius-mobile' => $rad_mobile,
+            '--col-radius-tablet' => $rad_tablet,
+            '--col-radius-desktop' => $rad_desktop,
         ],
         $border_vars_mobile,
         $border_vars_tablet,

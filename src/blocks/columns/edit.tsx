@@ -144,9 +144,12 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
 
         addColumn = (width: number) => {
             const currentBlocks = getBlocks(clientId);
-            const newBlock = createBlock(`${namespace}/column`, {
-                width: width || 100
-            });
+            const attrs: Record<string, number> = { width: 100 };
+            if (width) {
+                attrs.tabletWidth = width;
+                attrs.desktopWidth = width;
+            }
+            const newBlock = createBlock(`${namespace}/column`, attrs);
             replaceInnerBlocks(clientId, [...currentBlocks, newBlock], false);
             setAttributes({columns: currentBlocks.length + 1});
         },

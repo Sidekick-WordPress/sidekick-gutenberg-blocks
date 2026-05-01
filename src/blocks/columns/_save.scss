@@ -168,8 +168,7 @@
             --curr-trans-x: var(--tab-trans-x) !important;
             --curr-trans-y: var(--tab-trans-y) !important;
 
-            // Siloed: only the tablet-specific value; no fallback to mobile in editor
-            --current-radius: var(--col-radius-tablet) !important;
+            --current-radius: var(--col-radius-tablet, var(--col-radius-mobile)) !important;
             --current-z-index: var(--col-zindex-tablet) !important;
             --current-order: var(--col-order-tablet) !important;
 
@@ -207,8 +206,7 @@
             --curr-trans-x: var(--desk-trans-x) !important;
             --curr-trans-y: var(--desk-trans-y) !important;
 
-            // Siloed: only the desktop-specific value; no fallback to lower breakpoints in editor
-            --current-radius: var(--col-radius-desktop) !important;
+            --current-radius: var(--col-radius-desktop, var(--col-radius-tablet, var(--col-radius-mobile))) !important;
             --current-z-index: var(--col-zindex-desktop) !important;
             --current-order: var(--col-order-desktop) !important;
 
