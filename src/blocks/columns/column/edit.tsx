@@ -9,7 +9,8 @@ import {
     BorderBoxControl,
     RangeControl,
     TextControl,
-    TabPanel
+    TabPanel,
+    __experimentalDivider as Divider,
 } from '@wordpress/components';
 import {BlockEditProps} from '@wordpress/blocks';
 import {useState} from '@wordpress/element';
@@ -82,21 +83,21 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             // Advanced Layout
             extendTop, extendBottom, translateX, translateY,
             tabExtendTop, tabExtendBottom, tabTranslateX, tabTranslateY,
-            deskExtendTop, deskExtendBottom, deskTranslateX, deskTranslateY, 
+            deskExtendTop, deskExtendBottom, deskTranslateX, deskTranslateY,
         } = attributes,
         [activeTab, setActiveTab] = useState('mobile'),
         { themeColors } = useSelect((select: any) => {
             const settings = select('core/block-editor').getSettings();
             return { themeColors: settings.colors || [] };
         }, []),
-        
+
         tabletBreakpoint = context[`${namespace}/tabletBreakpoint`] || 768,
         desktopBreakpoint = context[`${namespace}/desktopBreakpoint`] || 1024,
 
         // Detection Logic
         hasTabletPadding = tabletPadding && Object.values(tabletPadding).some(v => v !== undefined && v !== ''),
         hasDesktopPadding = padding && Object.values(padding).some(v => v !== undefined && v !== ''),
-        
+
         hasTabletWidth = tabletWidth !== undefined && (tabletWidth as any) !== '',
         hasDesktopWidth = desktopWidth !== undefined && (desktopWidth as any) !== '',
 
@@ -225,13 +226,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         justifyContent: 'var(--current-valign)',
         alignItems: 'stretch',
         backgroundColor: 'var(--current-bg-color)',
-        
+
         boxSizing: 'border-box',
         position: 'relative',
         overflow: 'hidden',
         minWidth: 0,
         height: 'auto',
-        
+
         borderRadius: 'var(--current-radius)',
         zIndex: 'var(--current-z-index)',
         order: 'var(--current-order)',
@@ -243,13 +244,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         style: customStyles as CSSProperties
     });
 
-    const innerBlocksProps = useInnerBlocksProps({ 
+    const innerBlocksProps = useInnerBlocksProps({
         style: {
-            width: '100%', 
+            width: '100%',
             minWidth: '0',
             maxWidth: 'var(--current-inner-max)',
             alignSelf: 'var(--current-halign)'
-        } 
+        }
     });
 
     const renderLayoutTab = (tabName: string) => {
@@ -267,11 +268,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({width: v ?? 100})}
                             min={0} max={100}
                         />
+                        <Divider />
                         <BoxControl
                             label={__('Padding', namespace)}
                             values={parsePadding(mobilePadding)}
                             onChange={(v) => setAttributes({mobilePadding: v as PaddingAttribute})}
                         />
+                        <Divider />
                         <SelectControl
                             label={__('Vertical Position', namespace)}
                             value={vAlign}
@@ -282,6 +285,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             ]}
                             onChange={(v) => setAttributes({vAlign: v})}
                         />
+                        <Divider />
                         <RangeControl
                             label={__('Flex Order', namespace)}
                             value={mobileOrder}
@@ -289,12 +293,14 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             min={-10} max={10}
                             help={__('Change the display order. Lower numbers appear first.', namespace)}
                         />
+                        <Divider />
                         <RangeControl
                             label={__('Z-Index', namespace)}
                             value={zIndex}
                             onChange={(v) => setAttributes({zIndex: v ?? 1})}
                             min={0} max={100}
                         />
+                        <Divider />
                         <BorderBoxControl
                             label={__('Borders', namespace)}
                             colors={themeColors}
@@ -305,6 +311,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             values={borderRadius as any}
                             onChange={(v) => setAttributes({ borderRadius: v as any })}
                         />
+                        <Divider />
                         <TextControl
                             label={__('Inner Content Max Width', namespace)}
                             value={innerMaxWidth}
@@ -320,8 +327,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             ]}
                             onChange={(v) => setAttributes({contentHAlign: v})}
                         />
-
-                        <div style={{ marginTop: '24px', fontWeight: 600 }}>{__('Background', namespace)}</div>
+                        <Divider />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background', namespace)}</p>
                         <ColorPalette
                             colors={themeColors}
                             value={backgroundColor}
@@ -344,8 +351,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             parallax={backgroundFixedPosition}
                             onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
                         />
-
-                        <div style={{ fontWeight: 600, marginTop: '24px', marginBottom: '8px' }}>{__('Advanced Layout', namespace)}</div>
+                        <Divider />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                             <TextControl label={__('Ext Top', namespace)} value={extendTop} onChange={(v) => setAttributes({extendTop: v})} />
                             <TextControl label={__('Ext Bottom', namespace)} value={extendBottom} onChange={(v) => setAttributes({extendBottom: v})} />
@@ -368,11 +375,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             min={0} max={100}
                             allowReset
                         />
+                        <Divider />
                         <BoxControl
                             label={__('Padding', namespace)}
                             values={parsePadding(tabletPadding)}
                             onChange={(v) => setAttributes({tabletPadding: v as PaddingAttribute})}
                         />
+                        <Divider />
                         <SelectControl
                             label={__('Vertical Position', namespace)}
                             value={tabletVAlign}
@@ -384,6 +393,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             ]}
                             onChange={(v) => setAttributes({tabletVAlign: v})}
                         />
+                        <Divider />
                         <RangeControl
                             label={__('Flex Order', namespace)}
                             value={tabletOrder}
@@ -391,6 +401,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             min={-10} max={10}
                             allowReset
                         />
+                        <Divider />
                         <RangeControl
                             label={__('Z-Index', namespace)}
                             value={tabletZIndex}
@@ -398,6 +409,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             min={0} max={100}
                             allowReset
                         />
+                        <Divider />
                         <BorderBoxControl
                             label={__('Borders Override', namespace)}
                             colors={themeColors}
@@ -411,6 +423,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                                 setAttributes({ tabletBorderRadius: isEmpty ? undefined : v as any });
                             }}
                         />
+                        <Divider />
                         <TextControl
                             label={__('Inner Content Max Width', namespace)}
                             value={tabletInnerMaxWidth}
@@ -428,8 +441,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             ]}
                             onChange={(v) => setAttributes({tabletContentHAlign: v})}
                         />
-
-                        <div style={{ marginTop: '24px', fontWeight: 600 }}>{__('Background Override', namespace)}</div>
+                        <Divider />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background Override', namespace)}</p>
                         <ColorPalette
                             colors={themeColors}
                             value={tabletBackgroundColor}
@@ -452,8 +465,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             parallax={backgroundFixedPosition}
                             onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
                         />
-
-                         <div style={{ fontWeight: 600, marginTop: '24px', marginBottom: '8px' }}>{__('Advanced Layout', namespace)}</div>
+                        <Divider />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                             <TextControl label={__('Ext Top', namespace)} value={tabExtendTop} onChange={(v) => setAttributes({tabExtendTop: v})} />
                             <TextControl label={__('Ext Bottom', namespace)} value={tabExtendBottom} onChange={(v) => setAttributes({tabExtendBottom: v})} />
@@ -476,11 +489,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             min={0} max={100}
                             allowReset
                         />
+                        <Divider />
                         <BoxControl
                             label={__('Padding', namespace)}
                             values={parsePadding(padding)}
                             onChange={(v) => setAttributes({padding: v as PaddingAttribute})}
                         />
+                        <Divider />
                         <SelectControl
                             label={__('Vertical Position', namespace)}
                             value={desktopVAlign}
@@ -492,6 +507,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             ]}
                             onChange={(v) => setAttributes({desktopVAlign: v})}
                         />
+                        <Divider />
                         <RangeControl
                             label={__('Flex Order', namespace)}
                             value={desktopOrder}
@@ -499,6 +515,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             min={-10} max={10}
                             allowReset
                         />
+                        <Divider />
                         <RangeControl
                             label={__('Z-Index', namespace)}
                             value={desktopZIndex}
@@ -506,6 +523,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             min={0} max={100}
                             allowReset
                         />
+                        <Divider />
                         <BorderBoxControl
                             label={__('Borders Override', namespace)}
                             colors={themeColors}
@@ -519,6 +537,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                                 setAttributes({ desktopBorderRadius: isEmpty ? undefined : v as any });
                             }}
                         />
+                        <Divider />
                         <TextControl
                             label={__('Inner Content Max Width', namespace)}
                             value={desktopInnerMaxWidth}
@@ -536,8 +555,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             ]}
                             onChange={(v) => setAttributes({desktopContentHAlign: v})}
                         />
-
-                        <div style={{ marginTop: '24px', fontWeight: 600 }}>{__('Background Override', namespace)}</div>
+                        <Divider />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background Override', namespace)}</p>
                         <ColorPalette
                             colors={themeColors}
                             value={desktopBackgroundColor}
@@ -560,8 +579,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             parallax={backgroundFixedPosition}
                             onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
                         />
-
-                         <div style={{ fontWeight: 600, marginTop: '24px', marginBottom: '8px' }}>{__('Advanced Layout', namespace)}</div>
+                        <Divider />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                             <TextControl label={__('Ext Top', namespace)} value={deskExtendTop} onChange={(v) => setAttributes({deskExtendTop: v})} />
                             <TextControl label={__('Ext Bottom', namespace)} value={deskExtendBottom} onChange={(v) => setAttributes({deskExtendBottom: v})} />

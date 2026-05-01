@@ -8,7 +8,8 @@ import {
     ColorPalette,
     SelectControl,
     RangeControl,
-    TabPanel
+    TabPanel,
+    __experimentalDivider as Divider,
 } from '@wordpress/components';
 import {useSelect, useDispatch} from '@wordpress/data';
 import {createBlock, BlockEditProps} from '@wordpress/blocks';
@@ -283,7 +284,8 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             onChange={(v) => setAttributes({horizontalAlignment: v})}
                         />
                         
-                        <div style={{ marginTop: '24px', fontWeight: 600 }}>{__('Background', namespace)}</div>
+                        <Divider />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background', namespace)}</p>
                         <ColorPalette
                             colors={themeColors}
                             value={backgroundColor}
@@ -353,7 +355,8 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             onChange={(v) => setAttributes({tabletHorizontalAlignment: v})}
                         />
 
-                        <div style={{ marginTop: '24px', fontWeight: 600 }}>{__('Background Override', namespace)}</div>
+                        <Divider />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background Override', namespace)}</p>
                         <ColorPalette
                             colors={themeColors}
                             value={tabletBackgroundColor}
@@ -424,7 +427,8 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             onChange={(v) => setAttributes({desktopHorizontalAlignment: v})}
                         />
 
-                        <div style={{ marginTop: '24px', fontWeight: 600 }}>{__('Background Override', namespace)}</div>
+                        <Divider />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background Override', namespace)}</p>
                         <ColorPalette
                             colors={themeColors}
                             value={desktopBackgroundColor}
