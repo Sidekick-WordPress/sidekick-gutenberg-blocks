@@ -48,26 +48,12 @@ return function( $attributes, $content, $block ) {
     $bg_img_desk = ! empty( $attributes['desktopBackgroundImage'] ) ? 'url(' . esc_url( $attributes['desktopBackgroundImage'] ) . ')' : 'var(--col-bg-image-tablet)';
     $bg_col_desk = ! empty( $attributes['desktopBackgroundColor'] ) ? $attributes['desktopBackgroundColor'] : 'var(--col-bg-color-tablet)';
 
-    // Background media — base (mobile)
-    $bg_opacity_m  = isset( $attributes['backgroundImageOpacity'] ) ? $attributes['backgroundImageOpacity'] : 100;
-    $bg_size_m     = ! empty( $attributes['backgroundSize'] )     ? $attributes['backgroundSize']     : 'cover';
-    $bg_pos_m      = ! empty( $attributes['backgroundPosition'] ) ? $attributes['backgroundPosition'] : 'center';
-    $bg_repeat_m   = ! empty( $attributes['backgroundRepeat'] )   ? $attributes['backgroundRepeat']   : 'no-repeat';
-    $bg_attach_m   = ! empty( $attributes['backgroundFixedPosition'] ) ? 'fixed' : 'scroll';
-
-    // Background media — tablet overrides
-    $bg_opacity_t  = isset( $attributes['tabletBackgroundImageOpacity'] ) ? $attributes['tabletBackgroundImageOpacity'] : null;
-    $bg_size_t     = ! empty( $attributes['tabletBackgroundSize'] )       ? $attributes['tabletBackgroundSize']     : null;
-    $bg_pos_t      = ! empty( $attributes['tabletBackgroundPosition'] )   ? $attributes['tabletBackgroundPosition'] : null;
-    $bg_repeat_t   = ! empty( $attributes['tabletBackgroundRepeat'] )     ? $attributes['tabletBackgroundRepeat']   : null;
-    $bg_attach_t   = isset( $attributes['tabletBackgroundFixedPosition'] ) ? ( $attributes['tabletBackgroundFixedPosition'] ? 'fixed' : 'scroll' ) : null;
-
-    // Background media — desktop overrides
-    $bg_opacity_d  = isset( $attributes['desktopBackgroundImageOpacity'] ) ? $attributes['desktopBackgroundImageOpacity'] : null;
-    $bg_size_d     = ! empty( $attributes['desktopBackgroundSize'] )       ? $attributes['desktopBackgroundSize']     : null;
-    $bg_pos_d      = ! empty( $attributes['desktopBackgroundPosition'] )   ? $attributes['desktopBackgroundPosition'] : null;
-    $bg_repeat_d   = ! empty( $attributes['desktopBackgroundRepeat'] )     ? $attributes['desktopBackgroundRepeat']   : null;
-    $bg_attach_d   = isset( $attributes['desktopBackgroundFixedPosition'] ) ? ( $attributes['desktopBackgroundFixedPosition'] ? 'fixed' : 'scroll' ) : null;
+    $bg_opacity     = isset( $attributes['backgroundImageOpacity'] ) ? $attributes['backgroundImageOpacity'] : 100;
+    $bg_size        = isset( $attributes['backgroundSize'] ) ? $attributes['backgroundSize'] : 'cover';
+    $bg_position    = isset( $attributes['backgroundPosition'] ) ? $attributes['backgroundPosition'] : 'center';
+    $bg_repeat      = isset( $attributes['backgroundRepeat'] ) ? $attributes['backgroundRepeat'] : 'no-repeat';
+    $bg_parallax    = ! empty( $attributes['backgroundFixedPosition'] );
+    $bg_attachment  = $bg_parallax ? 'fixed' : 'scroll';
 
     // Advanced Layout - Base
     $ext_t_base = ! empty( $attributes['extendTop'] ) ? $attributes['extendTop'] : '0px';
@@ -202,21 +188,6 @@ return function( $attributes, $content, $block ) {
             '--col-radius-mobile' => $rad_mobile,
             '--col-radius-tablet' => $rad_tablet,
             '--col-radius-desktop' => $rad_desktop,
-            '--col-bg-sz-m'  => $bg_size_m,
-            '--col-bg-sz-t'  => $bg_size_t   ?? 'var(--col-bg-sz-m)',
-            '--col-bg-sz-d'  => $bg_size_d   ?? 'var(--col-bg-sz-t)',
-            '--col-bg-po-m'  => $bg_pos_m,
-            '--col-bg-po-t'  => $bg_pos_t    ?? 'var(--col-bg-po-m)',
-            '--col-bg-po-d'  => $bg_pos_d    ?? 'var(--col-bg-po-t)',
-            '--col-bg-rp-m'  => $bg_repeat_m,
-            '--col-bg-rp-t'  => $bg_repeat_t ?? 'var(--col-bg-rp-m)',
-            '--col-bg-rp-d'  => $bg_repeat_d ?? 'var(--col-bg-rp-t)',
-            '--col-bg-at-m'  => $bg_attach_m,
-            '--col-bg-at-t'  => $bg_attach_t ?? 'var(--col-bg-at-m)',
-            '--col-bg-at-d'  => $bg_attach_d ?? 'var(--col-bg-at-t)',
-            '--col-bg-op-m'  => round( $bg_opacity_m / 100, 2 ),
-            '--col-bg-op-t'  => $bg_opacity_t !== null ? round( $bg_opacity_t / 100, 2 ) : 'var(--col-bg-op-m)',
-            '--col-bg-op-d'  => $bg_opacity_d !== null ? round( $bg_opacity_d / 100, 2 ) : 'var(--col-bg-op-t)',
         ],
         $border_vars_mobile,
         $border_vars_tablet,
@@ -237,7 +208,6 @@ return function( $attributes, $content, $block ) {
         '--current-inner-max: var(--col-inner-max-mobile); ' .
         '--current-halign: var(--col-halign-mobile); ' .
         '--current-bg-image: var(--col-bg-image-mobile); --current-bg-color: var(--col-bg-color-mobile); ' .
-        '--curr-bg-sz: var(--col-bg-sz-m); --curr-bg-po: var(--col-bg-po-m); --curr-bg-rp: var(--col-bg-rp-m); --curr-bg-at: var(--col-bg-at-m); --curr-bg-op: var(--col-bg-op-m); ' .
         '--curr-ext-top: var(--base-ext-top); --curr-ext-bottom: var(--base-ext-bottom); ' .
         '--curr-trans-x: var(--base-trans-x); --curr-trans-y: var(--base-trans-y); ' .
         '--current-order: var(--col-order-mobile); --current-z-index: var(--col-zindex-mobile); --current-radius: var(--col-radius-mobile); ' .
@@ -246,16 +216,9 @@ return function( $attributes, $content, $block ) {
         $get_flex($w_mobile), $get_max_w($w_mobile)
     );
 
-    $has_advanced = ! empty( $attributes['extendTop'] ) || ! empty( $attributes['extendBottom'] ) ||
-                    ! empty( $attributes['translateX'] ) || ! empty( $attributes['translateY'] ) ||
-                    ! empty( $attributes['tabExtendTop'] ) || ! empty( $attributes['tabExtendBottom'] ) ||
-                    ! empty( $attributes['tabTranslateX'] ) || ! empty( $attributes['tabTranslateY'] ) ||
-                    ! empty( $attributes['deskExtendTop'] ) || ! empty( $attributes['deskExtendBottom'] ) ||
-                    ! empty( $attributes['deskTranslateX'] ) || ! empty( $attributes['deskTranslateY'] );
-
-    $wrapper_attributes = get_block_wrapper_attributes( [
+    $wrapper_attributes = get_block_wrapper_attributes( [ 
         'style' => $style,
-        'class' => $block_id . ( $has_advanced ? ' has-advanced-layout' : '' )
+        'class' => $block_id
     ] );
 
     ob_start();
@@ -286,7 +249,6 @@ return function( $attributes, $content, $block ) {
                     --current-halign: var(--col-halign-tablet);
                     --current-bg-image: var(--col-bg-image-tablet);
                     --current-bg-color: var(--col-bg-color-tablet);
-                    --curr-bg-sz: var(--col-bg-sz-t); --curr-bg-po: var(--col-bg-po-t); --curr-bg-rp: var(--col-bg-rp-t); --curr-bg-at: var(--col-bg-at-t); --curr-bg-op: var(--col-bg-op-t);
                     --curr-ext-top: var(--tab-ext-top);
                     --curr-ext-bottom: var(--tab-ext-bottom);
                     --curr-trans-x: var(--tab-trans-x);
@@ -318,7 +280,6 @@ return function( $attributes, $content, $block ) {
                     --current-halign: var(--col-halign-desktop);
                     --current-bg-image: var(--col-bg-image-desktop);
                     --current-bg-color: var(--col-bg-color-desktop);
-                    --curr-bg-sz: var(--col-bg-sz-d); --curr-bg-po: var(--col-bg-po-d); --curr-bg-rp: var(--col-bg-rp-d); --curr-bg-at: var(--col-bg-at-d); --curr-bg-op: var(--col-bg-op-d);
                     --curr-ext-top: var(--desk-ext-top);
                     --curr-ext-bottom: var(--desk-ext-bottom);
                     --curr-trans-x: var(--desk-trans-x);
@@ -344,7 +305,7 @@ return function( $attributes, $content, $block ) {
 
         <div
             class="<?php echo esc_attr( $namespace ); ?>-background-layer"
-            style="position: absolute; inset: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-image); background-size: var(--curr-bg-sz); background-position: var(--curr-bg-po); background-repeat: var(--curr-bg-rp); background-attachment: var(--curr-bg-at); opacity: var(--curr-bg-op);"
+            style="position: absolute; inset: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: <?php echo esc_attr( $bg_position ); ?>; background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
         ></div>
 
         <div style="position: relative; z-index: 1; width: 100%; min-width: 0; max-width: var(--current-inner-max); align-self: var(--current-halign); box-sizing: border-box;">
