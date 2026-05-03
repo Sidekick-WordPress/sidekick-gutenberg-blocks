@@ -8,13 +8,12 @@ import {
     BoxControl,
     BorderBoxControl,
     RangeControl,
-    TextControl,
     TabPanel,
     __experimentalDivider as Divider,
     __experimentalUnitControl as UnitControl,
 } from '@wordpress/components';
 import {BlockEditProps} from '@wordpress/blocks';
-import {useState} from '@wordpress/element';
+import {useState, useEffect, useRef} from '@wordpress/element';
 import type {CSSProperties} from 'react';
 import ControlsMedia from "../../../components/edit-controls/ControlsMedia";
 
@@ -161,6 +160,56 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         borderVarsTablet = getBorderVars(tabletBorder, 'tablet'),
         borderVarsDesktop = getBorderVars(desktopBorder, 'desktop');
 
+    const blockRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!blockRef.current) return;
+        const wrapper = blockRef.current.closest<HTMLElement>(`.block-editor-block-list__block[data-type="${namespace}/column"]`);
+        if (!wrapper) return;
+        const columnsEl = wrapper.closest<HTMLElement>(`.wp-block-${namespace}-columns`);
+
+        const applyMargins = () => {
+            const isMobile = columnsEl?.classList.contains('is-mobile-layout');
+            const isTablet = columnsEl?.classList.contains('is-tablet-layout');
+
+            let top: string, bottom: string;
+            if (isMobile) {
+                top    = extendTop    || '';
+                bottom = extendBottom || '';
+            } else if (isTablet) {
+                top    = tabExtendTop    || extendTop    || '';
+                bottom = tabExtendBottom || extendBottom || '';
+            } else {
+                top    = deskExtendTop    || tabExtendTop    || extendTop    || '';
+                bottom = deskExtendBottom || tabExtendBottom || extendBottom || '';
+            }
+
+            if (top) {
+                wrapper.style.setProperty('margin-top', `calc(${top} * -1)`, 'important');
+            } else {
+                wrapper.style.removeProperty('margin-top');
+            }
+            if (bottom) {
+                wrapper.style.setProperty('margin-bottom', `calc(${bottom} * -1)`, 'important');
+            } else {
+                wrapper.style.removeProperty('margin-bottom');
+            }
+        };
+
+        applyMargins();
+
+        const observer = columnsEl
+            ? new MutationObserver(applyMargins)
+            : null;
+        observer?.observe(columnsEl!, { attributes: true, attributeFilter: ['class'] });
+
+        return () => {
+            observer?.disconnect();
+            wrapper.style.removeProperty('margin-top');
+            wrapper.style.removeProperty('margin-bottom');
+        };
+    }, [extendTop, extendBottom, tabExtendTop, tabExtendBottom, deskExtendTop, deskExtendBottom]);
+
     // Pass ALL variables. The SCSS + ResizeObserver (in ColumnsExtraLogic) handles the actual toggling.
     const customStyles: Record<string, any> = {
         '--col-pad-desktop': cssPadDesktop,
@@ -241,7 +290,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
 
 
     const blockProps = useBlockProps({
-        className: `${className} ${ (extendTop || tabExtendTop || deskExtendTop) ? 'has-advanced-layout' : ''}`,
+        ref: blockRef,
+        className: `${className} ${ (extendTop || extendBottom || tabExtendTop || tabExtendBottom || deskExtendTop || deskExtendBottom || translateX || translateY || tabTranslateX || tabTranslateY || deskTranslateX || deskTranslateY) ? 'has-advanced-layout' : ''}`,
         style: customStyles as CSSProperties
     });
 
@@ -356,10 +406,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <TextControl label={__('Ext Top', namespace)} value={extendTop} onChange={(v) => setAttributes({extendTop: v})} />
-                            <TextControl label={__('Ext Bottom', namespace)} value={extendBottom} onChange={(v) => setAttributes({extendBottom: v})} />
-                            <TextControl label={__('Trans X', namespace)} value={translateX} onChange={(v) => setAttributes({translateX: v})} />
-                            <TextControl label={__('Trans Y', namespace)} value={translateY} onChange={(v) => setAttributes({translateY: v})} />
+                            <UnitControl label={__('Ext Top', namespace)} value={extendTop} onChange={(v) => setAttributes({extendTop: v || ''})} />
+                            <UnitControl label={__('Ext Bottom', namespace)} value={extendBottom} onChange={(v) => setAttributes({extendBottom: v || ''})} />
+                            <UnitControl label={__('Trans X', namespace)} value={translateX} onChange={(v) => setAttributes({translateX: v || ''})} />
+                            <UnitControl label={__('Trans Y', namespace)} value={translateY} onChange={(v) => setAttributes({translateY: v || ''})} />
                         </div>
                     </div>
                 );
@@ -470,10 +520,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <TextControl label={__('Ext Top', namespace)} value={tabExtendTop} onChange={(v) => setAttributes({tabExtendTop: v})} />
-                            <TextControl label={__('Ext Bottom', namespace)} value={tabExtendBottom} onChange={(v) => setAttributes({tabExtendBottom: v})} />
-                            <TextControl label={__('Trans X', namespace)} value={tabTranslateX} onChange={(v) => setAttributes({tabTranslateX: v})} />
-                            <TextControl label={__('Trans Y', namespace)} value={tabTranslateY} onChange={(v) => setAttributes({tabTranslateY: v})} />
+                            <UnitControl label={__('Ext Top', namespace)} value={tabExtendTop} onChange={(v) => setAttributes({tabExtendTop: v || ''})} />
+                            <UnitControl label={__('Ext Bottom', namespace)} value={tabExtendBottom} onChange={(v) => setAttributes({tabExtendBottom: v || ''})} />
+                            <UnitControl label={__('Trans X', namespace)} value={tabTranslateX} onChange={(v) => setAttributes({tabTranslateX: v || ''})} />
+                            <UnitControl label={__('Trans Y', namespace)} value={tabTranslateY} onChange={(v) => setAttributes({tabTranslateY: v || ''})} />
                         </div>
                     </div>
                 );
@@ -584,10 +634,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <TextControl label={__('Ext Top', namespace)} value={deskExtendTop} onChange={(v) => setAttributes({deskExtendTop: v})} />
-                            <TextControl label={__('Ext Bottom', namespace)} value={deskExtendBottom} onChange={(v) => setAttributes({deskExtendBottom: v})} />
-                            <TextControl label={__('Trans X', namespace)} value={deskTranslateX} onChange={(v) => setAttributes({deskTranslateX: v})} />
-                            <TextControl label={__('Trans Y', namespace)} value={deskTranslateY} onChange={(v) => setAttributes({deskTranslateY: v})} />
+                            <UnitControl label={__('Ext Top', namespace)} value={deskExtendTop} onChange={(v) => setAttributes({deskExtendTop: v || ''})} />
+                            <UnitControl label={__('Ext Bottom', namespace)} value={deskExtendBottom} onChange={(v) => setAttributes({deskExtendBottom: v || ''})} />
+                            <UnitControl label={__('Trans X', namespace)} value={deskTranslateX} onChange={(v) => setAttributes({deskTranslateX: v || ''})} />
+                            <UnitControl label={__('Trans Y', namespace)} value={deskTranslateY} onChange={(v) => setAttributes({deskTranslateY: v || ''})} />
                         </div>
                     </div>
                 );

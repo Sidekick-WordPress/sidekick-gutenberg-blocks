@@ -119,6 +119,14 @@ return function( $attributes, $content, $block ) {
     // Unique ID for this block instance
     $block_id = 'sgb-column-' . wp_generate_uuid4();
 
+    $has_advanced_layout =
+        ! empty( $attributes['extendTop'] )    || ! empty( $attributes['extendBottom'] )    ||
+        ! empty( $attributes['tabExtendTop'] ) || ! empty( $attributes['tabExtendBottom'] ) ||
+        ! empty( $attributes['deskExtendTop'] )|| ! empty( $attributes['deskExtendBottom'] )||
+        ! empty( $attributes['translateX'] )   || ! empty( $attributes['translateY'] )      ||
+        ! empty( $attributes['tabTranslateX'] )|| ! empty( $attributes['tabTranslateY'] )   ||
+        ! empty( $attributes['deskTranslateX'] )|| ! empty( $attributes['deskTranslateY'] );
+
     // Helper to format border vars for PHP
     $get_border_vars = function($b, $prefix) {
         $vars = [];
@@ -216,9 +224,9 @@ return function( $attributes, $content, $block ) {
         $get_flex($w_mobile), $get_max_w($w_mobile)
     );
 
-    $wrapper_attributes = get_block_wrapper_attributes( [ 
+    $wrapper_attributes = get_block_wrapper_attributes( [
         'style' => $style,
-        'class' => $block_id
+        'class' => $block_id . ( $has_advanced_layout ? ' has-advanced-layout' : '' ),
     ] );
 
     ob_start();
@@ -249,8 +257,8 @@ return function( $attributes, $content, $block ) {
                     --current-halign: var(--col-halign-tablet);
                     --current-bg-image: var(--col-bg-image-tablet);
                     --current-bg-color: var(--col-bg-color-tablet);
-                    --curr-ext-top: var(--tab-ext-top);
-                    --curr-ext-bottom: var(--tab-ext-bottom);
+                    --curr-ext-top: var(--tab-ext-top) !important;
+                    --curr-ext-bottom: var(--tab-ext-bottom) !important;
                     --curr-trans-x: var(--tab-trans-x);
                     --curr-trans-y: var(--tab-trans-y);
                     --current-order: var(--col-order-tablet) !important;
@@ -280,8 +288,8 @@ return function( $attributes, $content, $block ) {
                     --current-halign: var(--col-halign-desktop);
                     --current-bg-image: var(--col-bg-image-desktop);
                     --current-bg-color: var(--col-bg-color-desktop);
-                    --curr-ext-top: var(--desk-ext-top);
-                    --curr-ext-bottom: var(--desk-ext-bottom);
+                    --curr-ext-top: var(--desk-ext-top) !important;
+                    --curr-ext-bottom: var(--desk-ext-bottom) !important;
                     --curr-trans-x: var(--desk-trans-x);
                     --curr-trans-y: var(--desk-trans-y);
                     --current-order: var(--col-order-desktop) !important;
@@ -305,7 +313,7 @@ return function( $attributes, $content, $block ) {
 
         <div
             class="<?php echo esc_attr( $namespace ); ?>-background-layer"
-            style="position: absolute; inset: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: <?php echo esc_attr( $bg_position ); ?>; background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
+            style="position: absolute; inset: 0; pointer-events: none; z-index: 0; border-radius: inherit; background-image: var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: <?php echo esc_attr( $bg_position ); ?>; background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
         ></div>
 
         <div style="position: relative; z-index: 1; width: 100%; min-width: 0; max-width: var(--current-inner-max); align-self: var(--current-halign); box-sizing: border-box;">
