@@ -45,3 +45,18 @@ if ( ! function_exists( 'sgb_get_border_styles' ) ) {
         return $styles;
     }
 }
+
+if ( ! function_exists( 'sgb_sanitize_html_id' ) ) {
+    function sgb_sanitize_html_id( $id ) {
+        if ( ! is_string( $id ) ) {
+            return '';
+        }
+
+        $id = trim( $id );
+        $id = ltrim( $id, '#' );
+        $id = preg_replace( '/\s+/', '-', $id );
+        $id = preg_replace( '/[^A-Za-z0-9\-_.:]/', '-', $id );
+
+        return trim( $id, '-' );
+    }
+}

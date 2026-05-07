@@ -3,6 +3,7 @@ defined('ABSPATH') || exit;
 
 return function( $attributes, $content ) {
     $namespace = defined('SGB_NS') ? SGB_NS : 'sgb';
+    $html_id = ! empty( $attributes['htmlId'] ) ? sgb_sanitize_html_id( $attributes['htmlId'] ) : '';
 
     // Breakpoints
     $tablet_bp  = isset( $attributes['tabletBreakpoint'] ) ? (int) $attributes['tabletBreakpoint'] : 768;
@@ -106,10 +107,16 @@ return function( $attributes, $content ) {
         esc_attr( $bg_col_base ), esc_attr( $bg_col_tab ), esc_attr( $bg_col_desk )
     );
 
-    $wrapper_attributes = get_block_wrapper_attributes( [
+    $wrapper_args = [
         'style' => $style,
         'class' => $block_id
-    ] );
+    ];
+
+    if ( $html_id ) {
+        $wrapper_args['id'] = $html_id;
+    }
+
+    $wrapper_attributes = get_block_wrapper_attributes( $wrapper_args );
 
     // Build Inner Styles
     $inner_style = 'display:flex; flex-wrap:wrap; flex-direction:row; justify-content:flex-start; align-items:stretch; gap:var(--current-gap); position:relative; z-index:1; max-width:var(--current-max-width); margin-left:var(--current-margin-left); margin-right:var(--current-margin-right); box-sizing:border-box; width:100%;';

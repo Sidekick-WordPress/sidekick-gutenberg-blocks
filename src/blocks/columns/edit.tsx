@@ -9,6 +9,7 @@ import {
     SelectControl,
     RangeControl,
     TabPanel,
+    TextControl,
     __experimentalDivider as Divider,
     __experimentalUnitControl as UnitControl,
 } from '@wordpress/components';
@@ -19,6 +20,7 @@ import type {CSSProperties} from 'react';
 // Plugin
 import namespace from '../../namespace';
 import {getPaddingStr, parsePadding} from "../../helpers/styles";
+import {normalizeHtmlId} from "../../helpers/html";
 import {PaddingAttribute} from "../../models/attr-shapes/padding-margin";
 import VersatileMessage from "../../components/VersitileMessage";
 import ControlsMedia from "../../components/edit-controls/ControlsMedia";
@@ -45,6 +47,7 @@ const COLUMN_PRESETS = [
 
 export default function Edit({attributes, setAttributes, clientId, className}: BlockEditProps<CoreColumnsAttributes>) {
     const {
+            htmlId,
             columns,
             tabletBreakpoint,
             desktopBreakpoint,
@@ -166,6 +169,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
 
         blockProps = useBlockProps({
             ref: setBlockElement,
+            id: normalizeHtmlId(htmlId) || undefined,
             className: [className, layoutClass].filter(Boolean).join(' '),
             style: {
                 '--gap-desktop': cssGapDesktop,
@@ -522,6 +526,14 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             min={300} max={2500}
                         />
                     </div>
+                </PanelBody>
+
+                <PanelBody title={__('HTML Attributes', namespace)} initialOpen={false}>
+                    <TextControl
+                        label={__('HTML ID', namespace)}
+                        value={htmlId || ''}
+                        onChange={(value) => setAttributes({htmlId: normalizeHtmlId(value)})}
+                    />
                 </PanelBody>
 
                 <PanelBody title={__('Responsive Layout', namespace)}>

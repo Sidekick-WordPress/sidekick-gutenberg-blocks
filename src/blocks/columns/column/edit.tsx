@@ -9,6 +9,8 @@ import {
     BorderBoxControl,
     RangeControl,
     TabPanel,
+    TextControl,
+    ToggleControl,
     __experimentalDivider as Divider,
     __experimentalUnitControl as UnitControl,
 } from '@wordpress/components';
@@ -20,6 +22,7 @@ import ControlsMedia from "../../../components/edit-controls/ControlsMedia";
 // Plugin
 import namespace from '../../../namespace';
 import {getPaddingStr, parsePadding, ensureUnit} from "../../../helpers/styles";
+import {normalizeHtmlId} from "../../../helpers/html";
 import {PaddingAttribute} from "../../../models/attr-shapes/padding-margin";
 
 // Block
@@ -65,6 +68,7 @@ const getBorderVars = (borderAttr: any, prefix: string): Record<string, string> 
 
 export default function Edit({attributes, setAttributes, className, context}: BlockEditProps<ColumnAttributes>) {
     const {
+            htmlId,
             width, tabletWidth, desktopWidth,
             mobilePadding, tabletPadding, padding,
             vAlign, tabletVAlign, desktopVAlign,
@@ -84,6 +88,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             extendTop, extendBottom, translateX, translateY,
             tabExtendTop, tabExtendBottom, tabTranslateX, tabTranslateY,
             deskExtendTop, deskExtendBottom, deskTranslateX, deskTranslateY,
+
+            // Entrance Animation
+            entranceAnimation,
+            entranceAnimationDirection,
         } = attributes,
         [activeTab, setActiveTab] = useState('mobile'),
         { themeColors } = useSelect((select: any) => {
@@ -158,7 +166,19 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         // Generate Border Variables
         borderVarsMobile = getBorderVars(border, 'mobile'),
         borderVarsTablet = getBorderVars(tabletBorder, 'tablet'),
-        borderVarsDesktop = getBorderVars(desktopBorder, 'desktop');
+        borderVarsDesktop = getBorderVars(desktopBorder, 'desktop'),
+
+        entranceOffsetMap: Record<string, { x: string; y: string }> = {
+            none: { x: '0px', y: '0px' },
+            up: { x: '0px', y: '24px' },
+            down: { x: '0px', y: '-24px' },
+            left: { x: '24px', y: '0px' },
+            right: { x: '-24px', y: '0px' },
+        },
+        entranceOffset = entranceOffsetMap[entranceAnimationDirection || 'up'] || entranceOffsetMap.up,
+        hasAdvancedLayout =
+            !!(extendTop || extendBottom || tabExtendTop || tabExtendBottom || deskExtendTop || deskExtendBottom ||
+                translateX || translateY || tabTranslateX || tabTranslateY || deskTranslateX || deskTranslateY);
 
     const blockRef = useRef<HTMLDivElement>(null);
 
@@ -266,6 +286,9 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         '--desk-trans-x': deskTranslateX || 'var(--tab-trans-x)',
         '--desk-trans-y': deskTranslateY || 'var(--tab-trans-y)',
 
+        '--col-enter-x': entranceOffset.x,
+        '--col-enter-y': entranceOffset.y,
+
         ...borderVarsMobile,
         ...borderVarsTablet,
         ...borderVarsDesktop,
@@ -291,7 +314,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
 
     const blockProps = useBlockProps({
         ref: blockRef,
-        className: `${className} ${ (extendTop || extendBottom || tabExtendTop || tabExtendBottom || deskExtendTop || deskExtendBottom || translateX || translateY || tabTranslateX || tabTranslateY || deskTranslateX || deskTranslateY) ? 'has-advanced-layout' : ''}`,
+        id: normalizeHtmlId(htmlId) || undefined,
+        className: [
+            className,
+            hasAdvancedLayout ? 'has-advanced-layout' : '',
+            entranceAnimation ? 'has-entrance-animation is-entrance-visible' : '',
+        ].filter(Boolean).join(' '),
         style: customStyles as CSSProperties
     });
 
@@ -662,6 +690,37 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                     >
                         {(tab) => renderLayoutTab(tab.name)}
                     </TabPanel>
+                </PanelBody>
+
+                <PanelBody title={__('Entrance Animation', namespace)} initialOpen={false}>
+                    <ToggleControl
+                        label={__('Fade In', namespace)}
+                        checked={!!entranceAnimation}
+                        onChange={(value) => setAttributes({entranceAnimation: value})}
+                    />
+
+                    {entranceAnimation && (
+                        <SelectControl
+                            label={__('Direction', namespace)}
+                            value={entranceAnimationDirection || 'up'}
+                            options={[
+                                {label: __('Fade Only', namespace), value: 'none'},
+                                {label: __('Up', namespace), value: 'up'},
+                                {label: __('Down', namespace), value: 'down'},
+                                {label: __('Left', namespace), value: 'left'},
+                                {label: __('Right', namespace), value: 'right'},
+                            ]}
+                            onChange={(value) => setAttributes({entranceAnimationDirection: value})}
+                        />
+                    )}
+                </PanelBody>
+
+                <PanelBody title={__('HTML Attributes', namespace)} initialOpen={false}>
+                    <TextControl
+                        label={__('HTML ID', namespace)}
+                        value={htmlId || ''}
+                        onChange={(value) => setAttributes({htmlId: normalizeHtmlId(value)})}
+                    />
                 </PanelBody>
             </InspectorControls>
 

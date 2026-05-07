@@ -2,6 +2,7 @@ import {BlockAttribute} from '@wordpress/blocks';
 import {PaddingAttribute} from "../../models/attr-shapes/padding-margin";
 
 export interface CoreColumnsAttributes {
+    htmlId: string;
     columns: number;
     tabletBreakpoint: number;
     desktopBreakpoint: number;
@@ -41,6 +42,7 @@ export interface CoreColumnsAttributes {
 }
 
 export const parentAttributes: Record<keyof CoreColumnsAttributes, BlockAttribute<any>> = {
+    htmlId: {type: 'string', default: ''},
     columns: {type: 'number', default: 2},
     tabletBreakpoint: {type: 'number', default: 768},
     desktopBreakpoint: {type: 'number', default: 1024},

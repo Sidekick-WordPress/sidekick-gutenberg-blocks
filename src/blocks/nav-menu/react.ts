@@ -1,20 +1,109 @@
+const normalizePath = (path: string) => {
+    const normalized = path.replace(/\/+$/, '');
+    return normalized || '/';
+};
+
+const getHashTarget = (hash: string) => {
+    const rawId = hash.replace(/^#/, '');
+    if (!rawId) return null;
+
+    let id = rawId;
+    try {
+        id = decodeURIComponent(rawId);
+    } catch {
+        id = rawId;
+    }
+
+    return document.getElementById(id);
+};
+
+const getSamePageHashTarget = (link: HTMLAnchorElement) => {
+    if (!link.hash || link.hash === '#') return null;
+
+    const url = new URL(link.href, window.location.href);
+    const currentPath = normalizePath(window.location.pathname);
+    const linkPath = normalizePath(url.pathname);
+    const samePage =
+        url.origin === window.location.origin &&
+        linkPath === currentPath &&
+        (url.search === window.location.search || url.search === '');
+
+    if (!samePage) return null;
+
+    const target = getHashTarget(url.hash);
+    return target ? { target, hash: url.hash } : null;
+};
+
+const smoothScrollToTarget = (target: HTMLElement) => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const style = window.getComputedStyle(target);
+    const scrollMarginTop = parseFloat(style.scrollMarginTop) || 0;
+    const top = target.getBoundingClientRect().top + window.scrollY - scrollMarginTop;
+
+    window.scrollTo({
+        top,
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const navMenus = document.querySelectorAll('.sgb-nav-menu') as NodeListOf<HTMLElement>;
 
     navMenus.forEach((navWrapper) => {
         const orientation = navWrapper.getAttribute('data-orientation');
+        const navInner = navWrapper.querySelector('.sgb-nav-menu__inner') as HTMLElement;
+        const toggleBtn = navWrapper.querySelector('.sgb-nav-menu__toggle');
+        const closeBtn = navWrapper.querySelector('.sgb-nav-menu__close');
+
+        if (!navInner) return;
+
+        const closeMenu = () => {
+            navWrapper.classList.remove('is-open');
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = ''; // Restore background scrolling
+        };
+
+        const navLinks = navInner.querySelectorAll<HTMLAnchorElement>('a[href]');
+
+        navLinks.forEach((link) => {
+            link.addEventListener('click', (event) => {
+                if (
+                    event.defaultPrevented ||
+                    event.button !== 0 ||
+                    event.metaKey ||
+                    event.ctrlKey ||
+                    event.shiftKey ||
+                    event.altKey ||
+                    (link.target && link.target !== '_self')
+                ) {
+                    return;
+                }
+
+                const anchorTarget = getSamePageHashTarget(link);
+
+                if (anchorTarget) {
+                    event.preventDefault();
+                    closeMenu();
+
+                    if (window.location.hash !== anchorTarget.hash) {
+                        window.history.pushState(null, '', anchorTarget.hash);
+                    }
+
+                    requestAnimationFrame(() => smoothScrollToTarget(anchorTarget.target));
+                    return;
+                }
+
+                if (navWrapper.classList.contains('is-open')) {
+                    closeMenu();
+                }
+            });
+        });
 
         if (orientation === 'vertical') {
             navWrapper.classList.remove('is-mobile-menu', 'is-open');
             navWrapper.classList.add('is-initialized');
             return;
         }
-
-        const navInner = navWrapper.querySelector('.sgb-nav-menu__inner') as HTMLElement;
-        const toggleBtn = navWrapper.querySelector('.sgb-nav-menu__toggle');
-        const closeBtn = navWrapper.querySelector('.sgb-nav-menu__close');
-
-        if (!navInner) return;
 
         const parent = navWrapper.parentElement;
         if (!parent) return;
@@ -30,27 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.style.overflow = 'hidden'; // Prevent background scrolling
         };
 
-        const closeMenu = () => {
-            navWrapper.classList.remove('is-open');
-            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
-            document.body.style.overflow = ''; // Restore background scrolling
-        };
-
         if (toggleBtn) toggleBtn.addEventListener('click', openMenu);
         if (closeBtn) closeBtn.addEventListener('click', closeMenu);
-
-        // NEW: Grab all actual links inside the menu
-        const navLinks = navInner.querySelectorAll('a');
-
-        // NEW: Loop through them and add a click listener
-        navLinks.forEach((link) => {
-            link.addEventListener('click', () => {
-                // If the menu is currently open in mobile mode, close it instantly
-                if (navWrapper.classList.contains('is-open')) {
-                    closeMenu();
-                }
-            });
-        });
 
         // --- Collision Logic ---
 

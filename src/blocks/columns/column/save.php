@@ -3,6 +3,7 @@ defined('ABSPATH') || exit;
 
 return function( $attributes, $content, $block ) {
     $namespace = defined('SGB_NS') ? SGB_NS : 'sgb';
+    $html_id = ! empty( $attributes['htmlId'] ) ? sgb_sanitize_html_id( $attributes['htmlId'] ) : '';
 
     // Breakpoints from Context
     $tablet_bp  = isset( $block->context["{$namespace}/tabletBreakpoint"] ) ? (int) $block->context["{$namespace}/tabletBreakpoint"] : 768;
@@ -127,6 +128,17 @@ return function( $attributes, $content, $block ) {
         ! empty( $attributes['tabTranslateX'] )|| ! empty( $attributes['tabTranslateY'] )   ||
         ! empty( $attributes['deskTranslateX'] )|| ! empty( $attributes['deskTranslateY'] );
 
+    $has_entrance_animation = ! empty( $attributes['entranceAnimation'] );
+    $entrance_direction = ! empty( $attributes['entranceAnimationDirection'] ) ? sanitize_key( $attributes['entranceAnimationDirection'] ) : 'up';
+    $entrance_offsets = [
+        'none'  => [ 'x' => '0px',  'y' => '0px' ],
+        'up'    => [ 'x' => '0px',  'y' => '24px' ],
+        'down'  => [ 'x' => '0px',  'y' => '-24px' ],
+        'left'  => [ 'x' => '24px', 'y' => '0px' ],
+        'right' => [ 'x' => '-24px', 'y' => '0px' ],
+    ];
+    $entrance_offset = $entrance_offsets[ $entrance_direction ] ?? $entrance_offsets['up'];
+
     // Helper to format border vars for PHP
     $get_border_vars = function($b, $prefix) {
         $vars = [];
@@ -187,6 +199,8 @@ return function( $attributes, $content, $block ) {
             '--desk-ext-bottom' => $ext_b_desk,
             '--desk-trans-x' => $tra_x_desk,
             '--desk-trans-y' => $tra_y_desk,
+            '--col-enter-x' => $entrance_offset['x'],
+            '--col-enter-y' => $entrance_offset['y'],
             '--col-order-mobile' => $order_mobile,
             '--col-order-tablet' => $order_tablet,
             '--col-order-desktop' => $order_desktop,
@@ -224,10 +238,16 @@ return function( $attributes, $content, $block ) {
         $get_flex($w_mobile), $get_max_w($w_mobile)
     );
 
-    $wrapper_attributes = get_block_wrapper_attributes( [
+    $wrapper_args = [
         'style' => $style,
-        'class' => $block_id . ( $has_advanced_layout ? ' has-advanced-layout' : '' ),
-    ] );
+        'class' => $block_id . ( $has_advanced_layout ? ' has-advanced-layout' : '' ) . ( $has_entrance_animation ? ' has-entrance-animation' : '' ),
+    ];
+
+    if ( $html_id ) {
+        $wrapper_args['id'] = $html_id;
+    }
+
+    $wrapper_attributes = get_block_wrapper_attributes( $wrapper_args );
 
     ob_start();
     ?>

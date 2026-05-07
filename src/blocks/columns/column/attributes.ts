@@ -2,6 +2,8 @@ import { BlockAttribute } from '@wordpress/blocks';
 import { PaddingAttribute } from "../../../models/attr-shapes/padding-margin";
 
 export interface ColumnAttributes {
+    htmlId: string;
+
     // Widths
     width: number; // Base (Mobile)
     tabletWidth: number;
@@ -74,9 +76,15 @@ export interface ColumnAttributes {
     deskExtendBottom: string;
     deskTranslateX: string;
     deskTranslateY: string;
+
+    // Entrance Animation
+    entranceAnimation: boolean;
+    entranceAnimationDirection: string;
 }
 
 export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any>> = {
+    htmlId: { type: 'string', default: '' },
+
     // Widths
     width: { type: 'number', default: 100 },
     tabletWidth: { type: 'number' },
@@ -152,4 +160,8 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
     deskExtendBottom: { type: 'string', default: '' },
     deskTranslateX: { type: 'string', default: '' },
     deskTranslateY: { type: 'string', default: '' },
+
+    // Entrance Animation
+    entranceAnimation: { type: 'boolean', default: false },
+    entranceAnimationDirection: { type: 'string', default: 'up' },
 };
