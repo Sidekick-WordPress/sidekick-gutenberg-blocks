@@ -364,7 +364,7 @@ return function( $attributes, $content, $block ) {
         ></video>
         <?php endif; ?>
 
-        <div style="position: relative; z-index: 1; width: 100%; min-width: 0; max-width: var(--current-inner-max); align-self: var(--current-halign); box-sizing: border-box;">
+        <div class="<?php echo esc_attr( "{$namespace}-column__content" ); ?>" style="position: relative; z-index: 1; width: 100%; min-width: 0; max-width: var(--current-inner-max); align-self: var(--current-halign); box-sizing: border-box;">
             <?php echo $content; ?>
         </div>
     </div>

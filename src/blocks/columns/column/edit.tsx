@@ -812,15 +812,18 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                     />
                 )}
 
-                <div style={{
-                    position: 'relative',
-                    zIndex: 1,
-                    width: '100%',
-                    minWidth: '0',
-                    maxWidth: 'var(--current-inner-max)',
-                    alignSelf: 'var(--current-halign)',
-                    boxSizing: 'border-box'
-                }}>
+                <div
+                    className={`${namespace}-column__content`}
+                    style={{
+                        position: 'relative',
+                        zIndex: 1,
+                        width: '100%',
+                        minWidth: '0',
+                        maxWidth: 'var(--current-inner-max)',
+                        alignSelf: 'var(--current-halign)',
+                        boxSizing: 'border-box'
+                    }}
+                >
                     <div {...innerBlocksProps} />
                 </div>
             </div>

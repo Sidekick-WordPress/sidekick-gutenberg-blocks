@@ -167,6 +167,30 @@
             will-change: auto;
         }
     }
+
+    .#{$namespace}-column__content > .wp-block-image.aligncenter,
+    .#{$namespace}-column__content .block-editor-block-list__block[data-type="core/image"].aligncenter,
+    .#{$namespace}-column__content .block-editor-block-list__block[data-type="core/image"][data-align="center"] {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+    }
+
+    .#{$namespace}-column__content > .wp-block-image.alignleft,
+    .#{$namespace}-column__content .block-editor-block-list__block[data-type="core/image"].alignleft,
+    .#{$namespace}-column__content .block-editor-block-list__block[data-type="core/image"][data-align="left"] {
+        margin-left: 0;
+        margin-right: auto;
+        text-align: left;
+    }
+
+    .#{$namespace}-column__content > .wp-block-image.alignright,
+    .#{$namespace}-column__content .block-editor-block-list__block[data-type="core/image"].alignright,
+    .#{$namespace}-column__content .block-editor-block-list__block[data-type="core/image"][data-align="right"] {
+        margin-left: auto;
+        margin-right: 0;
+        text-align: right;
+    }
 }
 
 .wp-block-#{$namespace}-columns {
