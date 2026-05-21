@@ -331,7 +331,6 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         padding: 'var(--col-current-pad)',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'var(--current-valign)',
         alignItems: 'stretch',
         backgroundColor: 'var(--current-bg-color)',
 
@@ -359,11 +358,19 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
     });
 
     const innerBlocksProps = useInnerBlocksProps({
+        className: `${namespace}-column__content`,
         style: {
+            position: 'relative',
+            zIndex: 1,
             width: '100%',
             minWidth: '0',
             maxWidth: 'var(--current-inner-max)',
-            alignSelf: 'var(--current-halign)'
+            height: '100%',
+            alignSelf: 'var(--current-halign)',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'var(--current-valign)',
         }
     });
 
@@ -395,6 +402,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             options={[
                                 {label: 'Top', value: 'flex-start'},
                                 {label: 'Middle', value: 'center'},
+                                {label: 'Stretch', value: 'space-between'},
                                 {label: 'Bottom', value: 'flex-end'},
                             ]}
                             onChange={(v) => setAttributes({vAlign: v})}
@@ -507,6 +515,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                                 {label: __('Inherit', namespace), value: ''},
                                 {label: 'Top', value: 'flex-start'},
                                 {label: 'Middle', value: 'center'},
+                                {label: 'Stretch', value: 'space-between'},
                                 {label: 'Bottom', value: 'flex-end'},
                             ]}
                             onChange={(v) => setAttributes({tabletVAlign: v})}
@@ -624,6 +633,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                                 {label: __('Inherit', namespace), value: ''},
                                 {label: 'Top', value: 'flex-start'},
                                 {label: 'Middle', value: 'center'},
+                                {label: 'Stretch', value: 'space-between'},
                                 {label: 'Bottom', value: 'flex-end'},
                             ]}
                             onChange={(v) => setAttributes({desktopVAlign: v})}
@@ -818,20 +828,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                     />
                 )}
 
-                <div
-                    className={`${namespace}-column__content`}
-                    style={{
-                        position: 'relative',
-                        zIndex: 1,
-                        width: '100%',
-                        minWidth: '0',
-                        maxWidth: 'var(--current-inner-max)',
-                        alignSelf: 'var(--current-halign)',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    <div {...innerBlocksProps} />
-                </div>
+                <div {...innerBlocksProps} />
             </div>
         </>
     );

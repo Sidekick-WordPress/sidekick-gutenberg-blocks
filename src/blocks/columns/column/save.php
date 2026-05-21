@@ -242,7 +242,7 @@ return function( $attributes, $content, $block ) {
 
     $style = sprintf(
         '%s' .
-        'flex: %s; max-width: %s; padding: var(--col-current-pad); position: relative; min-width: 0; display: flex; flex-direction: column; justify-content: var(--current-valign); align-items: stretch; box-sizing: border-box; background-color: var(--current-bg-color); order: var(--current-order); z-index: var(--current-z-index); border-radius: var(--current-radius);',
+        'flex: %s; max-width: %s; padding: var(--col-current-pad); position: relative; min-width: 0; display: flex; flex-direction: column; align-items: stretch; box-sizing: border-box; background-color: var(--current-bg-color); order: var(--current-order); z-index: var(--current-z-index); border-radius: var(--current-radius);',
         $style_vars_str,
         $get_flex($w_mobile), $get_max_w($w_mobile)
     );
@@ -366,7 +366,7 @@ return function( $attributes, $content, $block ) {
         ></video>
         <?php endif; ?>
 
-        <div class="<?php echo esc_attr( "{$namespace}-column__content" ); ?>" style="position: relative; z-index: 1; width: 100%; min-width: 0; max-width: var(--current-inner-max); align-self: var(--current-halign); box-sizing: border-box;">
+        <div class="<?php echo esc_attr( "{$namespace}-column__content" ); ?>" style="position: relative; z-index: 1; width: 100%; min-width: 0; max-width: var(--current-inner-max); height: 100%; align-self: var(--current-halign); box-sizing: border-box; display: flex; flex-direction: column; justify-content: var(--current-valign);">
             <?php echo $content; ?>
         </div>
     </div>
