@@ -21,7 +21,7 @@ import ControlsMedia from "../../../components/edit-controls/ControlsMedia";
 
 // Plugin
 import namespace from '../../../namespace';
-import {getPaddingStr, parsePadding, ensureUnit} from "../../../helpers/styles";
+import {getPaddingStr, parsePadding, ensureUnit, normalizeColumnWidth} from "../../../helpers/styles";
 import {normalizeHtmlId} from "../../../helpers/html";
 import {PaddingAttribute} from "../../../models/attr-shapes/padding-margin";
 
@@ -76,9 +76,9 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             zIndex, tabletZIndex, desktopZIndex,
             border, tabletBorder, desktopBorder,
             borderRadius, tabletBorderRadius, desktopBorderRadius,
-            backgroundImage, backgroundColor,
-            tabletBackgroundImage, tabletBackgroundColor,
-            desktopBackgroundImage, desktopBackgroundColor,
+            backgroundImage, backgroundColor, backgroundVideo,
+            tabletBackgroundImage, tabletBackgroundColor, tabletBackgroundVideo,
+            desktopBackgroundImage, desktopBackgroundColor, desktopBackgroundVideo,
             backgroundImageOpacity,
             backgroundSize, backgroundPosition, backgroundRepeat, backgroundFixedPosition,
             innerMaxWidth, tabletInnerMaxWidth, desktopInnerMaxWidth,
@@ -94,6 +94,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             entranceAnimationDirection,
         } = attributes,
         [activeTab, setActiveTab] = useState('mobile'),
+        [parentLayoutClass, setParentLayoutClass] = useState<string>(''),
         { themeColors } = useSelect((select: any) => {
             const settings = select('core/block-editor').getSettings();
             return { themeColors: settings.colors || [] };
@@ -123,8 +124,15 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         hasDesktopBgImage = !!desktopBackgroundImage,
         hasDesktopBgColor = !!desktopBackgroundColor,
 
-        hasTabletOrder = tabletOrder !== undefined && (tabletOrder as any) !== '',
-        hasDesktopOrder = desktopOrder !== undefined && (desktopOrder as any) !== '',
+        activeBgVideo = (() => {
+            if (parentLayoutClass === 'is-desktop-layout') {
+                return desktopBackgroundVideo || tabletBackgroundVideo || backgroundVideo || '';
+            }
+            if (parentLayoutClass === 'is-tablet-layout') {
+                return tabletBackgroundVideo || backgroundVideo || '';
+            }
+            return backgroundVideo || '';
+        })(),
 
         hasTabletZIndex = tabletZIndex !== undefined && (tabletZIndex as any) !== '',
         hasDesktopZIndex = desktopZIndex !== undefined && (desktopZIndex as any) !== '',
@@ -147,10 +155,11 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         cssPadTablet = hasTabletPadding ? getPaddingStr(tabletPadding, '10px') : 'var(--col-pad-mobile)',
         cssPadDesktop = hasDesktopPadding ? getPaddingStr(padding, '10px') : 'var(--col-pad-tablet)',
 
-        // CSS Variables for Width
-        valWidthMobile = width ?? 100,
-        valWidthTablet = hasTabletWidth ? tabletWidth : valWidthMobile,
-        valWidthDesktop = hasDesktopWidth ? desktopWidth : valWidthTablet,
+        // CSS Variables for Width — normalize so integer fractions (33, 66, 16…)
+        // become repeating-decimal floats and three "33%" columns sum to 100%.
+        valWidthMobile = normalizeColumnWidth(width) ?? 100,
+        valWidthTablet = hasTabletWidth ? (normalizeColumnWidth(tabletWidth) ?? valWidthMobile) : valWidthMobile,
+        valWidthDesktop = hasDesktopWidth ? (normalizeColumnWidth(desktopWidth) ?? valWidthTablet) : valWidthTablet,
 
         // CSS Variables for Backgrounds
         cssBgImageMobile = backgroundImage ? `url(${backgroundImage})` : 'none',
@@ -181,6 +190,26 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                 translateX || translateY || tabTranslateX || tabTranslateY || deskTranslateX || deskTranslateY);
 
     const blockRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!blockRef.current) return;
+        const wrapper = blockRef.current.closest<HTMLElement>(`.block-editor-block-list__block[data-type="${namespace}/column"]`);
+        if (!wrapper) return;
+        const columnsEl = wrapper.closest<HTMLElement>(`.wp-block-${namespace}-columns`);
+        if (!columnsEl) return;
+
+        const readLayoutClass = () => {
+            if (columnsEl.classList.contains('is-desktop-layout')) return 'is-desktop-layout';
+            if (columnsEl.classList.contains('is-tablet-layout')) return 'is-tablet-layout';
+            if (columnsEl.classList.contains('is-mobile-layout')) return 'is-mobile-layout';
+            return '';
+        };
+
+        setParentLayoutClass(readLayoutClass());
+        const observer = new MutationObserver(() => setParentLayoutClass(readLayoutClass()));
+        observer.observe(columnsEl, { attributes: true, attributeFilter: ['class'] });
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         if (!blockRef.current) return;
@@ -267,9 +296,9 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         ...(hasTabletZIndex && { '--col-zindex-tablet': tabletZIndex }),
         ...(hasDesktopZIndex && { '--col-zindex-desktop': desktopZIndex }),
 
-        '--col-order-mobile': mobileOrder,
-        ...(hasTabletOrder && { '--col-order-tablet': tabletOrder }),
-        ...(hasDesktopOrder && { '--col-order-desktop': desktopOrder }),
+        '--col-order-mobile': mobileOrder ?? 0,
+        '--col-order-tablet': tabletOrder ?? 0,
+        '--col-order-desktop': desktopOrder ?? 0,
 
         '--base-ext-top': extendTop || '0px',
         '--base-ext-bottom': extendBottom || '0px',
@@ -344,7 +373,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <RangeControl
                             label={__('Width (%)', namespace)}
                             value={width}
-                            onChange={(v) => setAttributes({width: v ?? 100})}
+                            onChange={(v) => setAttributes({width: normalizeColumnWidth(v) ?? 100})}
                             min={0} max={100}
                         />
                         <Divider />
@@ -416,10 +445,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             clearable
                         />
                         <ControlsMedia
-                            panelLabel={__('Background Image', namespace)}
+                            panelLabel={__('Background Image / Video', namespace)}
                             imageUrl={backgroundImage}
                             onSelectMedia={(media) => setAttributes({backgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({backgroundImage: ''})}
+                            videoUrl={backgroundVideo}
+                            onSelectVideo={(media) => setAttributes({backgroundVideo: media.url})}
+                            onRemoveVideo={() => setAttributes({backgroundVideo: ''})}
                             opacity={backgroundImageOpacity}
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
@@ -451,7 +483,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <RangeControl
                             label={__('Width (%)', namespace)}
                             value={tabletWidth}
-                            onChange={(v) => setAttributes({tabletWidth: v})}
+                            onChange={(v) => setAttributes({tabletWidth: normalizeColumnWidth(v)})}
                             min={0} max={100}
                             allowReset
                         />
@@ -476,10 +508,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <RangeControl
                             label={__('Flex Order', namespace)}
-                            value={tabletOrder}
-                            onChange={(v) => setAttributes({tabletOrder: v})}
+                            value={tabletOrder ?? 0}
+                            onChange={(v) => setAttributes({tabletOrder: v ?? 0})}
                             min={-10} max={10}
-                            allowReset
+                            help={__('Independent per breakpoint. Empty = 0.', namespace)}
                         />
                         <Divider />
                         <RangeControl
@@ -530,10 +562,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             clearable
                         />
                         <ControlsMedia
-                            panelLabel={__('Background Image Override', namespace)}
+                            panelLabel={__('Background Image / Video Override', namespace)}
                             imageUrl={tabletBackgroundImage}
                             onSelectMedia={(media) => setAttributes({tabletBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({tabletBackgroundImage: ''})}
+                            videoUrl={tabletBackgroundVideo}
+                            onSelectVideo={(media) => setAttributes({tabletBackgroundVideo: media.url})}
+                            onRemoveVideo={() => setAttributes({tabletBackgroundVideo: ''})}
                             opacity={backgroundImageOpacity}
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
@@ -565,7 +600,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <RangeControl
                             label={__('Width (%)', namespace)}
                             value={desktopWidth}
-                            onChange={(v) => setAttributes({desktopWidth: v})}
+                            onChange={(v) => setAttributes({desktopWidth: normalizeColumnWidth(v)})}
                             min={0} max={100}
                             allowReset
                         />
@@ -590,10 +625,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <RangeControl
                             label={__('Flex Order', namespace)}
-                            value={desktopOrder}
-                            onChange={(v) => setAttributes({desktopOrder: v})}
+                            value={desktopOrder ?? 0}
+                            onChange={(v) => setAttributes({desktopOrder: v ?? 0})}
                             min={-10} max={10}
-                            allowReset
+                            help={__('Independent per breakpoint. Empty = 0.', namespace)}
                         />
                         <Divider />
                         <RangeControl
@@ -644,10 +679,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             clearable
                         />
                         <ControlsMedia
-                            panelLabel={__('Background Image Override', namespace)}
+                            panelLabel={__('Background Image / Video Override', namespace)}
                             imageUrl={desktopBackgroundImage}
                             onSelectMedia={(media) => setAttributes({desktopBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({desktopBackgroundImage: ''})}
+                            videoUrl={desktopBackgroundVideo}
+                            onSelectVideo={(media) => setAttributes({desktopBackgroundVideo: media.url})}
+                            onRemoveVideo={() => setAttributes({desktopBackgroundVideo: ''})}
                             opacity={backgroundImageOpacity}
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
@@ -751,6 +789,28 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         zIndex: 0,
                     }}
                 />
+
+                {!!activeBgVideo && (
+                    <video
+                        key={activeBgVideo}
+                        src={activeBgVideo}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            objectPosition: 'center',
+                            opacity: (backgroundImageOpacity ?? 100) / 100,
+                            pointerEvents: 'none',
+                            zIndex: 0,
+                        }}
+                    />
+                )}
 
                 <div style={{
                     position: 'relative',

@@ -9,10 +9,14 @@ return function( $attributes, $content, $block ) {
     $tablet_bp  = isset( $block->context["{$namespace}/tabletBreakpoint"] ) ? (int) $block->context["{$namespace}/tabletBreakpoint"] : 768;
     $desktop_bp = isset( $block->context["{$namespace}/desktopBreakpoint"] ) ? (int) $block->context["{$namespace}/desktopBreakpoint"] : 1024;
 
-    // Widths
-    $w_mobile = isset( $attributes['width'] ) ? (float) $attributes['width'] : 100.0;
-    $w_tablet = isset( $attributes['tabletWidth'] ) ? (float) $attributes['tabletWidth'] : $w_mobile;
-    $w_desktop = isset( $attributes['desktopWidth'] ) ? (float) $attributes['desktopWidth'] : $w_tablet;
+    // Widths — normalized so integer fractions (33, 66, 16…) become their
+    // repeating-decimal equivalents and the calc() math sums to exactly 100%.
+    $w_mobile = sgb_normalize_column_width( $attributes['width'] ?? null );
+    if ( $w_mobile === null ) $w_mobile = 100.0;
+    $w_tablet = sgb_normalize_column_width( $attributes['tabletWidth'] ?? null );
+    if ( $w_tablet === null ) $w_tablet = $w_mobile;
+    $w_desktop = sgb_normalize_column_width( $attributes['desktopWidth'] ?? null );
+    if ( $w_desktop === null ) $w_desktop = $w_tablet;
 
     // Padding
     $pad_mobile = isset( $attributes['mobilePadding'] ) ? $attributes['mobilePadding'] : ['top'=>'10px','right'=>'10px','bottom'=>'10px','left'=>'10px'];
@@ -49,6 +53,12 @@ return function( $attributes, $content, $block ) {
     $bg_img_desk = ! empty( $attributes['desktopBackgroundImage'] ) ? 'url(' . esc_url( $attributes['desktopBackgroundImage'] ) . ')' : 'var(--col-bg-image-tablet)';
     $bg_col_desk = ! empty( $attributes['desktopBackgroundColor'] ) ? $attributes['desktopBackgroundColor'] : 'var(--col-bg-color-tablet)';
 
+    // Background Videos (with mobile→tablet→desktop cascade)
+    $bg_vid_mobile  = ! empty( $attributes['backgroundVideo'] ) ? esc_url( $attributes['backgroundVideo'] ) : '';
+    $bg_vid_tablet  = ! empty( $attributes['tabletBackgroundVideo'] ) ? esc_url( $attributes['tabletBackgroundVideo'] ) : $bg_vid_mobile;
+    $bg_vid_desktop = ! empty( $attributes['desktopBackgroundVideo'] ) ? esc_url( $attributes['desktopBackgroundVideo'] ) : $bg_vid_tablet;
+    $has_bg_video   = (bool) ( $bg_vid_mobile || $bg_vid_tablet || $bg_vid_desktop );
+
     $bg_opacity     = isset( $attributes['backgroundImageOpacity'] ) ? $attributes['backgroundImageOpacity'] : 100;
     $bg_size        = isset( $attributes['backgroundSize'] ) ? $attributes['backgroundSize'] : 'cover';
     $bg_position    = isset( $attributes['backgroundPosition'] ) ? $attributes['backgroundPosition'] : 'center';
@@ -74,10 +84,10 @@ return function( $attributes, $content, $block ) {
     $tra_x_desk = ! empty( $attributes['deskTranslateX'] ) ? $attributes['deskTranslateX'] : 'var(--tab-trans-x)';
     $tra_y_desk = ! empty( $attributes['deskTranslateY'] ) ? $attributes['deskTranslateY'] : 'var(--tab-trans-y)';
 
-    // Order
+    // Order — each breakpoint is independent; empty/unset means 0 (CSS default), not "inherit base"
     $order_mobile = isset( $attributes['mobileOrder'] ) ? (int) $attributes['mobileOrder'] : 0;
-    $order_tablet = isset( $attributes['tabletOrder'] ) ? (int) $attributes['tabletOrder'] : $order_mobile;
-    $order_desktop = isset( $attributes['desktopOrder'] ) ? (int) $attributes['desktopOrder'] : $order_tablet;
+    $order_tablet = isset( $attributes['tabletOrder'] ) ? (int) $attributes['tabletOrder'] : 0;
+    $order_desktop = isset( $attributes['desktopOrder'] ) ? (int) $attributes['desktopOrder'] : 0;
 
     // Z-Index
     $z_mobile = isset( $attributes['zIndex'] ) ? (int) $attributes['zIndex'] : 1;
@@ -335,6 +345,24 @@ return function( $attributes, $content, $block ) {
             class="<?php echo esc_attr( $namespace ); ?>-background-layer"
             style="position: absolute; inset: 0; pointer-events: none; z-index: 0; border-radius: inherit; background-image: var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: <?php echo esc_attr( $bg_position ); ?>; background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
         ></div>
+
+        <?php if ( $has_bg_video ) : ?>
+        <video
+            class="<?php echo esc_attr( $namespace ); ?>-background-video"
+            data-sgb-bg-video="1"
+            data-bg-mobile="<?php echo esc_attr( $bg_vid_mobile ); ?>"
+            data-bg-tablet="<?php echo esc_attr( $bg_vid_tablet ); ?>"
+            data-bg-desktop="<?php echo esc_attr( $bg_vid_desktop ); ?>"
+            data-tablet-bp="<?php echo (int) $tablet_bp; ?>"
+            data-desktop-bp="<?php echo (int) $desktop_bp; ?>"
+            preload="none"
+            muted
+            loop
+            playsinline
+            autoplay
+            style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; z-index: 0; border-radius: inherit; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
+        ></video>
+        <?php endif; ?>
 
         <div style="position: relative; z-index: 1; width: 100%; min-width: 0; max-width: var(--current-inner-max); align-self: var(--current-halign); box-sizing: border-box;">
             <?php echo $content; ?>

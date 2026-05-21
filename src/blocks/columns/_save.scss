@@ -1,5 +1,61 @@
 @use "../../styles/defaults/namespace" as *;
 
+// ==== Non-inheriting raw cascade variables ====================================
+// Mark every raw per-breakpoint input as `inherits: false` so nested columns
+// can't pick up values from an outer columns/column. Without this, conditionally
+// set vars (the border ones especially) leak through and the var() fallback
+// chains in `apply-borders` never trigger.
+//
+// `--current-*` and `--curr-*` resolved/intermediate vars are intentionally left
+// inheriting — descendants of the column (background layer, content wrapper)
+// read them.
+
+@each $bp in (mobile, tablet, desktop) {
+    // Columns block raw inputs
+    @each $name in (gap, pad, max-width, max-height, margin-l, margin-r, bg-image, bg-color, h-align) {
+        @property --#{$name}-#{$bp} {
+            syntax: '*';
+            inherits: false;
+        }
+    }
+
+    // Column block raw inputs
+    @each $name in (col-pad, col-w, col-valign, col-inner-max, col-halign, col-bg-image, col-bg-color, col-order, col-zindex, col-radius) {
+        @property --#{$name}-#{$bp} {
+            syntax: '*';
+            inherits: false;
+        }
+    }
+
+    // Column borders: shorthand + per-side (these are the leak culprits — only set when a border attr exists)
+    @each $prop in (width, style, color) {
+        @property --col-border-#{$prop}-#{$bp} {
+            syntax: '*';
+            inherits: false;
+        }
+        @each $side in (top, right, bottom, left) {
+            @property --col-border-#{$side}-#{$prop}-#{$bp} {
+                syntax: '*';
+                inherits: false;
+            }
+        }
+    }
+}
+
+// Column advanced layout (extend/translate) raw inputs
+@each $prefix in (base, tab, desk) {
+    @each $name in (ext-top, ext-bottom, trans-x, trans-y) {
+        @property --#{$prefix}-#{$name} {
+            syntax: '*';
+            inherits: false;
+        }
+    }
+}
+
+// Column entrance offsets
+@property --col-enter-x { syntax: '*'; inherits: false; }
+@property --col-enter-y { syntax: '*'; inherits: false; }
+
 // Helper to calc width/flex based on a percentage variable
 @mixin col-width($w-var) {
     flex: 0 0 calc(var(#{$w-var}) * 1% - (var(--current-gap) * (100 - var(#{$w-var})) / 100)) !important;
@@ -48,6 +104,17 @@
         border-left-style:   var(--col-border-left-style-#{$prefix},   var(--col-border-style-#{$prefix})) !important;
         border-left-color:   var(--col-border-left-color-#{$prefix},   var(--col-border-color-#{$prefix})) !important;
     }
+}
+
+// The column-width math `calc(W% - gap*(100-W)/100)` produces the column's
+// OUTER box size — three "33.333%" columns + two gaps sum to exactly 100%
+// only when padding/border are inside the calc'd width. Force border-box at
+// high specificity (!important) so a theme `* { box-sizing: content-box }`
+// rule can't break the layout on the frontend.
+.wp-block-#{$namespace}-columns,
+.wp-block-#{$namespace}-columns > .#{$namespace}-columns-inner,
+.wp-block-#{$namespace}-column {
+    box-sizing: border-box !important;
 }
 
 // Global Frontend & Editor Column overrides
@@ -116,8 +183,8 @@
     --current-bg-color: var(--bg-color-desktop, var(--bg-color-mobile));
 
     // COLUMN DEFAULT POINTERS
-    .wp-block-#{$namespace}-column,
-    .block-editor-block-list__block[data-type="#{$namespace}/column"] {
+    > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
+    > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
         @include col-width(--col-w-desktop);
         --col-current-pad: var(--col-pad-desktop, var(--col-pad-mobile));
         --current-valign: var(--col-valign-desktop, var(--col-valign-mobile));
@@ -157,8 +224,8 @@
         --current-bg-image: var(--bg-image-mobile) !important;
         --current-bg-color: var(--bg-color-mobile) !important;
 
-        .wp-block-#{$namespace}-column,
-        .block-editor-block-list__block[data-type="#{$namespace}/column"] {
+        > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
+        > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
             @include col-width(--col-w-mobile);
             --col-current-pad: var(--col-pad-mobile) !important;
             --current-valign: var(--col-valign-mobile) !important;
@@ -194,8 +261,8 @@
         --current-bg-image: var(--bg-image-tablet) !important;
         --current-bg-color: var(--bg-color-tablet) !important;
 
-        .wp-block-#{$namespace}-column,
-        .block-editor-block-list__block[data-type="#{$namespace}/column"] {
+        > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
+        > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
             @include col-width(--col-w-tablet);
             --col-current-pad: var(--col-pad-tablet) !important;
             --current-valign: var(--col-valign-tablet) !important;
@@ -232,8 +299,8 @@
         --current-bg-image: var(--bg-image-desktop) !important;
         --current-bg-color: var(--bg-color-desktop) !important;
 
-        .wp-block-#{$namespace}-column,
-        .block-editor-block-list__block[data-type="#{$namespace}/column"] {
+        > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
+        > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
             @include col-width(--col-w-desktop);
             --col-current-pad: var(--col-pad-desktop) !important;
             --current-valign: var(--col-valign-desktop) !important;
@@ -259,7 +326,7 @@
         }
     }
 
-    .#{$namespace}-columns-inner {
+    > .#{$namespace}-columns-inner {
         gap: var(--current-gap) !important;
     }
 }

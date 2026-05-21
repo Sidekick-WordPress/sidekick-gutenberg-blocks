@@ -36,3 +36,27 @@ export const getPaddingStr = (p: PaddingAttribute | undefined, fallback = '0px')
 
     return `${parsed.top || fallback} ${parsed.right || fallback} ${parsed.bottom || fallback} ${parsed.left || fallback}`;
 };
+
+// Column-width presets like 1/3 or 1/6 are repeating decimals. The RangeControl
+// snaps to integers, so a user nudging the slider to "33" actually wants
+// 33.333333 — without this, three "33%" columns + gaps come out to ~99% and
+// leave a visible sliver. Whole-number inputs in this map get the float
+// equivalent; any value already containing a fraction passes through.
+const COLUMN_WIDTH_FRACTIONS: Record<number, number> = {
+    16: 16.666667,
+    17: 16.666667,
+    33: 33.333333,
+    66: 66.666667,
+    67: 66.666667,
+    83: 83.333333,
+};
+
+export const normalizeColumnWidth = (w: number | undefined | null): number | undefined => {
+    if (w === undefined || w === null || w === '' as any) return undefined;
+    const num = Number(w);
+    if (!Number.isFinite(num)) return undefined;
+    if (Number.isInteger(num) && num in COLUMN_WIDTH_FRACTIONS) {
+        return COLUMN_WIDTH_FRACTIONS[num];
+    }
+    return num;
+};

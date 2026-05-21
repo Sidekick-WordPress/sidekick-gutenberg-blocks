@@ -19,7 +19,7 @@ import type {CSSProperties} from 'react';
 
 // Plugin
 import namespace from '../../namespace';
-import {getPaddingStr, parsePadding} from "../../helpers/styles";
+import {getPaddingStr, parsePadding, normalizeColumnWidth} from "../../helpers/styles";
 import {normalizeHtmlId} from "../../helpers/html";
 import {PaddingAttribute} from "../../models/attr-shapes/padding-margin";
 import VersatileMessage from "../../components/VersitileMessage";
@@ -60,6 +60,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             horizontalAlignment,
             backgroundImage,
             backgroundColor,
+            backgroundVideo,
 
             // Tablet Layout
             tabletGap,
@@ -69,6 +70,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             tabletHorizontalAlignment,
             tabletBackgroundImage,
             tabletBackgroundColor,
+            tabletBackgroundVideo,
 
             // Desktop Layout
             gap, // Desktop Gap
@@ -78,6 +80,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             desktopHorizontalAlignment,
             desktopBackgroundImage,
             desktopBackgroundColor,
+            desktopBackgroundVideo,
 
             backgroundImageOpacity,
             backgroundSize,
@@ -144,15 +147,27 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
         cssBgColorTablet = hasTabletBgColor ? tabletBackgroundColor : 'var(--bg-color-mobile)',
         cssBgColorDesktop = hasDesktopBgColor ? desktopBackgroundColor : 'var(--bg-color-tablet)',
 
+        // Editor video preview: cascade based on active layout class
+        activeBgVideo = (() => {
+            if (layoutClass === 'is-desktop-layout') {
+                return desktopBackgroundVideo || tabletBackgroundVideo || backgroundVideo || '';
+            }
+            if (layoutClass === 'is-tablet-layout') {
+                return tabletBackgroundVideo || backgroundVideo || '';
+            }
+            return backgroundVideo || '';
+        })(),
+
         getMarginLeft = (align: string) => align === 'left' ? '0' : 'auto',
         getMarginRight = (align: string) => align === 'right' ? '0' : 'auto',
 
         addColumn = (width: number) => {
             const currentBlocks = getBlocks(clientId);
+            const w = normalizeColumnWidth(width);
             const attrs: Record<string, number> = { width: 100 };
-            if (width) {
-                attrs.tabletWidth = width;
-                attrs.desktopWidth = width;
+            if (w) {
+                attrs.tabletWidth = w;
+                attrs.desktopWidth = w;
             }
             const newBlock = createBlock(`${namespace}/column`, attrs);
             replaceInnerBlocks(clientId, [...currentBlocks, newBlock], false);
@@ -298,10 +313,13 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             clearable
                         />
                         <ControlsMedia
-                            panelLabel={__('Background Image', namespace)}
+                            panelLabel={__('Background Image / Video', namespace)}
                             imageUrl={backgroundImage}
                             onSelectMedia={(media) => setAttributes({backgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({backgroundImage: ''})}
+                            videoUrl={backgroundVideo}
+                            onSelectVideo={(media) => setAttributes({backgroundVideo: media.url})}
+                            onRemoveVideo={() => setAttributes({backgroundVideo: ''})}
                             opacity={backgroundImageOpacity}
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
@@ -368,10 +386,13 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             clearable
                         />
                         <ControlsMedia
-                            panelLabel={__('Background Image Override', namespace)}
+                            panelLabel={__('Background Image / Video Override', namespace)}
                             imageUrl={tabletBackgroundImage}
                             onSelectMedia={(media) => setAttributes({tabletBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({tabletBackgroundImage: ''})}
+                            videoUrl={tabletBackgroundVideo}
+                            onSelectVideo={(media) => setAttributes({tabletBackgroundVideo: media.url})}
+                            onRemoveVideo={() => setAttributes({tabletBackgroundVideo: ''})}
                             // Use same opacity/settings for now as they are shared
                             opacity={backgroundImageOpacity}
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
@@ -439,10 +460,13 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             clearable
                         />
                         <ControlsMedia
-                            panelLabel={__('Background Image Override', namespace)}
+                            panelLabel={__('Background Image / Video Override', namespace)}
                             imageUrl={desktopBackgroundImage}
                             onSelectMedia={(media) => setAttributes({desktopBackgroundImage: media.url})}
                             onRemoveMedia={() => setAttributes({desktopBackgroundImage: ''})}
+                            videoUrl={desktopBackgroundVideo}
+                            onSelectVideo={(media) => setAttributes({desktopBackgroundVideo: media.url})}
+                            onRemoveVideo={() => setAttributes({desktopBackgroundVideo: ''})}
                             opacity={backgroundImageOpacity}
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
@@ -569,6 +593,28 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         zIndex: 0
                     }}
                 />
+
+                {!!activeBgVideo && (
+                    <video
+                        key={activeBgVideo}
+                        src={activeBgVideo}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            objectPosition: 'center',
+                            opacity: (backgroundImageOpacity !== undefined ? backgroundImageOpacity : 100) / 100,
+                            pointerEvents: 'none',
+                            zIndex: 0,
+                        }}
+                    />
+                )}
 
                 <div {...innerBlocksProps} />
             </div>

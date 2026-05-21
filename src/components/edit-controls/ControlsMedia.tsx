@@ -11,6 +11,9 @@ export interface ControlsMediaProps {
     imageUrl: string;
     onSelectMedia: (media: any) => void;
     onRemoveMedia: () => void;
+    videoUrl?: string;
+    onSelectVideo?: (media: any) => void;
+    onRemoveVideo?: () => void;
     opacity?: number;
     onChangeOpacity?: (value: number) => void;
     parallax?: boolean;
@@ -29,6 +32,9 @@ export default function ControlsMedia(
         imageUrl,
         onSelectMedia,
         onRemoveMedia,
+        videoUrl,
+        onSelectVideo,
+        onRemoveVideo,
         opacity,
         onChangeOpacity,
         parallax,
@@ -85,9 +91,56 @@ export default function ControlsMedia(
                         </MediaUploadCheck>
                     </div>
 
-                    {!!imageUrl && (
+                    {!!onSelectVideo && (
+                        <div style={{marginBottom: '20px'}}>
+                            <MediaUploadCheck>
+                                <MediaUpload
+                                    onSelect={onSelectVideo}
+                                    allowedTypes={['video']}
+                                    render={(({open}: any) => (
+                                        <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                                            {videoUrl ? (
+                                                <>
+                                                    <video
+                                                        src={videoUrl}
+                                                        muted
+                                                        loop
+                                                        playsInline
+                                                        autoPlay
+                                                        style={{
+                                                            width: '100%',
+                                                            height: 'auto',
+                                                            borderRadius: '4px',
+                                                            border: '1px solid #ddd',
+                                                            background: '#000'
+                                                        }}
+                                                    />
+                                                    <div style={{display: 'flex', gap: '10px'}}>
+                                                        <Button variant="secondary" onClick={open}>
+                                                            {__('Replace Video', namespace)}
+                                                        </Button>
+                                                        {!!onRemoveVideo && (
+                                                            <Button variant="link" isDestructive onClick={onRemoveVideo}>
+                                                                {__('Remove', namespace)}
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <Button variant="secondary" onClick={open} icon="format-video">
+                                                    {__('Choose Background Video', namespace)}
+                                                </Button>
+                                            )}
+                                        </div>
+                                    )) as any}
+                                />
+                            </MediaUploadCheck>
+                        </div>
+                    )}
+
+                    {(!!imageUrl || !!videoUrl) && (
                         <>
-                            {!!onChangeParallax && parallax !== undefined && (
+                            {!!imageUrl && !!onChangeParallax && parallax !== undefined && (
                                 <ToggleControl
                                     label={__('Background Fixed Position', namespace)}
                                     checked={parallax}
@@ -97,7 +150,7 @@ export default function ControlsMedia(
 
                             {!!onChangeOpacity && opacity !== undefined && (
                                 <RangeControl
-                                    label={__('Image Opacity (%)', namespace)}
+                                    label={__('Media Opacity (%)', namespace)}
                                     value={opacity}
                                     onChange={onChangeOpacity}
                                     min={0}
@@ -105,7 +158,7 @@ export default function ControlsMedia(
                                 />
                             )}
 
-                            {!!onChangeBackgroundSize && backgroundSize !== undefined && (
+                            {!!imageUrl && !!onChangeBackgroundSize && backgroundSize !== undefined && (
                                 <SelectControl
                                     label={__('Background Size', namespace)}
                                     value={backgroundSize as any}
@@ -114,7 +167,7 @@ export default function ControlsMedia(
                                 />
                             )}
 
-                            {!!onChangeBackgroundPosition && backgroundPosition !== undefined && (
+                            {!!imageUrl && !!onChangeBackgroundPosition && backgroundPosition !== undefined && (
                                 <SelectControl
                                     label={__('Background Position', namespace)}
                                     value={backgroundPosition as any}
@@ -123,7 +176,7 @@ export default function ControlsMedia(
                                 />
                             )}
 
-                            {!!onChangeBackgroundRepeat && backgroundRepeat !== undefined && (
+                            {!!imageUrl && !!onChangeBackgroundRepeat && backgroundRepeat !== undefined && (
                                 <SelectControl
                                     label={__('Background Repeat', namespace)}
                                     value={backgroundRepeat as any}

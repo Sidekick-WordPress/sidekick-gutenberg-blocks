@@ -8,12 +8,13 @@ import namespace from '../../../namespace';
 import { columnAttributes } from './attributes';
 import Edit from './edit';
 import Save from './save';
+import Icon from './Icon';
 
 registerBlockType(`${namespace}/column`, {
     apiVersion: 3,
     title: __('Sidekick Single Column', namespace),
     parent: [`${namespace}/columns`],
-    icon: 'align-center',
+    icon: Icon,
     category: 'layout',
     attributes: columnAttributes,
     usesContext: [

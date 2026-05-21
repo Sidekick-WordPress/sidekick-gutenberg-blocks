@@ -70,6 +70,12 @@ return function( $attributes, $content ) {
     $bg_img_desk = ! empty( $attributes['desktopBackgroundImage'] ) ? 'url(' . esc_url( $attributes['desktopBackgroundImage'] ) . ')' : 'var(--bg-image-tablet)';
     $bg_col_desk = ! empty( $attributes['desktopBackgroundColor'] ) ? $attributes['desktopBackgroundColor'] : 'var(--bg-color-tablet)';
 
+    // Background Videos (with mobile→tablet→desktop cascade)
+    $bg_vid_mobile  = ! empty( $attributes['backgroundVideo'] ) ? esc_url( $attributes['backgroundVideo'] ) : '';
+    $bg_vid_tablet  = ! empty( $attributes['tabletBackgroundVideo'] ) ? esc_url( $attributes['tabletBackgroundVideo'] ) : $bg_vid_mobile;
+    $bg_vid_desktop = ! empty( $attributes['desktopBackgroundVideo'] ) ? esc_url( $attributes['desktopBackgroundVideo'] ) : $bg_vid_tablet;
+    $has_bg_video   = (bool) ( $bg_vid_mobile || $bg_vid_tablet || $bg_vid_desktop );
+
     $bg_opacity     = isset( $attributes['backgroundImageOpacity'] ) ? $attributes['backgroundImageOpacity'] : 100;
     $bg_size        = isset( $attributes['backgroundSize'] ) ? $attributes['backgroundSize'] : 'cover';
     $bg_position    = isset( $attributes['backgroundPosition'] ) ? $attributes['backgroundPosition'] : 'center';
@@ -158,6 +164,24 @@ return function( $attributes, $content ) {
             class="<?php echo esc_attr( $namespace ); ?>-background-layer"
             style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: <?php echo esc_attr( $bg_position ); ?>; background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
         ></div>
+
+        <?php if ( $has_bg_video ) : ?>
+        <video
+            class="<?php echo esc_attr( $namespace ); ?>-background-video"
+            data-sgb-bg-video="1"
+            data-bg-mobile="<?php echo esc_attr( $bg_vid_mobile ); ?>"
+            data-bg-tablet="<?php echo esc_attr( $bg_vid_tablet ); ?>"
+            data-bg-desktop="<?php echo esc_attr( $bg_vid_desktop ); ?>"
+            data-tablet-bp="<?php echo (int) $tablet_bp; ?>"
+            data-desktop-bp="<?php echo (int) $desktop_bp; ?>"
+            preload="none"
+            muted
+            loop
+            playsinline
+            autoplay
+            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; z-index: 0; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
+        ></video>
+        <?php endif; ?>
 
         <div class="<?php echo esc_attr( $namespace ); ?>-columns-inner" style="<?php echo esc_attr( $inner_style ); ?>">
             <?php echo $content; ?>

@@ -46,6 +46,30 @@ if ( ! function_exists( 'sgb_get_border_styles' ) ) {
     }
 }
 
+// See `normalizeColumnWidth` in src/helpers/styles.ts — keep this map in sync.
+if ( ! function_exists( 'sgb_normalize_column_width' ) ) {
+    function sgb_normalize_column_width( $w ) {
+        if ( $w === null || $w === '' ) return null;
+        if ( ! is_numeric( $w ) ) return null;
+        $num = (float) $w;
+        if ( floor( $num ) === $num ) {
+            $map = [
+                16 => 16.666667,
+                17 => 16.666667,
+                33 => 33.333333,
+                66 => 66.666667,
+                67 => 66.666667,
+                83 => 83.333333,
+            ];
+            $int = (int) $num;
+            if ( array_key_exists( $int, $map ) ) {
+                return $map[ $int ];
+            }
+        }
+        return $num;
+    }
+}
+
 if ( ! function_exists( 'sgb_sanitize_html_id' ) ) {
     function sgb_sanitize_html_id( $id ) {
         if ( ! is_string( $id ) ) {

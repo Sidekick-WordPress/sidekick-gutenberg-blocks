@@ -40,10 +40,13 @@ export interface ColumnAttributes {
 
     backgroundImage: string;
     backgroundColor: string;
+    backgroundVideo: string;
     tabletBackgroundImage: string;
     tabletBackgroundColor: string;
+    tabletBackgroundVideo: string;
     desktopBackgroundImage: string;
     desktopBackgroundColor: string;
+    desktopBackgroundVideo: string;
     backgroundImageOpacity: number;
     backgroundSize: string;
     backgroundPosition: string;
@@ -105,8 +108,8 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
 
     // Order
     mobileOrder: { type: 'number', default: 0 },
-    tabletOrder: { type: 'number' },
-    desktopOrder: { type: 'number' },
+    tabletOrder: { type: 'number', default: 0 },
+    desktopOrder: { type: 'number', default: 0 },
 
     // Z-Index
     zIndex: { type: 'number', default: 1 },
@@ -124,10 +127,13 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
 
     backgroundImage: { type: 'string', default: '' },
     backgroundColor: { type: 'string', default: '' },
+    backgroundVideo: { type: 'string', default: '' },
     tabletBackgroundImage: { type: 'string' },
     tabletBackgroundColor: { type: 'string' },
+    tabletBackgroundVideo: { type: 'string' },
     desktopBackgroundImage: { type: 'string' },
     desktopBackgroundColor: { type: 'string' },
+    desktopBackgroundVideo: { type: 'string' },
     backgroundImageOpacity: { type: 'number', default: 100 },
     backgroundSize: { type: 'string', default: 'cover' },
     backgroundPosition: { type: 'string', default: 'center' },

@@ -9,11 +9,12 @@ import { parentAttributes } from './attributes';
 import Edit from './edit';
 import Save from './save';
 import './column';
+import Icon from './icon';
 
 registerBlockType(`${namespace}/columns`, {
     apiVersion: 3,
     title: __('Sidekick Columns', namespace),
-    icon: 'columns',
+    icon: Icon,
     category: 'layout',
     attributes: parentAttributes,
     providesContext: {
