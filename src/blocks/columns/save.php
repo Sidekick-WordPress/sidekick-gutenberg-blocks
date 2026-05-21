@@ -78,10 +78,14 @@ return function( $attributes, $content ) {
 
     $bg_opacity     = isset( $attributes['backgroundImageOpacity'] ) ? $attributes['backgroundImageOpacity'] : 100;
     $bg_size        = isset( $attributes['backgroundSize'] ) ? $attributes['backgroundSize'] : 'cover';
-    $bg_position    = isset( $attributes['backgroundPosition'] ) ? $attributes['backgroundPosition'] : 'center';
     $bg_repeat      = isset( $attributes['backgroundRepeat'] ) ? $attributes['backgroundRepeat'] : 'no-repeat';
     $bg_parallax    = ! empty( $attributes['backgroundFixedPosition'] );
     $bg_attachment  = $bg_parallax ? 'fixed' : 'scroll';
+
+    // Background Position (per-breakpoint)
+    $bg_pos_mobile  = ! empty( $attributes['backgroundPosition'] ) ? $attributes['backgroundPosition'] : 'center';
+    $bg_pos_tablet  = ! empty( $attributes['tabletBackgroundPosition'] ) ? $attributes['tabletBackgroundPosition'] : 'var(--bg-pos-mobile)';
+    $bg_pos_desktop = ! empty( $attributes['desktopBackgroundPosition'] ) ? $attributes['desktopBackgroundPosition'] : 'var(--bg-pos-tablet)';
 
     // Unique ID for this block instance (for targeting style overrides)
     $block_id = 'sgb-columns-' . wp_generate_uuid4();
@@ -97,10 +101,7 @@ return function( $attributes, $content ) {
         '--margin-l-desktop: %s; --margin-r-desktop: %s; ' .
         '--bg-image-mobile: %s; --bg-image-tablet: %s; --bg-image-desktop: %s; ' .
         '--bg-color-mobile: %s; --bg-color-tablet: %s; --bg-color-desktop: %s; ' .
-        '--current-gap: var(--gap-mobile); --current-pad: var(--pad-mobile); ' .
-        '--current-max-width: var(--max-width-mobile); --current-max-height: var(--max-height-mobile); ' .
-        '--current-margin-left: var(--margin-l-mobile); --current-margin-right: var(--margin-r-mobile); ' .
-        '--current-bg-image: var(--bg-image-mobile); --current-bg-color: var(--bg-color-mobile); ' .
+        '--bg-pos-mobile: %s; --bg-pos-tablet: %s; --bg-pos-desktop: %s; ' .
         'padding: var(--current-pad); position: relative; max-height: var(--current-max-height); box-sizing: border-box; display: block; width: 100%%; background-color: var(--current-bg-color);',
         esc_attr( $css_gap_mobile ), esc_attr( $css_gap_tablet ), esc_attr( $css_gap_desktop ),
         esc_attr( $css_pad_mobile ), esc_attr( $css_pad_tablet ), esc_attr( $css_pad_desktop ),
@@ -110,7 +111,8 @@ return function( $attributes, $content ) {
         $get_margin_l($align_tablet), $get_margin_r($align_tablet),
         $get_margin_l($align_desktop), $get_margin_r($align_desktop),
         esc_attr( $bg_img_base ), esc_attr( $bg_img_tab ), esc_attr( $bg_img_desk ),
-        esc_attr( $bg_col_base ), esc_attr( $bg_col_tab ), esc_attr( $bg_col_desk )
+        esc_attr( $bg_col_base ), esc_attr( $bg_col_tab ), esc_attr( $bg_col_desk ),
+        esc_attr( $bg_pos_mobile ), esc_attr( $bg_pos_tablet ), esc_attr( $bg_pos_desktop )
     );
 
     $wrapper_args = [
@@ -133,6 +135,9 @@ return function( $attributes, $content ) {
     ?>
     <div <?php echo $wrapper_attributes; ?>>
         <style>
+            .<?php echo $block_id; ?> {
+                --current-bg-pos: var(--bg-pos-mobile);
+            }
             @media (min-width: <?php echo $tablet_bp; ?>px) {
                 .<?php echo $block_id; ?> {
                     --current-gap: var(--gap-tablet);
@@ -143,6 +148,7 @@ return function( $attributes, $content ) {
                     --current-margin-right: var(--margin-r-tablet);
                     --current-bg-image: var(--bg-image-tablet);
                     --current-bg-color: var(--bg-color-tablet);
+                    --current-bg-pos: var(--bg-pos-tablet);
                 }
             }
             @media (min-width: <?php echo $desktop_bp; ?>px) {
@@ -155,6 +161,7 @@ return function( $attributes, $content ) {
                     --current-margin-right: var(--margin-r-desktop);
                     --current-bg-image: var(--bg-image-desktop);
                     --current-bg-color: var(--bg-color-desktop);
+                    --current-bg-pos: var(--bg-pos-desktop);
                 }
             }
         </style>
@@ -162,7 +169,7 @@ return function( $attributes, $content ) {
 
         <div
             class="<?php echo esc_attr( $namespace ); ?>-background-layer"
-            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: <?php echo esc_attr( $bg_position ); ?>; background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
+            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: var(--current-bg-pos, center); background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
         ></div>
 
         <?php if ( $has_bg_video ) : ?>

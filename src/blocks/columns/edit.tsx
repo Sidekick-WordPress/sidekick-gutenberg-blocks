@@ -85,6 +85,8 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             backgroundImageOpacity,
             backgroundSize,
             backgroundPosition,
+            tabletBackgroundPosition,
+            desktopBackgroundPosition,
             backgroundRepeat,
             backgroundFixedPosition
         } = attributes,
@@ -156,6 +158,12 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                 return tabletBackgroundVideo || backgroundVideo || '';
             }
             return backgroundVideo || '';
+        })(),
+
+        activeBackgroundPosition = (() => {
+            if (layoutClass === 'is-desktop-layout') return desktopBackgroundPosition || tabletBackgroundPosition || backgroundPosition || 'center';
+            if (layoutClass === 'is-tablet-layout') return tabletBackgroundPosition || backgroundPosition || 'center';
+            return backgroundPosition || 'center';
         })(),
 
         getMarginLeft = (align: string) => align === 'left' ? '0' : 'auto',
@@ -393,13 +401,12 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             videoUrl={tabletBackgroundVideo}
                             onSelectVideo={(media) => setAttributes({tabletBackgroundVideo: media.url})}
                             onRemoveVideo={() => setAttributes({tabletBackgroundVideo: ''})}
-                            // Use same opacity/settings for now as they are shared
                             opacity={backgroundImageOpacity}
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
                             onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                            backgroundPosition={backgroundPosition}
-                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
+                            backgroundPosition={tabletBackgroundPosition ?? backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({tabletBackgroundPosition: val})}
                             backgroundRepeat={backgroundRepeat}
                             onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
                             parallax={backgroundFixedPosition}
@@ -471,8 +478,8 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
                             onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                            backgroundPosition={backgroundPosition}
-                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
+                            backgroundPosition={desktopBackgroundPosition ?? tabletBackgroundPosition ?? backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({desktopBackgroundPosition: val})}
                             backgroundRepeat={backgroundRepeat}
                             onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
                             parallax={backgroundFixedPosition}
@@ -585,7 +592,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                         inset: 0,
                         backgroundImage: 'var(--current-bg-image)',
                         backgroundSize: backgroundSize || 'cover',
-                        backgroundPosition: backgroundPosition || 'center',
+                        backgroundPosition: activeBackgroundPosition,
                         backgroundRepeat: backgroundRepeat || 'no-repeat',
                         backgroundAttachment: backgroundFixedPosition ? 'fixed' : 'scroll',
                         opacity: (backgroundImageOpacity !== undefined ? backgroundImageOpacity : 100) / 100,

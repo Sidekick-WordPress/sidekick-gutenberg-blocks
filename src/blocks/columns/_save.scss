@@ -194,41 +194,37 @@
 }
 
 .wp-block-#{$namespace}-columns {
-    // DEFAULT POINTERS — frontend cascade (no layout class = no editor breakpoint class active)
-    // Borders intentionally omitted here: PHP <style> tag owns frontend borders,
-    // and the is-*-layout editor classes below own editor borders.
-    --current-gap: var(--gap-desktop, var(--gap-mobile));
-    --current-pad: var(--pad-desktop, var(--pad-mobile));
-    --current-max-width: var(--max-width-desktop, var(--max-width-mobile));
-    --current-max-height: var(--max-height-desktop, var(--max-height-mobile));
-    --current-margin-left: var(--margin-l-desktop, var(--margin-l-mobile));
-    --current-margin-right: var(--margin-r-desktop, var(--margin-r-mobile));
-    --current-bg-image: var(--bg-image-desktop, var(--bg-image-mobile));
-    --current-bg-color: var(--bg-color-desktop, var(--bg-color-mobile));
+    // DEFAULT POINTERS — mobile-first base state.
+    // Frontend breakpoints: PHP per-block <style> media queries (same specificity, later in document).
+    // Editor breakpoints: is-*-layout classes below (toggled by ResizeObserver, higher specificity).
+    --current-gap: var(--gap-mobile);
+    --current-pad: var(--pad-mobile);
+    --current-max-width: var(--max-width-mobile);
+    --current-max-height: var(--max-height-mobile);
+    --current-margin-left: var(--margin-l-mobile);
+    --current-margin-right: var(--margin-r-mobile);
+    --current-bg-image: var(--bg-image-mobile);
+    --current-bg-color: var(--bg-color-mobile);
 
     // COLUMN DEFAULT POINTERS
     > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
     > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
-        @include col-width(--col-w-desktop);
-        --col-current-pad: var(--col-pad-desktop, var(--col-pad-mobile));
-        --current-valign: var(--col-valign-desktop, var(--col-valign-mobile));
-        --current-inner-max: var(--col-inner-max-desktop, var(--col-inner-max-mobile));
-        --current-halign: var(--col-halign-desktop, var(--col-halign-mobile));
-        --current-bg-image: var(--col-bg-image-desktop, var(--col-bg-image-mobile));
-        --current-bg-color: var(--col-bg-color-desktop, var(--col-bg-color-mobile));
+        @include col-width(--col-w-mobile);
+        --col-current-pad: var(--col-pad-mobile);
+        --current-valign: var(--col-valign-mobile);
+        --current-inner-max: var(--col-inner-max-mobile);
+        --current-halign: var(--col-halign-mobile);
+        --current-bg-image: var(--col-bg-image-mobile);
+        --current-bg-color: var(--col-bg-color-mobile);
 
-        --curr-ext-top: var(--desk-ext-top, var(--base-ext-top));
-        --curr-ext-bottom: var(--desk-ext-bottom, var(--base-ext-bottom));
-        --curr-trans-x: var(--desk-trans-x, var(--base-trans-x));
-        --curr-trans-y: var(--desk-trans-y, var(--base-trans-y));
+        --curr-ext-top: var(--base-ext-top);
+        --curr-ext-bottom: var(--base-ext-bottom);
+        --curr-trans-x: var(--base-trans-x);
+        --curr-trans-y: var(--base-trans-y);
 
-        // Default to mobile values; layout classes below override per breakpoint in the editor.
-        // Frontend cascade is handled by PHP inline style vars + media queries in save.php.
         --current-radius: var(--col-radius-mobile);
         --current-z-index: var(--col-zindex-mobile);
         --current-order: var(--col-order-mobile);
-        // Mobile border vars as !important baseline; PHP tablet/desktop media queries
-        // (with equal specificity and later source order) override on the frontend.
         @include apply-borders(mobile);
     }
 

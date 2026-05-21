@@ -7,14 +7,6 @@ export const sizeOptions = [
     {label: __('Auto', namespace), value: 'auto'}
 ];
 
-export const positionOptions = [
-    {label: __('Center', namespace), value: 'center'},
-    {label: __('Top Left Corner', namespace), value: 'top left'},
-    {label: __('Top Right Corner', namespace), value: 'top right'},
-    {label: __('Bottom Left Corner', namespace), value: 'bottom left'},
-    {label: __('Bottom Right Corner', namespace), value: 'bottom right'}
-];
-
 export const repeatOptions = [
     {label: __('Do Not Repeat', namespace), value: 'no-repeat'},
     {label: __('Repeat On Both Axes', namespace), value: 'repeat'},

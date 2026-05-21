@@ -1,10 +1,33 @@
 import {__} from '@wordpress/i18n';
-import {PanelBody, RangeControl, ToggleControl, SelectControl, Button} from '@wordpress/components';
+import {PanelBody, RangeControl, ToggleControl, SelectControl, Button, FocalPointPicker} from '@wordpress/components';
 import {MediaUpload, MediaUploadCheck} from '@wordpress/block-editor';
 
 // Plugin
-import {sizeOptions, positionOptions, repeatOptions} from "../../models/attr-shapes/background-image";
+import {sizeOptions, repeatOptions} from "../../models/attr-shapes/background-image";
 import namespace from '../../namespace';
+
+const parseFocalPoint = (position: string | undefined): { x: number; y: number } => {
+    if (!position || position === 'center') return { x: 0.5, y: 0.5 };
+    const keywordMap: Record<string, { x: number; y: number }> = {
+        'top':          { x: 0.5, y: 0 },
+        'bottom':       { x: 0.5, y: 1 },
+        'left':         { x: 0,   y: 0.5 },
+        'right':        { x: 1,   y: 0.5 },
+        'top left':     { x: 0,   y: 0 },
+        'top right':    { x: 1,   y: 0 },
+        'bottom left':  { x: 0,   y: 1 },
+        'bottom right': { x: 1,   y: 1 },
+    };
+    if (keywordMap[position]) return keywordMap[position];
+    const parts = position.split(' ');
+    const parse = (v: string) => v.endsWith('%') ? parseFloat(v) / 100 : parseFloat(v);
+    const x = parts[0] !== undefined ? parse(parts[0]) : 0.5;
+    const y = parts[1] !== undefined ? parse(parts[1]) : 0.5;
+    return { x: isNaN(x) ? 0.5 : x, y: isNaN(y) ? 0.5 : y };
+};
+
+const focalPointToCss = (fp: { x: number; y: number }): string =>
+    `${Math.round(fp.x * 100)}% ${Math.round(fp.y * 100)}%`;
 
 export interface ControlsMediaProps {
     panelLabel?: string;
@@ -168,11 +191,11 @@ export default function ControlsMedia(
                             )}
 
                             {!!imageUrl && !!onChangeBackgroundPosition && backgroundPosition !== undefined && (
-                                <SelectControl
+                                <FocalPointPicker
                                     label={__('Background Position', namespace)}
-                                    value={backgroundPosition as any}
-                                    options={positionOptions}
-                                    onChange={onChangeBackgroundPosition}
+                                    url={imageUrl}
+                                    value={parseFocalPoint(backgroundPosition)}
+                                    onChange={(fp) => onChangeBackgroundPosition(focalPointToCss(fp))}
                                 />
                             )}
 

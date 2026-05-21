@@ -80,7 +80,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             tabletBackgroundImage, tabletBackgroundColor, tabletBackgroundVideo,
             desktopBackgroundImage, desktopBackgroundColor, desktopBackgroundVideo,
             backgroundImageOpacity,
-            backgroundSize, backgroundPosition, backgroundRepeat, backgroundFixedPosition,
+            backgroundSize, backgroundPosition, tabletBackgroundPosition, desktopBackgroundPosition, backgroundRepeat, backgroundFixedPosition,
             innerMaxWidth, tabletInnerMaxWidth, desktopInnerMaxWidth,
             contentHAlign, tabletContentHAlign, desktopContentHAlign,
 
@@ -132,6 +132,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                 return tabletBackgroundVideo || backgroundVideo || '';
             }
             return backgroundVideo || '';
+        })(),
+
+        activeBackgroundPosition = (() => {
+            if (parentLayoutClass === 'is-desktop-layout') return desktopBackgroundPosition || tabletBackgroundPosition || backgroundPosition || 'center';
+            if (parentLayoutClass === 'is-tablet-layout') return tabletBackgroundPosition || backgroundPosition || 'center';
+            return backgroundPosition || 'center';
         })(),
 
         hasTabletZIndex = tabletZIndex !== undefined && (tabletZIndex as any) !== '',
@@ -573,8 +579,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
                             onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                            backgroundPosition={backgroundPosition}
-                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
+                            backgroundPosition={tabletBackgroundPosition ?? backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({tabletBackgroundPosition: val})}
                             backgroundRepeat={backgroundRepeat}
                             onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
                             parallax={backgroundFixedPosition}
@@ -690,8 +696,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
                             onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                            backgroundPosition={backgroundPosition}
-                            onChangeBackgroundPosition={(val) => setAttributes({backgroundPosition: val})}
+                            backgroundPosition={desktopBackgroundPosition ?? tabletBackgroundPosition ?? backgroundPosition}
+                            onChangeBackgroundPosition={(val) => setAttributes({desktopBackgroundPosition: val})}
                             backgroundRepeat={backgroundRepeat}
                             onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
                             parallax={backgroundFixedPosition}
@@ -781,7 +787,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         inset: 0,
                         backgroundImage: 'var(--current-bg-image)',
                         backgroundSize: backgroundSize || 'cover',
-                        backgroundPosition: backgroundPosition || 'center',
+                        backgroundPosition: activeBackgroundPosition,
                         backgroundRepeat: backgroundRepeat || 'no-repeat',
                         backgroundAttachment: backgroundFixedPosition ? 'fixed' : 'scroll',
                         opacity: (backgroundImageOpacity ?? 100) / 100,
