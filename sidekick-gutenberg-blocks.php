@@ -5,7 +5,7 @@
  * Description: A collection of custom Gutenberg blocks built by Josh Baker
  * Author: Josh Baker
  * Author URI: https://baker.dev/
- * Version: 0.8.2
+ * Version: 0.8.5
  * License: GPL2+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  *

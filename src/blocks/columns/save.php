@@ -63,12 +63,15 @@ return function( $attributes, $content ) {
     // Background Attributes
     $bg_img_base = ! empty( $attributes['backgroundImage'] ) ? 'url(' . esc_url( $attributes['backgroundImage'] ) . ')' : 'none';
     $bg_col_base = ! empty( $attributes['backgroundColor'] ) ? $attributes['backgroundColor'] : 'transparent';
+    $bg_grad_base = ! empty( $attributes['backgroundGradient'] ) ? $attributes['backgroundGradient'] : 'none';
 
     $bg_img_tab = ! empty( $attributes['tabletBackgroundImage'] ) ? 'url(' . esc_url( $attributes['tabletBackgroundImage'] ) . ')' : 'var(--bg-image-mobile)';
     $bg_col_tab = ! empty( $attributes['tabletBackgroundColor'] ) ? $attributes['tabletBackgroundColor'] : 'var(--bg-color-mobile)';
+    $bg_grad_tab = ! empty( $attributes['tabletBackgroundGradient'] ) ? $attributes['tabletBackgroundGradient'] : 'var(--bg-gradient-mobile)';
 
     $bg_img_desk = ! empty( $attributes['desktopBackgroundImage'] ) ? 'url(' . esc_url( $attributes['desktopBackgroundImage'] ) . ')' : 'var(--bg-image-tablet)';
     $bg_col_desk = ! empty( $attributes['desktopBackgroundColor'] ) ? $attributes['desktopBackgroundColor'] : 'var(--bg-color-tablet)';
+    $bg_grad_desk = ! empty( $attributes['desktopBackgroundGradient'] ) ? $attributes['desktopBackgroundGradient'] : 'var(--bg-gradient-tablet)';
 
     // Background Videos (with mobile→tablet→desktop cascade)
     $bg_vid_mobile  = ! empty( $attributes['backgroundVideo'] ) ? esc_url( $attributes['backgroundVideo'] ) : '';
@@ -101,6 +104,7 @@ return function( $attributes, $content ) {
         '--margin-l-desktop: %s; --margin-r-desktop: %s; ' .
         '--bg-image-mobile: %s; --bg-image-tablet: %s; --bg-image-desktop: %s; ' .
         '--bg-color-mobile: %s; --bg-color-tablet: %s; --bg-color-desktop: %s; ' .
+        '--bg-gradient-mobile: %s; --bg-gradient-tablet: %s; --bg-gradient-desktop: %s; ' .
         '--bg-pos-mobile: %s; --bg-pos-tablet: %s; --bg-pos-desktop: %s; ' .
         'padding: var(--current-pad); position: relative; max-height: var(--current-max-height); box-sizing: border-box; display: block; width: 100%%; background-color: var(--current-bg-color);',
         esc_attr( $css_gap_mobile ), esc_attr( $css_gap_tablet ), esc_attr( $css_gap_desktop ),
@@ -112,6 +116,7 @@ return function( $attributes, $content ) {
         $get_margin_l($align_desktop), $get_margin_r($align_desktop),
         esc_attr( $bg_img_base ), esc_attr( $bg_img_tab ), esc_attr( $bg_img_desk ),
         esc_attr( $bg_col_base ), esc_attr( $bg_col_tab ), esc_attr( $bg_col_desk ),
+        esc_attr( $bg_grad_base ), esc_attr( $bg_grad_tab ), esc_attr( $bg_grad_desk ),
         esc_attr( $bg_pos_mobile ), esc_attr( $bg_pos_tablet ), esc_attr( $bg_pos_desktop )
     );
 
@@ -148,6 +153,7 @@ return function( $attributes, $content ) {
                     --current-margin-right: var(--margin-r-tablet);
                     --current-bg-image: var(--bg-image-tablet);
                     --current-bg-color: var(--bg-color-tablet);
+                    --current-bg-gradient: var(--bg-gradient-tablet);
                     --current-bg-pos: var(--bg-pos-tablet);
                 }
             }
@@ -161,6 +167,7 @@ return function( $attributes, $content ) {
                     --current-margin-right: var(--margin-r-desktop);
                     --current-bg-image: var(--bg-image-desktop);
                     --current-bg-color: var(--bg-color-desktop);
+                    --current-bg-gradient: var(--bg-gradient-desktop);
                     --current-bg-pos: var(--bg-pos-desktop);
                 }
             }
@@ -169,7 +176,7 @@ return function( $attributes, $content ) {
 
         <div
             class="<?php echo esc_attr( $namespace ); ?>-background-layer"
-            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: var(--current-bg-pos, center); background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
+            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-gradient, none), var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: var(--current-bg-pos, center); background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
         ></div>
 
         <?php if ( $has_bg_video ) : ?>

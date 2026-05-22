@@ -5,6 +5,7 @@ import {
     PanelBody,
     SelectControl,
     ColorPalette,
+    GradientPicker,
     BoxControl,
     BorderBoxControl,
     RangeControl,
@@ -76,9 +77,9 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             zIndex, tabletZIndex, desktopZIndex,
             border, tabletBorder, desktopBorder,
             borderRadius, tabletBorderRadius, desktopBorderRadius,
-            backgroundImage, backgroundColor, backgroundVideo,
-            tabletBackgroundImage, tabletBackgroundColor, tabletBackgroundVideo,
-            desktopBackgroundImage, desktopBackgroundColor, desktopBackgroundVideo,
+            backgroundImage, backgroundColor, backgroundGradient, backgroundVideo,
+            tabletBackgroundImage, tabletBackgroundColor, tabletBackgroundGradient, tabletBackgroundVideo,
+            desktopBackgroundImage, desktopBackgroundColor, desktopBackgroundGradient, desktopBackgroundVideo,
             backgroundImageOpacity,
             backgroundSize, backgroundPosition, tabletBackgroundPosition, desktopBackgroundPosition, backgroundRepeat, backgroundFixedPosition,
             innerMaxWidth, tabletInnerMaxWidth, desktopInnerMaxWidth,
@@ -95,9 +96,9 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         } = attributes,
         [activeTab, setActiveTab] = useState('mobile'),
         [parentLayoutClass, setParentLayoutClass] = useState<string>(''),
-        { themeColors } = useSelect((select: any) => {
+        { themeColors, themeGradients } = useSelect((select: any) => {
             const settings = select('core/block-editor').getSettings();
-            return { themeColors: settings.colors || [] };
+            return { themeColors: settings.colors || [], themeGradients: settings.gradients || [] };
         }, []),
 
         tabletBreakpoint = context[`${namespace}/tabletBreakpoint`] || 768,
@@ -121,8 +122,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
 
         hasTabletBgImage = !!tabletBackgroundImage,
         hasTabletBgColor = !!tabletBackgroundColor,
+        hasTabletBgGradient = !!tabletBackgroundGradient,
         hasDesktopBgImage = !!desktopBackgroundImage,
         hasDesktopBgColor = !!desktopBackgroundColor,
+        hasDesktopBgGradient = !!desktopBackgroundGradient,
 
         activeBgVideo = (() => {
             if (parentLayoutClass === 'is-desktop-layout') {
@@ -175,6 +178,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         cssBgColorMobile = backgroundColor || 'transparent',
         cssBgColorTablet = hasTabletBgColor ? tabletBackgroundColor : 'var(--col-bg-color-mobile)',
         cssBgColorDesktop = hasDesktopBgColor ? desktopBackgroundColor : 'var(--col-bg-color-tablet)',
+
+        cssBgGradientMobile = backgroundGradient || 'none',
+        cssBgGradientTablet = hasTabletBgGradient ? tabletBackgroundGradient : 'var(--col-bg-gradient-mobile)',
+        cssBgGradientDesktop = hasDesktopBgGradient ? desktopBackgroundGradient : 'var(--col-bg-gradient-tablet)',
 
         innerAlignMap: Record<string, string> = { left: 'flex-start', center: 'center', right: 'flex-end' },
 
@@ -293,6 +300,10 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         '--col-bg-color-mobile': cssBgColorMobile,
         '--col-bg-color-tablet': cssBgColorTablet,
         '--col-bg-color-desktop': cssBgColorDesktop,
+
+        '--col-bg-gradient-mobile': cssBgGradientMobile,
+        '--col-bg-gradient-tablet': cssBgGradientTablet,
+        '--col-bg-gradient-desktop': cssBgGradientDesktop,
 
         '--col-radius-mobile': borderRadiusToCss(borderRadius),
         ...(hasTabletBorderRadius && { '--col-radius-tablet': borderRadiusToCss(tabletBorderRadius) }),
@@ -458,6 +469,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({backgroundColor: v || ''})}
                             clearable
                         />
+                        <p style={{ margin: '12px 0 4px', fontSize: '11px' }}>{__('Gradient', namespace)}</p>
+                        <GradientPicker
+                            gradients={themeGradients}
+                            value={backgroundGradient || undefined}
+                            onChange={(v) => setAttributes({backgroundGradient: v || ''})}
+                            clearable
+                        />
                         <ControlsMedia
                             panelLabel={__('Background Image / Video', namespace)}
                             imageUrl={backgroundImage}
@@ -574,6 +592,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             colors={themeColors}
                             value={tabletBackgroundColor}
                             onChange={(v) => setAttributes({tabletBackgroundColor: v || ''})}
+                            clearable
+                        />
+                        <p style={{ margin: '12px 0 4px', fontSize: '11px' }}>{__('Gradient Override', namespace)}</p>
+                        <GradientPicker
+                            gradients={themeGradients}
+                            value={tabletBackgroundGradient || undefined}
+                            onChange={(v) => setAttributes({tabletBackgroundGradient: v || ''})}
                             clearable
                         />
                         <ControlsMedia
@@ -694,6 +719,13 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({desktopBackgroundColor: v || ''})}
                             clearable
                         />
+                        <p style={{ margin: '12px 0 4px', fontSize: '11px' }}>{__('Gradient Override', namespace)}</p>
+                        <GradientPicker
+                            gradients={themeGradients}
+                            value={desktopBackgroundGradient || undefined}
+                            onChange={(v) => setAttributes({desktopBackgroundGradient: v || ''})}
+                            clearable
+                        />
                         <ControlsMedia
                             panelLabel={__('Background Image / Video Override', namespace)}
                             imageUrl={desktopBackgroundImage}
@@ -795,7 +827,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                     style={{
                         position: 'absolute',
                         inset: 0,
-                        backgroundImage: 'var(--current-bg-image)',
+                        backgroundImage: 'var(--current-bg-gradient, none), var(--current-bg-image)',
                         backgroundSize: backgroundSize || 'cover',
                         backgroundPosition: activeBackgroundPosition,
                         backgroundRepeat: backgroundRepeat || 'no-repeat',

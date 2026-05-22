@@ -12,7 +12,7 @@
 
 @each $bp in (mobile, tablet, desktop) {
     // Columns block raw inputs
-    @each $name in (gap, pad, max-width, max-height, margin-l, margin-r, bg-image, bg-color, h-align) {
+    @each $name in (gap, pad, max-width, max-height, margin-l, margin-r, bg-image, bg-color, bg-gradient, h-align) {
         @property --#{$name}-#{$bp} {
             syntax: '*';
             inherits: false;
@@ -20,7 +20,7 @@
     }
 
     // Column block raw inputs
-    @each $name in (col-pad, col-w, col-valign, col-inner-max, col-halign, col-bg-image, col-bg-color, col-order, col-zindex, col-radius) {
+    @each $name in (col-pad, col-w, col-valign, col-inner-max, col-halign, col-bg-image, col-bg-color, col-bg-gradient, col-order, col-zindex, col-radius) {
         @property --#{$name}-#{$bp} {
             syntax: '*';
             inherits: false;
@@ -205,6 +205,7 @@
     --current-margin-right: var(--margin-r-mobile);
     --current-bg-image: var(--bg-image-mobile);
     --current-bg-color: var(--bg-color-mobile);
+    --current-bg-gradient: var(--bg-gradient-mobile);
 
     // COLUMN DEFAULT POINTERS
     > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
@@ -216,6 +217,7 @@
         --current-halign: var(--col-halign-mobile);
         --current-bg-image: var(--col-bg-image-mobile);
         --current-bg-color: var(--col-bg-color-mobile);
+        --current-bg-gradient: var(--col-bg-gradient-mobile);
 
         --curr-ext-top: var(--base-ext-top);
         --curr-ext-bottom: var(--base-ext-bottom);
@@ -243,6 +245,7 @@
         --current-margin-right: var(--margin-r-mobile) !important;
         --current-bg-image: var(--bg-image-mobile) !important;
         --current-bg-color: var(--bg-color-mobile) !important;
+        --current-bg-gradient: var(--bg-gradient-mobile) !important;
 
         > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
         > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
@@ -253,6 +256,7 @@
             --current-halign: var(--col-halign-mobile) !important;
             --current-bg-image: var(--col-bg-image-mobile) !important;
             --current-bg-color: var(--col-bg-color-mobile) !important;
+            --current-bg-gradient: var(--col-bg-gradient-mobile) !important;
 
             --curr-ext-top: var(--base-ext-top) !important;
             --curr-ext-bottom: var(--base-ext-bottom) !important;
@@ -280,6 +284,7 @@
         --current-margin-right: var(--margin-r-tablet) !important;
         --current-bg-image: var(--bg-image-tablet) !important;
         --current-bg-color: var(--bg-color-tablet) !important;
+        --current-bg-gradient: var(--bg-gradient-tablet) !important;
 
         > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
         > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
@@ -290,6 +295,7 @@
             --current-halign: var(--col-halign-tablet) !important;
             --current-bg-image: var(--col-bg-image-tablet) !important;
             --current-bg-color: var(--col-bg-color-tablet) !important;
+            --current-bg-gradient: var(--col-bg-gradient-tablet) !important;
 
             --curr-ext-top: var(--tab-ext-top) !important;
             --curr-ext-bottom: var(--tab-ext-bottom) !important;
@@ -318,6 +324,7 @@
         --current-margin-right: var(--margin-r-desktop) !important;
         --current-bg-image: var(--bg-image-desktop) !important;
         --current-bg-color: var(--bg-color-desktop) !important;
+        --current-bg-gradient: var(--bg-gradient-desktop) !important;
 
         > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
         > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
@@ -328,6 +335,7 @@
             --current-halign: var(--col-halign-desktop) !important;
             --current-bg-image: var(--col-bg-image-desktop) !important;
             --current-bg-color: var(--col-bg-color-desktop) !important;
+            --current-bg-gradient: var(--col-bg-gradient-desktop) !important;
 
             --curr-ext-top: var(--desk-ext-top) !important;
             --curr-ext-bottom: var(--desk-ext-bottom) !important;

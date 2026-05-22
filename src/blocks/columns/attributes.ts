@@ -30,12 +30,15 @@ export interface CoreColumnsAttributes {
 
     backgroundImage: string;
     backgroundColor: string;
+    backgroundGradient: string;
     backgroundVideo: string;
     tabletBackgroundImage: string;
     tabletBackgroundColor: string;
+    tabletBackgroundGradient: string;
     tabletBackgroundVideo: string;
     desktopBackgroundImage: string;
     desktopBackgroundColor: string;
+    desktopBackgroundGradient: string;
     desktopBackgroundVideo: string;
     backgroundImageOpacity: number;
     backgroundSize: string;
@@ -78,12 +81,15 @@ export const parentAttributes: Record<keyof CoreColumnsAttributes, BlockAttribut
 
     backgroundImage: { type: 'string', default: '' },
     backgroundColor: { type: 'string', default: '' },
+    backgroundGradient: { type: 'string', default: '' },
     backgroundVideo: { type: 'string', default: '' },
     tabletBackgroundImage: { type: 'string' },
     tabletBackgroundColor: { type: 'string' },
+    tabletBackgroundGradient: { type: 'string' },
     tabletBackgroundVideo: { type: 'string' },
     desktopBackgroundImage: { type: 'string' },
     desktopBackgroundColor: { type: 'string' },
+    desktopBackgroundGradient: { type: 'string' },
     desktopBackgroundVideo: { type: 'string' },
     backgroundImageOpacity: { type: 'number', default: 100 },
     backgroundSize: { type: 'string', default: 'cover' },
