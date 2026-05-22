@@ -21,6 +21,11 @@ registerBlockType(`${namespace}/columns`, {
         [`${namespace}/tabletBreakpoint`]: 'tabletBreakpoint',
         [`${namespace}/desktopBreakpoint`]: 'desktopBreakpoint'
     },
+    supports: {
+        spacing: {
+            margin: [ 'top', 'bottom' ]
+        },
+    },
     edit: Edit,
     save: Save,
 } as any);

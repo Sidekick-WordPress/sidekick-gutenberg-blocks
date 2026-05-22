@@ -4,16 +4,36 @@ defined('ABSPATH') || exit;
 add_action( 'init', function() {
 
     $dynamic_blocks = [
-        'columns'  => __DIR__ . '/../src/blocks/columns',
-        'column'   => __DIR__ . '/../src/blocks/columns/column',
-        'nav-menu' => __DIR__ . '/../src/blocks/nav-menu',
+        'columns' => [
+            'dir' => __DIR__ . '/../src/blocks/columns',
+            'supports' => [
+                'spacing' => [
+                    'margin' => [ 'top', 'bottom' ],
+                ],
+            ],
+        ],
+        'column' => [
+            'dir' => __DIR__ . '/../src/blocks/columns/column',
+            'supports' => [
+                'spacing' => [
+                    'margin' => [ 'top', 'bottom' ],
+                ],
+                'shadow' => true,
+            ],
+        ],
+        'nav-menu' => [ 'dir' => __DIR__ . '/../src/blocks/nav-menu' ],
     ];
 
-    foreach ( $dynamic_blocks as $slug => $block_dir ) {
+    foreach ( $dynamic_blocks as $slug => $config ) {
+        $block_dir  = $config['dir'];
         $block_json = $block_dir . '/block.json';
         $save_php   = $block_dir . '/save.php';
 
         $args = [];
+
+        if ( ! empty( $config['supports'] ) ) {
+            $args['supports'] = $config['supports'];
+        }
 
         if ( file_exists( $save_php ) ) {
             $render_callback = require $save_php;
