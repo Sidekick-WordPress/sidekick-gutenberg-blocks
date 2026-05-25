@@ -66,7 +66,8 @@ const initColumnEntranceAnimations = () => {
         return;
     }
 
-    document.documentElement.classList.add(`${namespace}-entrance-ready`);
+    // entrance-ready class is added synchronously in <head> (php/enqueue-assets.php)
+    // so columns are already hidden by the time this runs — no flash on initial paint.
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {

@@ -284,7 +284,12 @@ return function( $attributes, $content, $block ) {
                 border-left-color: var(--col-border-left-color-mobile, var(--col-border-color-mobile));
             }
             @media (min-width: <?php echo $tablet_bp; ?>px) {
-                .wp-block-<?php echo $namespace; ?>-column.<?php echo $block_id; ?> {
+                /* Selector prepends parent chain so this rule beats the SCSS base
+                   (.wp-block-{ns}-columns > .{ns}-columns-inner > .wp-block-{ns}-column,
+                   specificity 0,3,0 !important) at viewport-driven breakpoints.
+                   Without this prepend the column widths stay at mobile until JS
+                   adds .is-*-layout — which is the visible reflow pop on load. */
+                .wp-block-<?php echo $namespace; ?>-columns > .<?php echo $namespace; ?>-columns-inner > .wp-block-<?php echo $namespace; ?>-column.<?php echo $block_id; ?> {
                     flex: <?php echo $get_flex($w_tablet); ?> !important;
                     max-width: <?php echo $get_max_w($w_tablet); ?> !important;
                     --col-current-pad: var(--col-pad-tablet) !important;
@@ -317,7 +322,7 @@ return function( $attributes, $content, $block ) {
                 }
             }
             @media (min-width: <?php echo $desktop_bp; ?>px) {
-                .wp-block-<?php echo $namespace; ?>-column.<?php echo $block_id; ?> {
+                .wp-block-<?php echo $namespace; ?>-columns > .<?php echo $namespace; ?>-columns-inner > .wp-block-<?php echo $namespace; ?>-column.<?php echo $block_id; ?> {
                     flex: <?php echo $get_flex($w_desktop); ?> !important;
                     max-width: <?php echo $get_max_w($w_desktop); ?> !important;
                     --col-current-pad: var(--col-pad-desktop) !important;

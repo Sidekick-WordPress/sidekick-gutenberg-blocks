@@ -78,3 +78,13 @@ add_action('enqueue_block_editor_assets', function () use ($asset_url_base, $ass
 add_action('wp_enqueue_scripts', function () {
     wp_enqueue_style('wp-block-library');
 }, 5);
+
+// Synchronously mark the document as entrance-ready BEFORE any column paints,
+// so columns with .has-entrance-animation start hidden and never flash visible
+// during the gap between initial paint and the deferred react bundle running.
+// Skip for users who can't be animated to (reduced motion / no IntersectionObserver) —
+// those keep the default opacity:1 and never get an entrance class added by JS.
+add_action('wp_head', function () {
+    $cls = esc_js(SGB_NS . '-entrance-ready');
+    echo "<script>(function(){if('IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('{$cls}');}})();</script>\n";
+}, 1);

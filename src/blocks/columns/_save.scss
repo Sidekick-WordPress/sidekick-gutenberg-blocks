@@ -147,7 +147,7 @@
         --col-reveal-x: var(--col-enter-x, 0px);
         --col-reveal-y: var(--col-enter-y, 0px);
         opacity: 0;
-        transition: opacity 500ms ease, transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+        transition: opacity 1100ms ease, transform 1300ms cubic-bezier(0.22, 1, 0.36, 1);
         will-change: opacity, transform;
     }
 
