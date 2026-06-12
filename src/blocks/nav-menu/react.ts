@@ -52,13 +52,21 @@ document.addEventListener('DOMContentLoaded', () => {
     navMenus.forEach((navWrapper) => {
         const orientation = navWrapper.getAttribute('data-orientation');
         const navInner = navWrapper.querySelector('.sgb-nav-menu__inner') as HTMLElement;
+        const overlay = navWrapper.querySelector('.sgb-nav-menu__overlay') as HTMLElement | null;
         const toggleBtn = navWrapper.querySelector('.sgb-nav-menu__toggle');
         const closeBtn = navWrapper.querySelector('.sgb-nav-menu__close');
 
         if (!navInner) return;
 
+        // State classes are mirrored onto the overlay because it gets portaled
+        // to <body> in mobile mode, where nav-rooted CSS can't reach it.
+        const setState = (className: string, enabled: boolean) => {
+            navWrapper.classList.toggle(className, enabled);
+            if (overlay) overlay.classList.toggle(className, enabled);
+        };
+
         const closeMenu = () => {
-            navWrapper.classList.remove('is-open');
+            setState('is-open', false);
             if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
             document.body.style.overflow = ''; // Restore background scrolling
         };
@@ -100,8 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (orientation === 'vertical') {
-            navWrapper.classList.remove('is-mobile-menu', 'is-open');
-            navWrapper.classList.add('is-initialized');
+            setState('is-mobile-menu', false);
+            setState('is-open', false);
+            setState('is-initialized', true);
             return;
         }
 
@@ -114,9 +123,47 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Interaction Logic ---
 
         const openMenu = () => {
-            navWrapper.classList.add('is-open');
+            setState('is-open', true);
             if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
             document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        };
+
+        // --- Portal Logic ---
+        // An ancestor with transform/filter/backdrop-filter/contain becomes the
+        // containing block for position:fixed, which traps the fullscreen
+        // overlay at the header's size. Moving the overlay to <body> while in
+        // mobile mode restores viewport-relative positioning.
+
+        // Typography set on the nav (block supports / theme) must travel with
+        // the overlay since it can no longer inherit it once detached.
+        const INHERITED_TYPE_PROPS = [
+            'font-family',
+            'font-size',
+            'font-style',
+            'font-weight',
+            'letter-spacing',
+            'text-decoration-line',
+        ];
+
+        const detachOverlay = () => {
+            if (!overlay || overlay.parentElement === document.body) return;
+
+            const navStyle = window.getComputedStyle(navWrapper);
+            INHERITED_TYPE_PROPS.forEach((prop) => {
+                overlay.style.setProperty(prop, navStyle.getPropertyValue(prop));
+            });
+
+            document.body.appendChild(overlay);
+        };
+
+        const reattachOverlay = () => {
+            if (!overlay || overlay.parentElement !== document.body) return;
+
+            INHERITED_TYPE_PROPS.forEach((prop) => {
+                overlay.style.removeProperty(prop);
+            });
+
+            navWrapper.appendChild(overlay);
         };
 
         if (toggleBtn) toggleBtn.addEventListener('click', openMenu);
@@ -172,12 +219,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (availableWidth < requiredDesktopWidth && requiredDesktopWidth > 0) {
-                navWrapper.classList.add('is-mobile-menu');
+                // Class goes on first so the overlay is already styled as a
+                // hidden fixed layer the moment it lands in <body>.
+                setState('is-mobile-menu', true);
+                detachOverlay();
             } else {
                 if (navWrapper.classList.contains('is-open')) {
                     closeMenu();
                 }
-                navWrapper.classList.remove('is-mobile-menu');
+                setState('is-mobile-menu', false);
+                reattachOverlay();
             }
 
             // NEW: Reveal the menu now that the layout is locked in
@@ -185,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // requestAnimationFrame ensures the browser applies the mobile/desktop
                 // classes to the DOM *before* turning the opacity back on.
                 requestAnimationFrame(() => {
-                    navWrapper.classList.add('is-initialized');
+                    setState('is-initialized', true);
                 });
             }
         });

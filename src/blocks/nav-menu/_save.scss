@@ -1,18 +1,26 @@
 @use "../../styles/defaults/functions" as *;
 @use "../../styles/defaults/variables" as *;
 
+// 1. Root: hidden until JS locks in the desktop/mobile layout
 .sgb-nav-menu {
     visibility: hidden;
+
+    &.is-initialized {
+        visibility: visible;
+    }
+}
+
+// 2. Global Resets
+// Scoped to BOTH roots: in mobile mode react.ts portals the overlay to
+// <body> (escaping header transform/filter/contain containing blocks that
+// trap its position:fixed box), so nav-rooted selectors can't reach it.
+.sgb-nav-menu,
+.sgb-nav-menu__overlay {
     * {
         margin-block-start: 0 !important;
         margin-block-end: 0 !important;
     }
 
-    &.is-initialized {
-        visibility: visible;
-    }
-
-    // 2. Global Resets
     a,
     .wp-block-navigation-item__content,
     .wp-block-navigation-submenu__toggle {
@@ -36,7 +44,9 @@
         padding-left: 0 !important;
         padding-right: 0 !important;
     }
+}
 
+.sgb-nav-menu {
     // 3. Arrow Support (horizontal/default)
     &--show-submenu-arrows {
         li:has(> .wp-block-navigation__submenu-container) {
@@ -52,7 +62,10 @@
             > .wp-block-navigation-item__content::after,
             > button::after,
             > .wp-block-navigation-submenu__toggle::after {
-                content: "▾";
+                // ▾ (U+25BE), interpolated so the escape reaches the compiled
+                // CSS as ASCII — a raw character turns to mojibake whenever
+                // the stylesheet is decoded as anything but UTF-8.
+                content: #{'"\\25be"'};
                 position: absolute;
                 right: rem(8);
                 top: 50%;
@@ -295,8 +308,11 @@
             }
         }
     }
+}
 
-    // 7. Sub-Menu Overrides
+// 7. Sub-Menu Overrides (dual-rooted: must also reach the portaled overlay)
+.sgb-nav-menu,
+.sgb-nav-menu__overlay {
     .wp-block-navigation__submenu-container {
         width: var(--nav-sub-width);
         background-color: var(--nav-sub-bg);
@@ -334,7 +350,9 @@
             transition: color 0.2s ease; // Transition
         }
     }
+}
 
+.sgb-nav-menu {
     // 8. Overlay Container
     &__overlay {
         ul,
@@ -363,94 +381,132 @@
     }
 
     &__toggle::before {
-        content: '\200b';
+        // Zero-width space (U+200B) so the icon-only button keeps a text
+        // baseline. Interpolated so the escape reaches the compiled CSS as
+        // ASCII — dart-sass otherwise emits the raw character, which shows
+        // up as "â€‹" wherever the file is decoded as anything but UTF-8.
+        content: #{'"\\200b"'};
+    }
+}
+
+// 10. MOBILE MODE
+// The toggle stays inside the nav, so it keys off the nav root...
+.sgb-nav-menu.is-mobile-menu {
+    .sgb-nav-menu__toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+// ...but the overlay lives at <body> level while mobile mode is active
+// (react.ts portals it out and mirrors the state classes onto it), so all
+// of its rules key off the overlay element itself.
+.sgb-nav-menu__overlay.is-mobile-menu {
+    position: fixed;
+    inset: 0;
+    background-color: var(--nav-overlay-bg);
+    color: var(--nav-overlay-color);
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    padding: rem(24);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    // !important because the desktop value sits in the element's inline style
+    --nav-current-gap: var(--nav-gap-mobile) !important;
+
+    .sgb-nav-menu__overlay-header {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+        margin-bottom: rem(32);
     }
 
-    // 10. MOBILE MODE
-    &.is-mobile-menu {
-        &.sgb-nav-menu--show-submenu-arrows {
-            li:has(> .wp-block-navigation__submenu-container) {
+    .sgb-nav-menu__close {
+        display: block;
+        color: inherit;
+    }
+
+    .sgb-nav-menu__inner {
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-grow: 1;
+
+        li {
+            width: 100%;
+
+            a {
+                text-align: left;
+            }
+        }
+
+        a,
+        .wp-block-navigation-item__content,
+        .wp-block-navigation-submenu__toggle {
+            font-size: rem(24);
+            transition: color 0.2s ease;
+        }
+
+        > li {
+            background-color: transparent;
+            width: 100%;
+            transition: background-color 0.2s ease;
+
+            > a,
+            > .wp-block-navigation-item__content,
+            > button,
+            > .wp-block-navigation-submenu__toggle {
+                color: var(--nav-overlay-color) !important;
+            }
+
+            &:hover, &:active {
+                background-color: var(--nav-overlay-bg-hover) !important;
                 > a,
                 > .wp-block-navigation-item__content,
                 > button,
                 > .wp-block-navigation-submenu__toggle {
-                    padding-right: var(--nav-parent-padding);
-                }
-
-                > a::after,
-                > .wp-block-navigation-item__content::after,
-                > button::after,
-                > .wp-block-navigation-submenu__toggle::after {
-                    content: none;
+                    color: var(--nav-overlay-color-hover) !important;
                 }
             }
         }
 
-        .sgb-nav-menu__toggle {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        a,
+        .wp-block-navigation-item__content,
+        button,
+        .wp-block-navigation-submenu__toggle {
+            color: var(--nav-overlay-color) !important;
         }
 
-        .sgb-nav-menu__overlay {
-            position: fixed;
-            inset: 0;
-            background-color: var(--nav-overlay-bg);
-            color: var(--nav-overlay-color);
-            z-index: 100000;
-            display: flex;
-            flex-direction: column;
-            padding: rem(24);
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-
-            li {
-                width: 100%;
-
-                a {
-                    text-align: left;
-                }
-            }
-        }
-
-        .sgb-nav-menu__overlay-header {
-            display: flex;
-            justify-content: flex-end;
+        .wp-block-navigation__submenu-container {
+            display: block !important;
+            position: static !important;
+            top: auto !important;
+            right: auto !important;
+            left: auto !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            overflow: visible !important;
             width: 100%;
-            margin-bottom: rem(32);
-        }
+            padding-top: 0;
+            background-color: transparent;
+            padding-left: var(--nav-parent-padding-left, 1rem) !important;
 
-        .sgb-nav-menu__close {
-            display: block;
-            color: inherit;
-        }
-
-        .sgb-nav-menu__inner {
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            flex-grow: 1;
-
-            a,
-            .wp-block-navigation-item__content,
-            .wp-block-navigation-submenu__toggle {
-                font-size: rem(24);
-                transition: color 0.2s ease;
-            }
-
-            > li {
-                background-color: transparent;
-                width: 100%;
+            & > li {
+                box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-overlay-color) 18%, transparent);
                 transition: background-color 0.2s ease;
 
-                > a,
-                > .wp-block-navigation-item__content,
-                > button,
-                > .wp-block-navigation-submenu__toggle {
+                a,
+                .wp-block-navigation-item__content,
+                button,
+                .wp-block-navigation-submenu__toggle {
                     color: var(--nav-overlay-color) !important;
                 }
 
+                // --- ADD HOVER/ACTIVE STATES ---
                 &:hover, &:active {
                     background-color: var(--nav-overlay-bg-hover) !important;
                     > a,
@@ -461,15 +517,11 @@
                     }
                 }
             }
+        }
 
-            a,
-            .wp-block-navigation-item__content,
-            button,
-            .wp-block-navigation-submenu__toggle {
-                color: var(--nav-overlay-color) !important;
-            }
-
-            .wp-block-navigation__submenu-container {
+        li:has(> .wp-block-navigation__submenu-container) {
+            > ul,
+            > .wp-block-navigation__submenu-container {
                 display: block !important;
                 position: static !important;
                 top: auto !important;
@@ -480,86 +532,37 @@
                 overflow: visible !important;
                 width: 100%;
                 padding-top: 0;
-                background-color: transparent;
-                padding-left: var(--nav-parent-padding-left, 1rem) !important;
-
-                & > li {
-                    box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-overlay-color) 18%, transparent);
-                    transition: background-color 0.2s ease;
-
-                    a,
-                    .wp-block-navigation-item__content,
-                    button,
-                    .wp-block-navigation-submenu__toggle {
-                        color: var(--nav-overlay-color) !important;
-                    }
-
-                    // --- ADD HOVER/ACTIVE STATES ---
-                    &:hover, &:active {
-                        background-color: var(--nav-overlay-bg-hover) !important;
-                        > a,
-                        > .wp-block-navigation-item__content,
-                        > button,
-                        > .wp-block-navigation-submenu__toggle {
-                            color: var(--nav-overlay-color-hover) !important;
-                        }
-                    }
-                }
-            }
-
-            li:has(> .wp-block-navigation__submenu-container) {
-                > ul,
-                > .wp-block-navigation__submenu-container {
-                    display: block !important;
-                    position: static !important;
-                    top: auto !important;
-                    right: auto !important;
-                    left: auto !important;
-                    opacity: 1 !important;
-                    pointer-events: auto !important;
-                    overflow: visible !important;
-                    width: 100%;
-                    padding-top: 0;
-                    transform: none !important;
-                }
+                transform: none !important;
             }
         }
+    }
 
-        &.is-open {
-            .sgb-nav-menu__overlay {
-                opacity: 1;
-                visibility: visible;
-                pointer-events: auto;
-            }
-        }
+    &.is-open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
 
-        &.is-initialized .sgb-nav-menu__overlay {
-            transition:
-                opacity 0.3s ease,
-                visibility 0s linear 0.3s;
-        }
+    &.is-initialized {
+        transition:
+            opacity 0.3s ease,
+            visibility 0s linear 0.3s;
+    }
 
-        &.is-initialized.is-open .sgb-nav-menu__overlay {
-            transition:
-                opacity 0.3s ease,
-                visibility 0s linear 0s;
-        }
+    &.is-initialized.is-open {
+        transition:
+            opacity 0.3s ease,
+            visibility 0s linear 0s;
     }
 }
 
 .admin-bar {
-    .sgb-nav-menu {
-        &.is-mobile-menu {
-            .sgb-nav-menu__overlay {
-                top: $adminBarHeightMobile;
-            }
+    .sgb-nav-menu__overlay.is-mobile-menu {
+        top: $adminBarHeightMobile;
 
-            // This is a WordPress dictated breakpoint
-            @media screen and (min-width: calc(783em/16)) {
-                .sgb-nav-menu__overlay {
-                    top: $adminBarHeightDesktop;
-                }
-            }
+        // This is a WordPress dictated breakpoint
+        @media screen and (min-width: calc(783em/16)) {
+            top: $adminBarHeightDesktop;
         }
     }
 }

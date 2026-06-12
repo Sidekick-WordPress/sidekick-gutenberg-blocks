@@ -73,7 +73,9 @@ return function( $attributes, $content ) {
         }
     }
 
-    $style = $layout_inline_style . sprintf(
+    // The overlay is moved to <body> on mobile (see react.ts), so these
+    // variables are printed on both the nav and the overlay element.
+    $style_vars = sprintf(
             '--nav-gap-desktop: %1$dpx; ' .
             '--nav-gap-mobile: %2$dpx; ' .
             '--nav-current-gap: var(--nav-gap-desktop); ' .
@@ -122,6 +124,8 @@ return function( $attributes, $content ) {
             esc_attr( $overlay_color_hover ), // 22
             esc_attr( $font_weight ) // 23
         );
+
+    $style = $layout_inline_style . $style_vars;
 
     $wrapper_classes = [
         "{$namespace}-nav-menu",
@@ -180,7 +184,7 @@ return function( $attributes, $content ) {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
 
-        <div class="<?php echo esc_attr( "{$namespace}-nav-menu__overlay" ); ?>">
+        <div class="<?php echo esc_attr( "{$namespace}-nav-menu__overlay" ); ?>" style="<?php echo esc_attr( $style_vars ); ?>">
             <div class="<?php echo esc_attr( "{$namespace}-nav-menu__overlay-header" ); ?>">
                 <button class="<?php echo esc_attr( "{$namespace}-nav-menu__close" ); ?>" aria-label="<?php echo esc_attr__( 'Close menu', 'sidekick-gutenberg-blocks' ); ?>">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
