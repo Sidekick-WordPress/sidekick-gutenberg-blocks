@@ -4,7 +4,7 @@ import { CoreColumnsAttributes } from '../attributes';
 interface LogicProps {
     attributes: CoreColumnsAttributes;
     blockRef?: HTMLElement | null;
-    onLayoutChange?: (layoutClass: string) => void;
+    onLayoutChange?: (layoutClass: string, width: number) => void;
 }
 
 const ColumnsExtraLogic = ({ attributes, blockRef, onLayoutChange }: LogicProps) => {
@@ -29,7 +29,7 @@ const ColumnsExtraLogic = ({ attributes, blockRef, onLayoutChange }: LogicProps)
                 }
 
                 if (onLayoutChangeRef.current) {
-                    onLayoutChangeRef.current(newClass);
+                    onLayoutChangeRef.current(newClass, Math.round(width));
                 } else {
                     blockRef.classList.toggle('is-mobile-layout', newClass === 'is-mobile-layout');
                     blockRef.classList.toggle('is-tablet-layout', newClass === 'is-tablet-layout');

@@ -111,10 +111,11 @@ export const columnAttributes: Record<keyof ColumnAttributes, BlockAttribute<any
     tabletVAlign: { type: 'string' },
     desktopVAlign: { type: 'string' },
 
-    // Order
+    // Order — tablet/desktop have NO defaults so an unset value inherits
+    // from the previous breakpoint, matching every other attribute here.
     mobileOrder: { type: 'number', default: 0 },
-    tabletOrder: { type: 'number', default: 0 },
-    desktopOrder: { type: 'number', default: 0 },
+    tabletOrder: { type: 'number' },
+    desktopOrder: { type: 'number' },
 
     // Z-Index
     zIndex: { type: 'number', default: 1 },

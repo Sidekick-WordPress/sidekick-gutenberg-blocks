@@ -1,6 +1,6 @@
 import {__} from '@wordpress/i18n';
-import {useBlockProps, useInnerBlocksProps, InspectorControls} from '@wordpress/block-editor';
-import {useMemo, useState, useEffect} from '@wordpress/element';
+import {useBlockProps, useInnerBlocksProps, InspectorControls, BlockControls} from '@wordpress/block-editor';
+import {useMemo, useState, useEffect, useCallback} from '@wordpress/element';
 import {
     PanelBody,
     Button,
@@ -11,6 +11,8 @@ import {
     RangeControl,
     TabPanel,
     TextControl,
+    ToolbarGroup,
+    ToolbarButton,
     __experimentalDivider as Divider,
     __experimentalUnitControl as UnitControl,
 } from '@wordpress/components';
@@ -29,24 +31,27 @@ import ControlsMedia from "../../components/edit-controls/ControlsMedia";
 // Block
 import {CoreColumnsAttributes} from './attributes';
 import ColumnsExtraLogic from "./components/ColumnsExtraLogic";
+import TierNote, {TIER_LABELS} from "./components/TierNote";
 
-const COLUMN_PRESETS = [
-    {label: __('Auto', namespace), width: 0},
-    {label: '1/6', width: 16.666667},
-    {label: '1/5', width: 20},
-    {label: '1/4', width: 25},
-    {label: '1/3', width: 33.333333},
-    {label: '2/5', width: 40},
-    {label: '1/2', width: 50},
-    {label: '3/5', width: 60},
-    {label: '2/3', width: 66.666667},
-    {label: '3/4', width: 75},
-    {label: '4/5', width: 80},
-    {label: '5/6', width: 83.333333},
-    {label: '1/1', width: 100},
+// Row-level splits applied to the EXISTING columns (tablet + desktop widths;
+// base/mobile stays at each column's own value, typically 100 = stacked).
+// Rendered 3-per-row in the inspector — keep labels compact.
+const LAYOUT_PRESETS = [
+    {label: '100', widths: [100]},
+    {label: '50·50', widths: [50, 50]},
+    {label: '33·33·33', widths: [33.333333, 33.333333, 33.333333]},
+    {label: '33·67', widths: [33.333333, 66.666667]},
+    {label: '67·33', widths: [66.666667, 33.333333]},
+    {label: '25·50·25', widths: [25, 50, 25]},
+    {label: '25·75', widths: [25, 75]},
+    {label: '75·25', widths: [75, 25]},
+    {label: '50·25·25', widths: [50, 25, 25]},
+    {label: '25·25·50', widths: [25, 25, 50]},
+    {label: '25×4', widths: [25, 25, 25, 25]},
+    {label: '20×5', widths: [20, 20, 20, 20, 20]},
 ];
 
-export default function Edit({attributes, setAttributes, clientId, className}: BlockEditProps<CoreColumnsAttributes>) {
+export default function Edit({attributes, setAttributes, clientId, className, isSelected}: BlockEditProps<CoreColumnsAttributes>) {
     const {
             htmlId,
             columns,
@@ -94,18 +99,23 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             backgroundRepeat,
             backgroundFixedPosition
         } = attributes,
-        {replaceInnerBlocks} = useDispatch('core/block-editor'),
-        {getBlocks, themeColors, themeGradients, innerBlocks} = useSelect((select: any) => {
-            const settings = select('core/block-editor').getSettings();
+        {replaceInnerBlocks, updateBlockAttributes, insertBlocks, removeBlocks, selectBlock} = useDispatch('core/block-editor'),
+        {getBlocks, themeColors, themeGradients, innerBlocks, selectedId, selectedParents} = useSelect((select: any) => {
+            const sel = select('core/block-editor');
+            const settings = sel.getSettings();
+            const selectedBlockId = sel.getSelectedBlockClientId();
             return {
-                getBlocks: select('core/block-editor').getBlocks,
+                getBlocks: sel.getBlocks,
                 themeColors: settings.colors || [],
                 themeGradients: settings.gradients || [],
-                innerBlocks: select('core/block-editor').getBlocks(clientId),
+                innerBlocks: sel.getBlocks(clientId),
+                selectedId: selectedBlockId,
+                selectedParents: selectedBlockId ? sel.getBlockParents(selectedBlockId) : [],
             };
         }, [clientId]),
         [blockElement, setBlockElement] = useState<HTMLElement | null>(null),
-        [layoutClass, setLayoutClass] = useState(''),
+        [layoutInfo, setLayoutInfo] = useState<{cls: string; width: number}>({cls: '', width: 0}),
+        layoutClass = layoutInfo.cls,
 
         // Detection Logic
         hasTabletGap = tabletGap !== undefined && (tabletGap as any) !== '',
@@ -184,7 +194,8 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             const currentBlocks = getBlocks(clientId);
             const w = normalizeColumnWidth(width);
             const attrs: Record<string, number> = { width: 100 };
-            if (w) {
+            // `w === 0` is a real value (Auto) — only skip when truly unset.
+            if (w !== undefined) {
                 attrs.tabletWidth = w;
                 attrs.desktopWidth = w;
             }
@@ -193,13 +204,46 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             setAttributes({columns: currentBlocks.length + 1});
         },
 
-        removeLastColumn = () => {
-            const currentBlocks = getBlocks(clientId);
-            if (currentBlocks.length <= 1) return;
+        applyLayoutPreset = (widths: number[]) => {
+            const blocks = getBlocks(clientId);
+            const target = widths.length;
+            const widthAt = (i: number) => widths[Math.min(i, widths.length - 1)];
 
-            replaceInnerBlocks(clientId, currentBlocks.slice(0, -1), false);
-            setAttributes({columns: currentBlocks.length - 1});
+            blocks.forEach((b: any, i: number) => {
+                updateBlockAttributes(b.clientId, {tabletWidth: widthAt(i), desktopWidth: widthAt(i)});
+            });
+
+            if (blocks.length < target) {
+                const added = [];
+                for (let i = blocks.length; i < target; i++) {
+                    added.push(createBlock(`${namespace}/column`, {width: 100, tabletWidth: widthAt(i), desktopWidth: widthAt(i)}));
+                }
+                insertBlocks(added, blocks.length, clientId, false);
+            } else if (blocks.length > target) {
+                // Trim trailing EMPTY columns down to the preset count — never delete content.
+                const removable: string[] = [];
+                for (let i = blocks.length - 1; i >= target; i--) {
+                    if (!blocks[i].innerBlocks || blocks[i].innerBlocks.length === 0) {
+                        removable.push(blocks[i].clientId);
+                    } else {
+                        break;
+                    }
+                }
+                if (removable.length) removeBlocks(removable, false);
+            }
         },
+
+        removeColumn = (block: any) => {
+            if ((innerBlocks?.length || 0) <= 1) return;
+            if (block.innerBlocks?.length > 0 && !window.confirm(__('This column contains blocks. Remove it anyway?', namespace))) {
+                return;
+            }
+            removeBlocks([block.clientId], false);
+        },
+
+        handleLayoutChange = useCallback((cls: string, width: number) => {
+            setLayoutInfo(prev => (prev.cls === cls && prev.width === width) ? prev : {cls, width});
+        }, []),
 
         blockProps = useBlockProps({
             ref: setBlockElement,
@@ -241,6 +285,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                 '--margin-r-mobile': getMarginRight(cssHAlignMobile),
 
                 padding: 'var(--current-pad)',
+                maxHeight: 'var(--current-max-height)',
                 position: 'relative',
                 backgroundColor: 'var(--current-bg-color)',
             } as CSSProperties
@@ -282,6 +327,50 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
         }
     }, [innerBlocks, columns, setAttributes]);
 
+    const fmtColWidth = (w: number) => w === 0 ? __('Auto', namespace) : `${Math.round(w * 10) / 10}`;
+
+    const renderColumnRow = (block: any, index: number) => {
+        const m = normalizeColumnWidth(block.attributes?.width) ?? 100;
+        const t = normalizeColumnWidth(block.attributes?.tabletWidth) ?? m;
+        const d = normalizeColumnWidth(block.attributes?.desktopWidth) ?? t;
+        const isActive = selectedId === block.clientId || selectedParents.includes(block.clientId);
+
+        return (
+            <div
+                key={block.clientId}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '2px 2px 2px 8px',
+                    marginBottom: '4px',
+                    border: '1px solid',
+                    borderRadius: '4px',
+                    borderColor: isActive ? 'var(--wp-admin-theme-color, #3858e9)' : '#ddd',
+                    background: isActive ? 'rgba(56, 88, 233, 0.04)' : 'transparent',
+                }}
+            >
+                <Button
+                    variant="link"
+                    style={{textDecoration: 'none', flexShrink: 0}}
+                    onClick={() => selectBlock(block.clientId)}
+                >
+                    {__('Column', namespace)} {index + 1}
+                </Button>
+                <span style={{flex: 1, textAlign: 'right', fontSize: '11px', color: '#757575'}}>
+                    {fmtColWidth(m)} · {fmtColWidth(t)} · {fmtColWidth(d)}
+                </span>
+                <Button
+                    size="small"
+                    icon="no-alt"
+                    label={__('Remove column', namespace)}
+                    disabled={(innerBlocks?.length || 0) <= 1}
+                    onClick={() => removeColumn(block)}
+                />
+            </div>
+        );
+    };
+
     const renderLayoutTab = (tabName: string) => {
         switch (tabName) {
             case 'mobile':
@@ -291,6 +380,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             msg={__('Base layout values used for ALL screen sizes unless overridden.', namespace)}
                             type="warning"
                         />
+                        <TierNote tab="mobile" activeTier={layoutInfo.cls} width={layoutInfo.width} />
                         <RangeControl
                             label={__('Space Between Columns (px)', namespace)}
                             value={mobileGap}
@@ -369,6 +459,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             msg={__(`Optional overrides for screens WIDER than ${tabletBreakpoint}px. If left blank, base layout values are used.`, namespace)}
                             type="warning"
                         />
+                        <TierNote tab="tablet" activeTier={layoutInfo.cls} width={layoutInfo.width} />
                         <RangeControl
                             label={__('Space Between Columns (px)', namespace)}
                             value={tabletGap}
@@ -449,6 +540,7 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
                             msg={__(`Optional overrides for screens WIDER than ${desktopBreakpoint}px. If left blank, base layout values are used.`, namespace)}
                             type="warning"
                         />
+                        <TierNote tab="desktop" activeTier={layoutInfo.cls} width={layoutInfo.width} />
                         <RangeControl
                             label={__('Space Between Columns (px)', namespace)}
                             value={gap}
@@ -529,42 +621,60 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
 
     return (
         <>
+            <BlockControls>
+                <ToolbarGroup>
+                    <ToolbarButton
+                        icon="plus"
+                        label={__('Add column', namespace)}
+                        onClick={() => addColumn(0)}
+                    />
+                </ToolbarGroup>
+            </BlockControls>
+
             <InspectorControls>
-                <PanelBody title={__('Global Settings', namespace)}>
+                <PanelBody title={__('Columns', namespace)}>
                     <div style={{marginBottom: '16px'}}>
                         <div style={{marginBottom: '8px', fontWeight: 500}}>
-                            {__('Add Column Presets', namespace)}
+                            {__('Layout Presets', namespace)}
+                        </div>
+                        <div style={{margin: '0 0 8px', fontSize: '11px', color: '#757575'}}>
+                            {__('Sets Tablet & Desktop widths on the existing columns; adds columns when needed. Mobile keeps stacking.', namespace)}
                         </div>
 
-                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '8px'}}>
-                            {COLUMN_PRESETS.map((preset) => (
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px'}}>
+                            {LAYOUT_PRESETS.map((preset) => (
                                 <Button
-                                    key={`${preset.label}-${preset.width}`}
+                                    key={preset.label}
                                     variant="secondary"
-                                    onClick={() => addColumn(preset.width)}
+                                    style={{justifyContent: 'center', paddingLeft: '4px', paddingRight: '4px', fontSize: '12px'}}
+                                    onClick={() => applyLayoutPreset(preset.widths)}
                                 >
                                     {preset.label}
                                 </Button>
                             ))}
                         </div>
 
-                        <div style={{marginTop: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                        <div style={{margin: '16px 0 4px', fontWeight: 500}}>
+                            {__('Manage Columns', namespace)}
+                        </div>
+                        <div style={{margin: '0 0 8px', fontSize: '11px', color: '#757575'}}>
+                            {__('Widths: Mobile · Tablet · Desktop. Click a name to select that column.', namespace)}
+                        </div>
+
+                        {innerBlocks?.map(renderColumnRow)}
+
+                        <div style={{marginTop: '10px'}}>
                             <Button
-                                variant="tertiary"
+                                variant="secondary"
+                                icon="plus"
                                 onClick={() => addColumn(0)}
                             >
-                                {__('Add Auto Column', namespace)}
-                            </Button>
-
-                            <Button
-                                variant="tertiary"
-                                onClick={removeLastColumn}
-                                disabled={(innerBlocks?.length || 0) <= 1}
-                            >
-                                {__('Remove Last Column', namespace)}
+                                {__('Add Column', namespace)}
                             </Button>
                         </div>
                     </div>
+
+                    <Divider />
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <RangeControl
@@ -618,7 +728,13 @@ export default function Edit({attributes, setAttributes, clientId, className}: B
             </InspectorControls>
 
             <div {...blockProps}>
-                <ColumnsExtraLogic attributes={attributes} blockRef={blockElement} onLayoutChange={setLayoutClass}/>
+                <ColumnsExtraLogic attributes={attributes} blockRef={blockElement} onLayoutChange={handleLayoutChange}/>
+
+                {(isSelected || selectedParents.includes(clientId)) && layoutInfo.cls && (
+                    <div className={`${namespace}-tier-badge`}>
+                        {TIER_LABELS[layoutInfo.cls] || ''}{layoutInfo.width ? ` · ${layoutInfo.width}px` : ''}
+                    </div>
+                )}
 
                 <div
                     className="u-full_cover_absolute"

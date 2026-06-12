@@ -91,10 +91,15 @@ return function( $attributes, $content, $block ) {
     $tra_x_desk = ! empty( $attributes['deskTranslateX'] ) ? $attributes['deskTranslateX'] : 'var(--tab-trans-x)';
     $tra_y_desk = ! empty( $attributes['deskTranslateY'] ) ? $attributes['deskTranslateY'] : 'var(--tab-trans-y)';
 
-    // Order — each breakpoint is independent; empty/unset means 0 (CSS default), not "inherit base"
-    $order_mobile = isset( $attributes['mobileOrder'] ) ? (int) $attributes['mobileOrder'] : 0;
-    $order_tablet = isset( $attributes['tabletOrder'] ) ? (int) $attributes['tabletOrder'] : 0;
-    $order_desktop = isset( $attributes['desktopOrder'] ) ? (int) $attributes['desktopOrder'] : 0;
+    // Order — cascades base → tablet → desktop like every other property.
+    // (Explicit values, including a saved 0, still override.)
+    $order_mobile  = isset( $attributes['mobileOrder'] ) ? (int) $attributes['mobileOrder'] : 0;
+    $order_tablet  = ( isset( $attributes['tabletOrder'] ) && $attributes['tabletOrder'] !== '' )
+        ? (int) $attributes['tabletOrder']
+        : 'var(--col-order-mobile)';
+    $order_desktop = ( isset( $attributes['desktopOrder'] ) && $attributes['desktopOrder'] !== '' )
+        ? (int) $attributes['desktopOrder']
+        : 'var(--col-order-tablet)';
 
     // Z-Index
     $z_mobile = isset( $attributes['zIndex'] ) ? (int) $attributes['zIndex'] : 1;
@@ -283,6 +288,15 @@ return function( $attributes, $content, $block ) {
                 border-left-style: var(--col-border-left-style-mobile, var(--col-border-style-mobile));
                 border-left-color: var(--col-border-left-color-mobile, var(--col-border-color-mobile));
             }
+            <?php if ( $w_mobile <= 0 ) : ?>
+            /* Auto width at base: the col-width mixin in the stylesheet would calc a
+               negative flex-basis from --col-w-mobile: 0 and collapse the column.
+               Same specificity as the mixin rules, later in the document → wins. */
+            .wp-block-<?php echo $namespace; ?>-columns > .<?php echo $namespace; ?>-columns-inner > .wp-block-<?php echo $namespace; ?>-column.<?php echo $block_id; ?> {
+                flex: 1 1 0px !important;
+                max-width: none !important;
+            }
+            <?php endif; ?>
             @media (min-width: <?php echo $tablet_bp; ?>px) {
                 /* Selector prepends parent chain so this rule beats the SCSS base
                    (.wp-block-{ns}-columns > .{ns}-columns-inner > .wp-block-{ns}-column,

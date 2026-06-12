@@ -29,6 +29,8 @@ import {PaddingAttribute} from "../../../models/attr-shapes/padding-margin";
 // Block
 import {ColumnAttributes} from './attributes';
 import VersatileMessage from "../../../components/VersitileMessage";
+import TierNote from "../components/TierNote";
+import WidthPresetButtons from "../components/WidthPresetButtons";
 
 type BorderRadiusValue = string | Record<string, string> | undefined;
 
@@ -145,6 +147,9 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
 
         hasTabletZIndex = tabletZIndex !== undefined && (tabletZIndex as any) !== '',
         hasDesktopZIndex = desktopZIndex !== undefined && (desktopZIndex as any) !== '',
+
+        hasTabletOrder = tabletOrder !== undefined && (tabletOrder as any) !== '',
+        hasDesktopOrder = desktopOrder !== undefined && (desktopOrder as any) !== '',
 
         hasTabletBorderRadius = hasBorderRadiusValue(tabletBorderRadius),
         hasDesktopBorderRadius = hasBorderRadiusValue(desktopBorderRadius),
@@ -309,13 +314,15 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
         ...(hasTabletBorderRadius && { '--col-radius-tablet': borderRadiusToCss(tabletBorderRadius) }),
         ...(hasDesktopBorderRadius && { '--col-radius-desktop': borderRadiusToCss(desktopBorderRadius) }),
 
+        // z-index & order cascade base → tablet → desktop via var() chains so the
+        // editor matches the PHP front-end cascade (PHP falls back numerically).
         '--col-zindex-mobile': zIndex,
-        ...(hasTabletZIndex && { '--col-zindex-tablet': tabletZIndex }),
-        ...(hasDesktopZIndex && { '--col-zindex-desktop': desktopZIndex }),
+        '--col-zindex-tablet': hasTabletZIndex ? tabletZIndex : 'var(--col-zindex-mobile)',
+        '--col-zindex-desktop': hasDesktopZIndex ? desktopZIndex : 'var(--col-zindex-tablet)',
 
         '--col-order-mobile': mobileOrder ?? 0,
-        '--col-order-tablet': tabletOrder ?? 0,
-        '--col-order-desktop': desktopOrder ?? 0,
+        '--col-order-tablet': hasTabletOrder ? tabletOrder : 'var(--col-order-mobile)',
+        '--col-order-desktop': hasDesktopOrder ? desktopOrder : 'var(--col-order-tablet)',
 
         '--base-ext-top': extendTop || '0px',
         '--base-ext-bottom': extendBottom || '0px',
@@ -347,7 +354,6 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
 
         boxSizing: 'border-box',
         position: 'relative',
-        overflow: 'hidden',
         minWidth: 0,
         height: 'auto',
 
@@ -364,6 +370,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
             className,
             hasAdvancedLayout ? 'has-advanced-layout' : '',
             entranceAnimation ? 'has-entrance-animation is-entrance-visible' : '',
+            // Width 0 = Auto (share remaining space). The col-width calc in SCSS
+            // would produce a negative flex-basis, so these classes switch the
+            // column to the same `flex: 1 1 0` the front-end renders.
+            valWidthMobile === 0 ? 'is-auto-mobile' : '',
+            valWidthTablet === 0 ? 'is-auto-tablet' : '',
+            valWidthDesktop === 0 ? 'is-auto-desktop' : '',
         ].filter(Boolean).join(' '),
         style: customStyles as CSSProperties
     });
@@ -394,11 +406,17 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             msg={__('Base layout values used for ALL screen sizes unless overridden.', namespace)}
                             type="warning"
                         />
+                        <TierNote tab="mobile" activeTier={parentLayoutClass} />
                         <RangeControl
                             label={__('Width (%)', namespace)}
                             value={width}
                             onChange={(v) => setAttributes({width: normalizeColumnWidth(v) ?? 100})}
                             min={0} max={100}
+                            help={__('0% = Auto — the column shares the remaining space.', namespace)}
+                        />
+                        <WidthPresetButtons
+                            current={normalizeColumnWidth(width)}
+                            onSelect={(w) => setAttributes({width: w})}
                         />
                         <Divider />
                         <BoxControl
@@ -424,7 +442,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             value={mobileOrder}
                             onChange={(v) => setAttributes({mobileOrder: v ?? 0})}
                             min={-10} max={10}
-                            help={__('Change the display order. Lower numbers appear first.', namespace)}
+                            help={__('Lower numbers appear first. Cascades to Tablet & Desktop unless overridden there.', namespace)}
                         />
                         <Divider />
                         <RangeControl
@@ -512,12 +530,18 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             msg={__(`Optional overrides for screens WIDER than ${tabletBreakpoint}px. If left blank, base layout values are used.`, namespace)}
                             type="warning"
                         />
+                        <TierNote tab="tablet" activeTier={parentLayoutClass} />
                         <RangeControl
                             label={__('Width (%)', namespace)}
                             value={tabletWidth}
                             onChange={(v) => setAttributes({tabletWidth: normalizeColumnWidth(v)})}
                             min={0} max={100}
                             allowReset
+                            help={__('0% = Auto. Reset to inherit from Base.', namespace)}
+                        />
+                        <WidthPresetButtons
+                            current={hasTabletWidth ? normalizeColumnWidth(tabletWidth) : undefined}
+                            onSelect={(w) => setAttributes({tabletWidth: w})}
                         />
                         <Divider />
                         <BoxControl
@@ -541,10 +565,11 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <RangeControl
                             label={__('Flex Order', namespace)}
-                            value={tabletOrder ?? 0}
-                            onChange={(v) => setAttributes({tabletOrder: v ?? 0})}
+                            value={tabletOrder}
+                            onChange={(v) => setAttributes({tabletOrder: v})}
                             min={-10} max={10}
-                            help={__('Independent per breakpoint. Empty = 0.', namespace)}
+                            allowReset
+                            help={__('Inherits from Base when empty.', namespace)}
                         />
                         <Divider />
                         <RangeControl
@@ -637,12 +662,18 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             msg={__(`Optional overrides for screens WIDER than ${desktopBreakpoint}px. If left blank, base layout values are used.`, namespace)}
                             type="warning"
                         />
+                        <TierNote tab="desktop" activeTier={parentLayoutClass} />
                         <RangeControl
                             label={__('Width (%)', namespace)}
                             value={desktopWidth}
                             onChange={(v) => setAttributes({desktopWidth: normalizeColumnWidth(v)})}
                             min={0} max={100}
                             allowReset
+                            help={__('0% = Auto. Reset to inherit from Tablet.', namespace)}
+                        />
+                        <WidthPresetButtons
+                            current={hasDesktopWidth ? normalizeColumnWidth(desktopWidth) : undefined}
+                            onSelect={(w) => setAttributes({desktopWidth: w})}
                         />
                         <Divider />
                         <BoxControl
@@ -666,10 +697,11 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <RangeControl
                             label={__('Flex Order', namespace)}
-                            value={desktopOrder ?? 0}
-                            onChange={(v) => setAttributes({desktopOrder: v ?? 0})}
+                            value={desktopOrder}
+                            onChange={(v) => setAttributes({desktopOrder: v})}
                             min={-10} max={10}
-                            help={__('Independent per breakpoint. Empty = 0.', namespace)}
+                            allowReset
+                            help={__('Inherits from Tablet when empty.', namespace)}
                         />
                         <Divider />
                         <RangeControl
@@ -816,17 +848,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                     style={{
                         position: 'absolute',
                         inset: 0,
-                        backgroundColor: 'var(--current-bg-color)',
-                        pointerEvents: 'none',
-                        zIndex: 0,
-                    }}
-                />
-
-                <div
-                    className="u-full_cover_absolute"
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
+                        borderRadius: 'inherit',
                         backgroundImage: 'var(--current-bg-gradient, none), var(--current-bg-image)',
                         backgroundSize: backgroundSize || 'cover',
                         backgroundPosition: activeBackgroundPosition,
@@ -853,6 +875,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             height: '100%',
                             objectFit: 'cover',
                             objectPosition: 'center',
+                            borderRadius: 'inherit',
                             opacity: (backgroundImageOpacity ?? 100) / 100,
                             pointerEvents: 'none',
                             zIndex: 0,

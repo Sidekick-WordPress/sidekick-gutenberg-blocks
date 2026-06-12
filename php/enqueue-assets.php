@@ -44,6 +44,24 @@ add_action('enqueue_block_assets', function () use ($asset_url_base, $asset_dir_
     wp_localize_script(SGB_NS . '-react-js', 'app', [
         'siteUrl' => get_site_url(),
     ]);
+
+    // --- EDITOR CANVAS CSS ---
+    // Enqueued HERE (not enqueue_block_editor_assets) on purpose: since WP 6.3 the
+    // post editor canvas can be an iframe, and only styles registered during
+    // enqueue_block_assets are copied into it. enqueue_block_editor_assets styles
+    // stay in the parent document and never reach an iframed canvas.
+    if ( is_admin() ) {
+        $edit_css_rel  = 'css/blocks-edit.css';
+        $edit_css_url  = $asset_url_base . $edit_css_rel;
+        $edit_css_path = $asset_dir_base . $edit_css_rel;
+
+        wp_enqueue_style(
+            SGB_NS . '-editor-style',
+            $edit_css_url,
+            [],
+            sgb_ver($edit_css_path)
+        );
+    }
 });
 
 // Editor-only assets
@@ -60,18 +78,6 @@ add_action('enqueue_block_editor_assets', function () use ($asset_url_base, $ass
         [ 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-editor' ],
         sgb_ver($blocks_js_path), // FIX: Wrapped in sgb_ver()
         true
-    );
-
-    // --- BLOCKS CSS ---
-    $edit_css_rel  = 'css/blocks-edit.css';
-    $edit_css_url  = $asset_url_base . $edit_css_rel;
-    $edit_css_path = $asset_dir_base . $edit_css_rel;
-
-    wp_enqueue_style(
-        SGB_NS . '-editor-style',
-        $edit_css_url,
-        [ 'wp-edit-blocks' ],
-        sgb_ver($edit_css_path)
     );
 });
 

@@ -134,7 +134,12 @@ return function( $attributes, $content ) {
     // Build Inner Styles
     $inner_style = 'display:flex; flex-wrap:wrap; flex-direction:row; justify-content:flex-start; align-items:stretch; gap:var(--current-gap); position:relative; z-index:1; max-width:var(--current-max-width); margin-left:var(--current-margin-left); margin-right:var(--current-margin-right); box-sizing:border-box; width:100%;';
 
-    $encoded_attributes = htmlspecialchars( wp_json_encode( $attributes ), ENT_QUOTES, 'UTF-8' );
+    // The frontend mount (react.tsx → ColumnsExtraLogic) only reads the two
+    // breakpoints — don't serialize every attribute (bg URLs etc.) into the markup.
+    $encoded_attributes = htmlspecialchars( wp_json_encode( [
+        'tabletBreakpoint'  => $tablet_bp,
+        'desktopBreakpoint' => $desktop_bp,
+    ] ), ENT_QUOTES, 'UTF-8' );
 
     ob_start();
     ?>

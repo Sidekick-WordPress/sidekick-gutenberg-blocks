@@ -1,6 +1,10 @@
 @use "../../styles/defaults/namespace" as *;
 @use "../../styles/defaults/functions" as *;
-@use "save";
+
+// NOTE: the shared responsive rules live in _save.scss, which ships in
+// blocks-save.css and is enqueued via enqueue_block_assets — so it reaches the
+// front-end, the editor parent page, AND the iframed canvas. Don't @use it here
+// or every rule gets emitted twice.
 
 .block-editor-block-list__block[data-type="#{$namespace}/column"] {
     margin: 0 !important; // Gutenberg default
@@ -24,13 +28,45 @@
     }
 }
 
-.block-editor-block-list__block[data-type="#{$namespace}/column"] > .wp-block-#{$namespace}-column {
-    flex-grow: 1;
-    height: 100%;
-    min-height: 0;
-
-    &.has-advanced-layout {
-        height: auto !important;
-    }
+// Active-breakpoint badge — rendered by edit.tsx while the block (or a child)
+// is selected. Shows which tier the ResizeObserver currently previews.
+.wp-block-#{$namespace}-columns > .#{$namespace}-tier-badge {
+    position: absolute;
+    top: rem(4);
+    right: rem(4);
+    z-index: 30;
+    pointer-events: none;
+    background: rgba(20, 20, 20, 0.78);
+    color: #fff;
+    font-size: rem(11);
+    line-height: 1;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: rem(4) rem(8);
+    border-radius: rem(2);
 }
 
+// Keep the inline "+" appender at the end of the row even when columns use
+// flex order — otherwise it lands visually between reordered columns.
+.wp-block-#{$namespace}-columns > .#{$namespace}-columns-inner > .block-list-appender {
+    order: 9999;
+    flex: 0 0 auto;
+    align-self: center;
+    margin: 0;
+}
+
+// AUTO COLUMNS (width 0): mirror the front-end `flex: 1 1 0` (PHP $get_flex(0)).
+// The col-width mixin in _save.scss would otherwise calc a negative flex-basis
+// and collapse the column. The extra class out-specifies the mixin at every tier.
+.wp-block-#{$namespace}-columns {
+    > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column.is-auto-mobile {
+        flex: 1 1 0px !important;
+        max-width: none !important;
+    }
+
+    &.is-mobile-layout > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column.is-auto-mobile,
+    &.is-tablet-layout > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column.is-auto-tablet,
+    &.is-desktop-layout > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column.is-auto-desktop {
+        flex: 1 1 0px !important;
+        max-width: none !important;
+    }
+}
