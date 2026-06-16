@@ -1,7 +1,3 @@
-import { createRoot } from '@wordpress/element';
-import type { ReactNode } from 'react';
-
-import ColumnsExtraLogic from "./components/ColumnsExtraLogic";
 import namespace from '../../namespace';
 
 const initBackgroundVideos = () => {
@@ -85,29 +81,19 @@ const initColumnEntranceAnimations = () => {
     animatedColumns.forEach((column) => observer.observe(column));
 };
 
-const columnsBlocks = document.querySelectorAll(
-    `.wp-block-${namespace}-columns`
-);
-
-columnsBlocks.forEach((block) => {
-    // Cast to HTMLElement so we can access .dataset
-    const blockMount = block.querySelector(`.${namespace}-block__mount`) as HTMLElement;
-
-    if (blockMount && blockMount.dataset.attributes) {
-        const
-            attributes = JSON.parse(blockMount.dataset.attributes),
-            root = createRoot(blockMount);
-
-        root.render(
-            (
-                <ColumnsExtraLogic
-                    attributes={attributes}
-                    blockRef={block as HTMLElement}
-                />
-            ) as ReactNode
-        );
-    }
-});
+// NOTE: We intentionally do NOT mount ColumnsExtraLogic (the ResizeObserver) on
+// the front-end. Its job is to toggle the `.is-*-layout` classes, which are
+// EDITOR ONLY (see _save.scss) — the editor canvas isn't viewport-width, so the
+// editor must measure the element. On the front-end the per-block <style> media
+// queries (columns/save.php + column/save.php) are the single source of truth.
+//
+// Running the observer here previously desynced the layout: the child columns'
+// width media queries use `!important` and follow the *viewport*, while the
+// parent's `--current-max-width` media query is NOT `!important`, so the
+// observer-toggled `.is-*-layout !important` rules overrode it and made the
+// parent follow the *element* width (viewport minus scrollbar) instead. That
+// scrollbar-width gap broke the layout in a ~10px window range. Letting the
+// parent fall back to its media query keeps it in sync with the children.
 
 initBackgroundVideos();
 initColumnEntranceAnimations();
