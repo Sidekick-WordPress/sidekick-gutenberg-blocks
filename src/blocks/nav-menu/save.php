@@ -23,6 +23,7 @@ return function( $attributes, $content ) {
     $orientation = isset( $attributes['orientation'] ) ? $attributes['orientation'] : 'horizontal';
     $gap         = isset( $attributes['gap'] ) ? (int) $attributes['gap'] : 24;
     $mobile_gap  = isset( $attributes['mobileGap'] ) ? (int) $attributes['mobileGap'] : 12;
+    $mobile_font_size = isset( $attributes['mobileFontSize'] ) ? (int) $attributes['mobileFontSize'] : 24;
 
     $parent_padding_arr = isset( $attributes['parentPadding'] ) ? $attributes['parentPadding'] : null;
     $sub_padding_arr    = isset( $attributes['subMenuPadding'] ) ? $attributes['subMenuPadding'] : null;
@@ -38,6 +39,8 @@ return function( $attributes, $content ) {
     $overlay_bg         = ! empty( $attributes['overlayBgColor'] ) ? $attributes['overlayBgColor'] : 'var(--wp--preset--color--base, #ffffff)';
     $overlay_color      = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : 'var(--wp--preset--color--contrast, #000000)';
     $sub_menu_width     = isset( $attributes['subMenuWidth'] ) ? (int) $attributes['subMenuWidth'] : 240;
+    $sub_menu_box_shadow = ! empty( $attributes['subMenuBoxShadow'] ) ? $attributes['subMenuBoxShadow'] : 'none';
+    $sub_menu_radius    = isset( $attributes['subMenuBorderRadius'] ) ? (int) $attributes['subMenuBorderRadius'] : 0;
     $sub_menu_text_align = isset( $attributes['subMenuTextAlign'] ) ? $attributes['subMenuTextAlign'] : 'right';
     $sub_menu_alignment = isset( $attributes['subMenuAlignment'] ) ? $attributes['subMenuAlignment'] : 'left'; // <-- Extract new attr
     $nested_sub_menu_direction = isset( $attributes['nestedSubMenuDirection'] ) ? $attributes['nestedSubMenuDirection'] : 'right';
@@ -50,6 +53,15 @@ return function( $attributes, $content ) {
     $overlay_color_hover = !empty($attributes['overlayColorHover']) ? $attributes['overlayColorHover'] : $overlay_color;
     $text_transform     = isset( $attributes['textTransform'] ) ? $attributes['textTransform'] : 'none';
     $font_weight    = isset( $attributes['fontWeight'] ) ? $attributes['fontWeight'] : '';
+
+    // The sub-menu identifier is rendered as a CSS mask, so the raw SVG markup
+    // is base64-encoded into a data URI. Referenced as a mask image (never
+    // injected into the DOM), so arbitrary SVG markup can't execute — and
+    // base64 keeps the value free of quotes/special chars that would otherwise
+    // need escaping through the style attribute + CSS url() layers.
+    $default_indicator  = '<svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m16.843 10.211c.108-.141.157-.3.157-.456 0-.389-.306-.755-.749-.755h-8.501c-.445 0-.75.367-.75.755 0 .157.05.316.159.457 1.203 1.554 3.252 4.199 4.258 5.498.142.184.36.29.592.29.23 0 .449-.107.591-.291zm-7.564.289h5.446l-2.718 3.522z" fill-rule="nonzero"/></svg>';
+    $sub_menu_indicator = ! empty( $attributes['subMenuIndicator'] ) ? $attributes['subMenuIndicator'] : $default_indicator;
+    $sub_menu_indicator_uri = 'url(data:image/svg+xml;base64,' . base64_encode( $sub_menu_indicator ) . ')';
 
     $flex_direction = $orientation === 'vertical' ? 'column' : 'row';
     $align_items    = $orientation === 'vertical' ? 'stretch' : 'center';
@@ -99,7 +111,11 @@ return function( $attributes, $content ) {
             '--nav-sub-color-hover: %20$s; ' .
             '--nav-overlay-bg-hover: %21$s; ' .
             '--nav-overlay-color-hover: %22$s; ' .
-            '--nav-font-weight: %23$s;', // <-- Add CSS variable (parameter 23)
+            '--nav-font-weight: %23$s; ' .
+            '--nav-sub-box-shadow: %24$s; ' .
+            '--nav-sub-border-radius: %25$dpx; ' .
+            '--nav-submenu-indicator: %26$s; ' .
+            '--nav-mobile-font-size: %27$dpx;',
             $gap, // 1
             $mobile_gap, // 2
             esc_attr( $parent_padding ), // 3
@@ -122,7 +138,11 @@ return function( $attributes, $content ) {
             esc_attr( $sub_menu_color_hover ), // 20
             esc_attr( $overlay_bg_hover ), // 21
             esc_attr( $overlay_color_hover ), // 22
-            esc_attr( $font_weight ) // 23
+            esc_attr( $font_weight ), // 23
+            esc_attr( $sub_menu_box_shadow ), // 24
+            $sub_menu_radius, // 25
+            esc_attr( $sub_menu_indicator_uri ), // 26
+            $mobile_font_size // 27
         );
 
     $style = $layout_inline_style . $style_vars;

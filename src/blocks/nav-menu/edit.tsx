@@ -5,6 +5,8 @@ import {
     RangeControl,
     SelectControl,
     Spinner,
+    TextControl,
+    TextareaControl,
     ToggleControl,
     __experimentalBoxControl as BoxControl
 } from '@wordpress/components';
@@ -28,6 +30,7 @@ export default function Edit(
         orientation = 'horizontal',
         gap = 24,
         mobileGap = 12,
+        mobileFontSize = 24,
         parentPadding = {top: '0.5rem', right: '1rem', bottom: '0.5rem', left: '1rem'},
         parentBgColor = 'transparent',
         parentColor = 'inherit',
@@ -41,10 +44,13 @@ export default function Edit(
         overlayColorHover = '',
         subMenuPadding = {top: '0.5rem', right: '1rem', bottom: '0.5rem', left: '1rem'},
         subMenuWidth = 240,
+        subMenuBoxShadow = '0 8px 24px rgba(0, 0, 0, 0.12)',
+        subMenuBorderRadius = 0,
         subMenuTextAlign = 'right',
         subMenuAlignment = 'left',
         nestedSubMenuDirection = 'right',
         showSubMenuArrows = true,
+        subMenuIndicator = '',
         overlayBgColor = '',
         overlayColor = '',
         textTransform = 'none',
@@ -109,11 +115,26 @@ export default function Edit(
                         onChange={(value) => setAttributes({mobileGap: value ?? 12})}
                         min={0} max={120}
                     />
+                    <RangeControl
+                        label={__('Mobile Font Size (px)', namespace)}
+                        value={mobileFontSize}
+                        onChange={(value) => setAttributes({mobileFontSize: value ?? 24})}
+                        min={12} max={48}
+                    />
                     <ToggleControl
                         label={__('Show Sub-Menu Arrows', namespace)}
                         checked={showSubMenuArrows}
                         onChange={(value) => setAttributes({ showSubMenuArrows: value })}
                     />
+                    {showSubMenuArrows && (
+                        <TextareaControl
+                            label={__('Sub-Menu Indicator (SVG)', namespace)}
+                            help={__('SVG markup shown next to items with a sub-menu. Painted as a CSS mask, so it follows the menu text color. Clear to restore the default chevron.', namespace)}
+                            value={subMenuIndicator}
+                            onChange={(value) => setAttributes({ subMenuIndicator: value })}
+                            rows={4}
+                        />
+                    )}
                     <SelectControl
                         label={__('Top-Level Sub-Menu Alignment', namespace)}
                         value={subMenuAlignment}
@@ -175,6 +196,18 @@ export default function Edit(
                         value={subMenuWidth}
                         onChange={(value) => setAttributes({subMenuWidth: value ?? 240})}
                         min={100} max={600}
+                    />
+                    <RangeControl
+                        label={__('Sub-Menu Border Radius (px)', namespace)}
+                        value={subMenuBorderRadius}
+                        onChange={(value) => setAttributes({subMenuBorderRadius: value ?? 0})}
+                        min={0} max={50}
+                    />
+                    <TextControl
+                        label={__('Sub-Menu Box Shadow', namespace)}
+                        help={__('Any CSS box-shadow value, e.g. "0 8px 24px rgba(0,0,0,0.12)". Use "none" to remove. Applies to desktop dropdown panels.', namespace)}
+                        value={subMenuBoxShadow}
+                        onChange={(value) => setAttributes({subMenuBoxShadow: value})}
                     />
 
                 </PanelBody>
@@ -269,10 +302,21 @@ export default function Edit(
             </InspectorControls>
 
             {ref ? (
-                <ServerSideRender
-                    block={metadata.name}
-                    attributes={attributes}
-                />
+                // Swallow link clicks so the editor doesn't navigate away (a
+                // click then just selects the block). Hover stays live, so the
+                // CSS-driven sub-menu dropdowns still open for previewing.
+                <div
+                    onClickCapture={(e) => {
+                        if ((e.target as HTMLElement).closest('a')) {
+                            e.preventDefault();
+                        }
+                    }}
+                >
+                    <ServerSideRender
+                        block={metadata.name}
+                        attributes={attributes}
+                    />
+                </div>
             ) : (
                 <div style={{padding: '24px', border: '2px dashed #ccc', textAlign: 'center'}}>
                     {__('Please select a Navigation Menu.', namespace)}

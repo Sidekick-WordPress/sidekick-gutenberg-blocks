@@ -55,23 +55,32 @@
             > button,
             > .wp-block-navigation-submenu__toggle {
                 position: relative;
-                padding-right: calc(#{rem(18)} + 0.75em);
+                padding-right: calc(#{rem(22)} + 0.75em);
             }
 
             > a::after,
             > .wp-block-navigation-item__content::after,
             > button::after,
             > .wp-block-navigation-submenu__toggle::after {
-                // ▾ (U+25BE), interpolated so the escape reaches the compiled
-                // CSS as ASCII — a raw character turns to mojibake whenever
-                // the stylesheet is decoded as anything but UTF-8.
-                content: #{'"\\25be"'};
+                // The identifier is a user-supplied SVG, piped in as a base64
+                // data URI (--nav-submenu-indicator) and painted with a CSS
+                // mask so it inherits the link's currentColor, hover included.
+                content: "";
                 position: absolute;
                 right: rem(8);
                 top: 50%;
                 transform: translateY(-50%);
-                font-size: 0.8em;
-                line-height: 1;
+                width: 1.1em;
+                height: 1.1em;
+                background-color: currentColor;
+                mask-image: var(--nav-submenu-indicator);
+                mask-repeat: no-repeat;
+                mask-position: center;
+                mask-size: contain;
+                -webkit-mask-image: var(--nav-submenu-indicator);
+                -webkit-mask-repeat: no-repeat;
+                -webkit-mask-position: center;
+                -webkit-mask-size: contain;
             }
         }
     }
@@ -189,6 +198,27 @@
 
     // 6. Horizontal Desktop Dropdown Behavior Only
     &[data-orientation="horizontal"]:not(.is-mobile-menu) {
+
+        // Floating-panel decorations: only meaningful while the sub-menu is an
+        // absolutely-positioned dropdown (horizontal desktop). In vertical /
+        // mobile modes the sub-menu expands inline, where a shadow looks wrong.
+        .wp-block-navigation__submenu-container {
+            box-shadow: var(--nav-sub-box-shadow, none);
+            border-radius: var(--nav-sub-border-radius, 0);
+
+            // overflow must stay visible for nested fly-outs + the hover bridge,
+            // so the panel can't clip with overflow:hidden. Round the first/last
+            // items directly so their hover fill is clipped to the panel corners.
+            > li:first-child {
+                border-top-left-radius: var(--nav-sub-border-radius, 0);
+                border-top-right-radius: var(--nav-sub-border-radius, 0);
+            }
+
+            > li:last-child {
+                border-bottom-left-radius: var(--nav-sub-border-radius, 0);
+                border-bottom-right-radius: var(--nav-sub-border-radius, 0);
+            }
+        }
 
         // Base Dropdown Styles
         .sgb-nav-menu__inner,
@@ -434,7 +464,19 @@
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important;
+        // `safe` keeps the menu centered when it fits, but falls back to top-
+        // aligned once it overflows so the first items stay reachable while
+        // scrolling. Engines without `safe` ignore this and keep `center`.
+        justify-content: safe center !important;
         flex-grow: 1;
+        min-height: 0; // let the list shrink + scroll within the fixed overlay
+        // Vertical scroll only. overflow-x must be explicitly hidden: leaving it
+        // `visible` while overflow-y is `auto` makes the browser compute it to
+        // `auto` too, which spawns a horizontal scrollbar on any slight overflow.
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
 
         li {
             width: 100%;
@@ -447,7 +489,7 @@
         a,
         .wp-block-navigation-item__content,
         .wp-block-navigation-submenu__toggle {
-            font-size: rem(24);
+            font-size: var(--nav-mobile-font-size, #{rem(24)});
             transition: color 0.2s ease;
         }
 
