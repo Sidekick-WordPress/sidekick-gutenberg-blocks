@@ -462,6 +462,14 @@
 
     .sgb-nav-menu__inner {
         flex-direction: column !important;
+        // The <ul> carries an inline `flex-wrap:wrap` (save.php) for desktop
+        // row-wrapping. Left unreset here it makes this column scroll container
+        // wrap overflowing items into off-screen side columns (clipped by
+        // overflow-x:hidden) instead of building vertical scroll height — so the
+        // scroll barely engages and lower items become unreachable. Force a
+        // single column so overflow goes block-direction and overflow-y scrolls.
+        // !important is required to beat the inline value (same reason as above).
+        flex-wrap: nowrap !important;
         align-items: center !important;
         justify-content: center !important;
         // `safe` keeps the menu centered when it fits, but falls back to top-
@@ -496,6 +504,9 @@
         > li {
             background-color: transparent;
             width: 100%;
+            // Never shrink: a column flex item could otherwise be compressed by
+            // flex-shrink instead of overflowing, which would defeat scrolling.
+            flex-shrink: 0;
             transition: background-color 0.2s ease;
 
             > a,
