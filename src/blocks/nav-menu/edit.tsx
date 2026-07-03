@@ -50,7 +50,9 @@ export default function Edit(
         subMenuAlignment = 'left',
         nestedSubMenuDirection = 'right',
         showSubMenuArrows = true,
+        collapsibleSubMenus = true,
         subMenuIndicator = '',
+        subMenuIndentColor = '',
         overlayBgColor = '',
         overlayColor = '',
         textTransform = 'none',
@@ -126,7 +128,15 @@ export default function Edit(
                         checked={showSubMenuArrows}
                         onChange={(value) => setAttributes({ showSubMenuArrows: value })}
                     />
-                    {showSubMenuArrows && (
+                    {orientation === 'vertical' && (
+                        <ToggleControl
+                            label={__('Collapsible Sub-Menus', namespace)}
+                            help={__('Start sub-menus collapsed; visitors expand them with an arrow toggle next to the parent item. Applies on the front end only — the editor preview always shows sub-menus expanded.', namespace)}
+                            checked={collapsibleSubMenus}
+                            onChange={(value) => setAttributes({ collapsibleSubMenus: value })}
+                        />
+                    )}
+                    {(showSubMenuArrows || (orientation === 'vertical' && collapsibleSubMenus)) && (
                         <TextareaControl
                             label={__('Sub-Menu Indicator (SVG)', namespace)}
                             help={__('SVG markup shown next to items with a sub-menu. Painted as a CSS mask, so it follows the menu text color. Clear to restore the default chevron.', namespace)}
@@ -286,6 +296,7 @@ export default function Edit(
                         { value: subMenuBgColorHover, onChange: (v) => setAttributes({ subMenuBgColorHover: v || '' }), label: __('Item Background (Hover)', namespace) },
                         { value: subMenuColor, onChange: (v) => setAttributes({ subMenuColor: v || 'inherit' }), label: __('Text Color', namespace) },
                         { value: subMenuColorHover, onChange: (v) => setAttributes({ subMenuColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
+                        { value: subMenuIndentColor, onChange: (v) => setAttributes({ subMenuIndentColor: v || '' }), label: __('Indent Indicator', namespace) },
                     ]}
                 />
 

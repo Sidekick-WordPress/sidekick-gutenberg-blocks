@@ -48,11 +48,14 @@
 
 .sgb-nav-menu {
     // 3. Arrow Support (horizontal/default)
+    // The injected vertical toggle (.sgb-nav-menu__submenu-toggle) is excluded
+    // from the generic button selectors here and below: it draws its own arrow
+    // (section 4b) and must not pick up the in-link arrow padding/pseudo.
     &--show-submenu-arrows {
         li:has(> .wp-block-navigation__submenu-container) {
             > a,
             > .wp-block-navigation-item__content,
-            > button,
+            > button:not(.sgb-nav-menu__submenu-toggle),
             > .wp-block-navigation-submenu__toggle {
                 position: relative;
                 padding-right: calc(#{rem(22)} + 0.75em);
@@ -60,7 +63,7 @@
 
             > a::after,
             > .wp-block-navigation-item__content::after,
-            > button::after,
+            > button:not(.sgb-nav-menu__submenu-toggle)::after,
             > .wp-block-navigation-submenu__toggle::after {
                 // The identifier is a user-supplied SVG, piped in as a base64
                 // data URI (--nav-submenu-indicator) and painted with a CSS
@@ -85,20 +88,21 @@
         }
     }
 
-    // 4. Hide arrows in vertical mode
+    // 4. Hide in-link arrows in vertical mode (the collapsible toggle button
+    // below is a separate element and keeps its own arrow)
     &[data-orientation="vertical"] {
         &.sgb-nav-menu--show-submenu-arrows {
             li:has(> .wp-block-navigation__submenu-container) {
                 > a,
                 > .wp-block-navigation-item__content,
-                > button,
+                > button:not(.sgb-nav-menu__submenu-toggle),
                 > .wp-block-navigation-submenu__toggle {
                     padding-right: var(--nav-parent-padding);
                 }
 
                 > a::after,
                 > .wp-block-navigation-item__content::after,
-                > button::after,
+                > button:not(.sgb-nav-menu__submenu-toggle)::after,
                 > .wp-block-navigation-submenu__toggle::after {
                     content: none;
                 }
@@ -108,8 +112,80 @@
             // hierarchy cue
             padding-left: var(--nav-parent-padding-left, 1rem) !important;
             li {
-                box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-sub-color) 18%, transparent);
+                // The inner currentColor fallback matters: --nav-sub-color
+                // defaults to the literal "inherit", which on a custom property
+                // resolves to guaranteed-invalid and would void the whole
+                // box-shadow declaration.
+                box-shadow: inset rem(3) 0 0 0 var(--nav-indent-color, color-mix(in srgb, var(--nav-sub-color, currentColor) 18%, transparent));
             }
+        }
+    }
+
+    // 4b. Collapsible vertical sub-menus. react.ts injects the toggle button
+    // after each parent link and collapses the sub-menu via inline style. The
+    // li becomes a wrapping flex row: link + toggle share the first row and
+    // the full-width sub-menu container wraps beneath them.
+    &--collapsible[data-orientation="vertical"] {
+        li:has(> .sgb-nav-menu__submenu-toggle) {
+            display: flex;
+            flex-wrap: wrap;
+
+            > a,
+            > .wp-block-navigation-item__content {
+                flex: 1 1 auto;
+                // Section 7 gives sub-menu links width:100%; left in place it
+                // becomes the flex basis and pushes the toggle onto its own
+                // row for nested parents.
+                width: auto;
+            }
+
+            > .wp-block-navigation__submenu-container {
+                flex: 0 0 100%;
+            }
+        }
+
+        .sgb-nav-menu__submenu-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font: inherit;
+            padding: var(--nav-parent-padding);
+            color: var(--nav-parent-color);
+
+            &::after {
+                content: "";
+                width: 1.1em;
+                height: 1.1em;
+                background-color: currentColor;
+                mask-image: var(--nav-submenu-indicator);
+                mask-repeat: no-repeat;
+                mask-position: center;
+                mask-size: contain;
+                -webkit-mask-image: var(--nav-submenu-indicator);
+                -webkit-mask-repeat: no-repeat;
+                -webkit-mask-position: center;
+                -webkit-mask-size: contain;
+                transition: transform 0.2s ease;
+
+                // Forced-colors mode strips author background-colors, which
+                // would erase the mask-drawn arrow; system colors are kept.
+                @media (forced-colors: active) {
+                    background-color: ButtonText;
+                }
+            }
+        }
+
+        .wp-block-navigation__submenu-container .sgb-nav-menu__submenu-toggle {
+            padding: var(--nav-sub-padding);
+            color: var(--nav-sub-color);
+        }
+
+        li.is-submenu-open > .sgb-nav-menu__submenu-toggle::after {
+            transform: rotate(180deg);
         }
     }
 
@@ -369,7 +445,7 @@
 
         a,
         .wp-block-navigation-item__content,
-        button,
+        button:not(.sgb-nav-menu__submenu-toggle),
         .wp-block-navigation-submenu__toggle {
             padding: var(--nav-sub-padding);
             color: var(--nav-sub-color);
@@ -549,7 +625,7 @@
             padding-left: var(--nav-parent-padding-left, 1rem) !important;
 
             & > li {
-                box-shadow: inset rem(3) 0 0 0 color-mix(in srgb, var(--nav-overlay-color) 18%, transparent);
+                box-shadow: inset rem(3) 0 0 0 var(--nav-indent-color, color-mix(in srgb, var(--nav-overlay-color, currentColor) 18%, transparent));
                 transition: background-color 0.2s ease;
 
                 a,

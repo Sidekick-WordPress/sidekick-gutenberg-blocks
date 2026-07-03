@@ -45,6 +45,8 @@ return function( $attributes, $content ) {
     $sub_menu_alignment = isset( $attributes['subMenuAlignment'] ) ? $attributes['subMenuAlignment'] : 'left'; // <-- Extract new attr
     $nested_sub_menu_direction = isset( $attributes['nestedSubMenuDirection'] ) ? $attributes['nestedSubMenuDirection'] : 'right';
     $show_sub_menu_arrows = isset( $attributes['showSubMenuArrows'] ) ? (bool) $attributes['showSubMenuArrows'] : true;
+    $collapsible_sub_menus = isset( $attributes['collapsibleSubMenus'] ) ? (bool) $attributes['collapsibleSubMenus'] : true;
+    $sub_menu_indent_color = ! empty( $attributes['subMenuIndentColor'] ) ? $attributes['subMenuIndentColor'] : '';
     $parent_bg_hover = !empty($attributes['parentBgColorHover']) ? $attributes['parentBgColorHover'] : $parent_bg_color;
     $parent_color_hover = !empty($attributes['parentColorHover']) ? $attributes['parentColorHover'] : $parent_color;
     $sub_menu_bg_hover = !empty($attributes['subMenuBgColorHover']) ? $attributes['subMenuBgColorHover'] : 'transparent';
@@ -145,6 +147,15 @@ return function( $attributes, $content ) {
             $mobile_font_size // 27
         );
 
+    // The indent bar's fallback color is context-dependent in the stylesheet
+    // (keyed to sub-menu color in vertical mode, overlay color in mobile
+    // mode), so the variable is only emitted when a custom color is chosen.
+    // esc_attr() doesn't touch ';' or '{', so declaration separators are
+    // rejected outright to keep the value from smuggling extra CSS.
+    if ( $sub_menu_indent_color && ! preg_match( '/[;{}]/', $sub_menu_indent_color ) ) {
+        $style_vars .= sprintf( ' --nav-indent-color: %s;', esc_attr( $sub_menu_indent_color ) );
+    }
+
     $style = $layout_inline_style . $style_vars;
 
     $wrapper_classes = [
@@ -156,6 +167,10 @@ return function( $attributes, $content ) {
         $wrapper_classes[] = "{$namespace}-nav-menu--show-submenu-arrows";
     } else {
         $wrapper_classes[] = "{$namespace}-nav-menu--hide-submenu-arrows";
+    }
+
+    if ( $orientation === 'vertical' && $collapsible_sub_menus ) {
+        $wrapper_classes[] = "{$namespace}-nav-menu--collapsible";
     }
 
     $wrapper_attributes = get_block_wrapper_attributes([

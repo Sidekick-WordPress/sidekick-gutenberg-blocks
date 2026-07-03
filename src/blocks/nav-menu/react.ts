@@ -46,6 +46,60 @@ const smoothScrollToTarget = (target: HTMLElement) => {
     });
 };
 
+// Vertical collapsible mode: sub-menus start closed and open via an injected
+// toggle button. Collapsing uses an inline !important display so it beats the
+// stylesheet's force-open vertical rules; expanding just removes it again.
+// Because the buttons only exist once this runs, a no-JS visitor gets the
+// old always-expanded menu and every link stays reachable.
+let submenuIdCounter = 0;
+
+const setupCollapsibleSubmenus = (navInner: HTMLElement) => {
+    navInner.querySelectorAll('li').forEach((item) => {
+        const submenu = item.querySelector(
+            ':scope > .wp-block-navigation__submenu-container'
+        ) as HTMLElement | null;
+        if (!submenu) return;
+
+        const link = item.querySelector(':scope > a, :scope > .wp-block-navigation-item__content');
+        const label = link?.textContent?.trim();
+
+        if (!submenu.id) {
+            submenuIdCounter += 1;
+            submenu.id = `sgb-nav-submenu-${submenuIdCounter}`;
+        }
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'sgb-nav-menu__submenu-toggle';
+        toggle.setAttribute('aria-controls', submenu.id);
+        toggle.setAttribute('aria-label', label ? `Toggle sub-menu of ${label}` : 'Toggle sub-menu');
+
+        const setOpen = (open: boolean) => {
+            if (open) {
+                submenu.style.removeProperty('display');
+            } else {
+                submenu.style.setProperty('display', 'none', 'important');
+            }
+            item.classList.toggle('is-submenu-open', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+
+        toggle.addEventListener('click', () => {
+            setOpen(!item.classList.contains('is-submenu-open'));
+        });
+
+        // Start open only along the current page's trail so visitors can see
+        // where they are; everything else starts collapsed.
+        setOpen(!!item.querySelector('[aria-current], .current-menu-item'));
+
+        if (link) {
+            link.after(toggle);
+        } else {
+            item.insertBefore(toggle, submenu);
+        }
+    });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const navMenus = document.querySelectorAll('.sgb-nav-menu') as NodeListOf<HTMLElement>;
 
@@ -108,6 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (orientation === 'vertical') {
+            if (navWrapper.classList.contains('sgb-nav-menu--collapsible')) {
+                setupCollapsibleSubmenus(navInner);
+            }
             setState('is-mobile-menu', false);
             setState('is-open', false);
             setState('is-initialized', true);
