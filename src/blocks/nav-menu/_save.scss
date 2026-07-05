@@ -132,7 +132,10 @@
 
             > a,
             > .wp-block-navigation-item__content {
-                flex: 1 1 auto;
+                // No grow: the link stays content-width so the toggle sits
+                // beside the label instead of riding the li's right edge,
+                // which shifts whenever an open sub-menu widens the list.
+                flex: 0 1 auto;
                 // Section 7 gives sub-menu links width:100%; left in place it
                 // becomes the flex basis and pushes the toggle onto its own
                 // row for nested parents.
