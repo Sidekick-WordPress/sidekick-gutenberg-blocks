@@ -123,29 +123,35 @@
 
     // 4b. Collapsible vertical sub-menus. react.ts injects the toggle button
     // after each parent link and collapses the sub-menu via inline style. The
-    // li becomes a wrapping flex row: link + toggle share the first row and
-    // the full-width sub-menu container wraps beneath them.
+    // li stays a block box: link + toggle sit inline on the first line and the
+    // full-width sub-menu container drops onto its own line beneath them.
     &--collapsible[data-orientation="vertical"] {
+        // Block, NOT a wrapping flex row. A flex container reports its
+        // max-content width as the SUM of its items on a single line
+        // (max-content never wraps), so a wrapping flex li counts the link,
+        // the toggle AND the full-width sub-menu side-by-side. In a shrink-to-
+        // fit nav column that makes the whole column balloon to
+        // link+toggle+submenu wide the instant a sub-menu opens — wider than
+        // any row's real text. A block box's shrink-to-fit width is the MAX of
+        // its children instead, so the column only grows to its widest single
+        // row. The sub-menu container is already display:block (section 5), so
+        // it naturally drops onto its own line beneath the inline link+toggle.
         li:has(> .sgb-nav-menu__submenu-toggle) {
-            display: flex;
-            flex-wrap: wrap;
+            display: block;
 
             > a,
             > .wp-block-navigation-item__content {
-                // Content-width, NOT 1 1 auto: letting the link grow to fill
-                // the row shoves the toggle out to the far-right margin, away
-                // from its label. Sitting at natural width keeps the toggle
-                // right beside the text. flex-shrink stays 1 so a long label
-                // can still wrap instead of overflowing.
-                flex: 0 1 auto;
-                // Section 7 gives sub-menu links width:100%; left in place it
-                // becomes the flex basis and pushes the toggle onto its own
-                // row for nested parents.
+                // Inline so the toggle sits on the same line, at the label's
+                // natural width (matches the old flex:0 1 auto behaviour).
+                // Overrides section 7's width:100% for nested parent links,
+                // which would otherwise push the toggle onto its own row.
+                display: inline-block;
                 width: auto;
+                vertical-align: middle;
             }
 
-            > .wp-block-navigation__submenu-container {
-                flex: 0 0 100%;
+            > .sgb-nav-menu__submenu-toggle {
+                vertical-align: middle;
             }
         }
 
