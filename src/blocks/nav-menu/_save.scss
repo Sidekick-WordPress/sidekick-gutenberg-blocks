@@ -123,27 +123,35 @@
 
     // 4b. Collapsible vertical sub-menus. react.ts injects the toggle button
     // after each parent link and collapses the sub-menu via inline style. The
-    // li becomes a wrapping flex row: link + toggle share the first row and
-    // the full-width sub-menu container wraps beneath them.
+    // li stays a block box: link + toggle sit inline on the first line and the
+    // full-width sub-menu container drops onto its own line beneath them.
     &--collapsible[data-orientation="vertical"] {
+        // Block, NOT a wrapping flex row. A flex container reports its
+        // max-content width as the SUM of its items on a single line
+        // (max-content never wraps), so a wrapping flex li counts the link,
+        // the toggle AND the full-width sub-menu side-by-side. In a shrink-to-
+        // fit nav column that makes the whole column balloon to
+        // link+toggle+submenu wide the instant a sub-menu opens — wider than
+        // any row's real text. A block box's shrink-to-fit width is the MAX of
+        // its children instead, so the column only grows to its widest single
+        // row. The sub-menu container is already display:block (section 5), so
+        // it naturally drops onto its own line beneath the inline link+toggle.
         li:has(> .sgb-nav-menu__submenu-toggle) {
-            display: flex;
-            flex-wrap: wrap;
+            display: block;
 
             > a,
             > .wp-block-navigation-item__content {
-                // No grow: the link stays content-width so the toggle sits
-                // beside the label instead of riding the li's right edge,
-                // which shifts whenever an open sub-menu widens the list.
-                flex: 0 1 auto;
-                // Section 7 gives sub-menu links width:100%; left in place it
-                // becomes the flex basis and pushes the toggle onto its own
-                // row for nested parents.
+                // Inline so the toggle sits on the same line, at the label's
+                // natural width (matches the old flex:0 1 auto behaviour).
+                // Overrides section 7's width:100% for nested parent links,
+                // which would otherwise push the toggle onto its own row.
+                display: inline-block;
                 width: auto;
+                vertical-align: middle;
             }
 
-            > .wp-block-navigation__submenu-container {
-                flex: 0 0 100%;
+            > .sgb-nav-menu__submenu-toggle {
+                vertical-align: middle;
             }
         }
 
@@ -152,17 +160,34 @@
             align-items: center;
             justify-content: center;
             flex: 0 0 auto;
+            // Don't stretch to the flex row's height: the toggle has to stay
+            // square for border-radius:50% to render a true circle, not a pill.
+            align-self: center;
             background: transparent;
             border: none;
             cursor: pointer;
             font: inherit;
-            padding: var(--nav-parent-padding);
             color: var(--nav-parent-color);
+            // Fixed 20x20 circle. box-sizing is border-box (section 5), so the
+            // width/height are the full box; border-radius:50% rounds it and the
+            // thin box-shadow ring accents it. The ring color is editor-
+            // controlled via --nav-submenu-toggle-shadow-color and falls back to
+            // a faded tint of the current text color so it reads on any bg.
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            border-radius: 50%;
+            box-shadow: 0 0 0 1px var(--nav-submenu-toggle-shadow-color, color-mix(in srgb, currentColor 30%, transparent));
+            transition: box-shadow 0.2s ease, background-color 0.2s ease;
+            // A little breathing room between the label and the toggle. Sits on
+            // top of the parent link's own right padding.
+            margin-inline-start: 0.5em;
 
             &::after {
                 content: "";
-                width: 1.1em;
-                height: 1.1em;
+                // Glyph sized to sit comfortably inside the 20px circle.
+                width: 12px;
+                height: 12px;
                 background-color: currentColor;
                 mask-image: var(--nav-submenu-indicator);
                 mask-repeat: no-repeat;
@@ -182,8 +207,9 @@
             }
         }
 
+        // Nested toggles keep the circular shape (no padding override) and
+        // only swap to the sub-menu text color.
         .wp-block-navigation__submenu-container .sgb-nav-menu__submenu-toggle {
-            padding: var(--nav-sub-padding);
             color: var(--nav-sub-color);
         }
 

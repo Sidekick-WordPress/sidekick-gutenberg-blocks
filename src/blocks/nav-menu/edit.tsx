@@ -11,12 +11,14 @@ import {
     __experimentalBoxControl as BoxControl
 } from '@wordpress/components';
 import {useSelect} from '@wordpress/data';
+import {useEffect, useRef} from '@wordpress/element';
 import ServerSideRender from '@wordpress/server-side-render';
 import {BlockEditProps} from '@wordpress/blocks';
 
 // Plugin
 import namespace from '../../namespace';
 import {NavMenuAttributes, PaddingAttribute} from './attributes';
+import {setupCollapsibleSubmenus} from './collapsible';
 import metadata from './block.json';
 
 export default function Edit(
@@ -53,6 +55,7 @@ export default function Edit(
         collapsibleSubMenus = true,
         subMenuIndicator = '',
         subMenuIndentColor = '',
+        subMenuToggleShadowColor = '',
         overlayBgColor = '',
         overlayColor = '',
         textTransform = 'none',
@@ -77,6 +80,32 @@ export default function Edit(
             value: menu.id,
         })) || [])
     ];
+
+    // The collapsible toggle buttons are injected by front-end JS, which never
+    // runs in the editor, so ServerSideRender alone shows no toggles. Mirror the
+    // injection onto the preview here so the circular, ringed toggle — and its
+    // spacing/ring color — are visible while customizing. Sub-menus are kept
+    // expanded (defaultOpen) so every item stays on screen in the preview.
+    const previewRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const container = previewRef.current;
+        if (!container) return;
+        if (orientation !== 'vertical' || !collapsibleSubMenus) return;
+
+        const inject = () => {
+            const inner = container.querySelector('.sgb-nav-menu__inner') as HTMLElement | null;
+            if (inner) setupCollapsibleSubmenus(inner, {defaultOpen: () => true});
+        };
+
+        // ServerSideRender fetches asynchronously and replaces its subtree on
+        // every attribute change (including the ring color), so re-inject on any
+        // DOM change. The helper is idempotent — it skips items that already have
+        // a toggle — so this settles after one pass and never stacks duplicates.
+        inject();
+        const observer = new MutationObserver(inject);
+        observer.observe(container, {childList: true, subtree: true});
+        return () => observer.disconnect();
+    }, [orientation, collapsibleSubMenus, ref]);
 
     return (
         <div {...blockProps}>
@@ -131,7 +160,7 @@ export default function Edit(
                     {orientation === 'vertical' && (
                         <ToggleControl
                             label={__('Collapsible Sub-Menus', namespace)}
-                            help={__('Start sub-menus collapsed; visitors expand them with an arrow toggle next to the parent item. Applies on the front end only — the editor preview always shows sub-menus expanded.', namespace)}
+                            help={__('Start sub-menus collapsed; visitors expand them with an arrow toggle next to the parent item. The editor preview shows the toggle but keeps sub-menus expanded so you can style everything.', namespace)}
                             checked={collapsibleSubMenus}
                             onChange={(value) => setAttributes({ collapsibleSubMenus: value })}
                         />
@@ -297,6 +326,11 @@ export default function Edit(
                         { value: subMenuColor, onChange: (v) => setAttributes({ subMenuColor: v || 'inherit' }), label: __('Text Color', namespace) },
                         { value: subMenuColorHover, onChange: (v) => setAttributes({ subMenuColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
                         { value: subMenuIndentColor, onChange: (v) => setAttributes({ subMenuIndentColor: v || '' }), label: __('Indent Indicator', namespace) },
+                        // The collapsible toggle only exists for vertical menus, so its
+                        // ring color is only worth surfacing there.
+                        ...(orientation === 'vertical' && collapsibleSubMenus ? [
+                            { value: subMenuToggleShadowColor, onChange: (v: string | undefined) => setAttributes({ subMenuToggleShadowColor: v || '' }), label: __('Collapsible Toggle Ring', namespace) },
+                        ] : []),
                     ]}
                 />
 
@@ -315,8 +349,11 @@ export default function Edit(
             {ref ? (
                 // Swallow link clicks so the editor doesn't navigate away (a
                 // click then just selects the block). Hover stays live, so the
-                // CSS-driven sub-menu dropdowns still open for previewing.
+                // CSS-driven sub-menu dropdowns still open for previewing. The
+                // ref lets the effect above inject collapsible toggles into the
+                // rendered preview.
                 <div
+                    ref={previewRef}
                     onClickCapture={(e) => {
                         if ((e.target as HTMLElement).closest('a')) {
                             e.preventDefault();
