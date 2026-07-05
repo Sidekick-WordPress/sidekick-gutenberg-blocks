@@ -156,6 +156,14 @@ return function( $attributes, $content ) {
         $style_vars .= sprintf( ' --nav-indent-color: %s;', esc_attr( $sub_menu_indent_color ) );
     }
 
+    // Ring color for the collapsible sub-menu toggle. Only emitted when the
+    // user picks one; otherwise the stylesheet falls back to a faded tint of
+    // the current text color. Same ';{}' guard as the indent color above.
+    $sub_menu_toggle_shadow_color = ! empty( $attributes['subMenuToggleShadowColor'] ) ? $attributes['subMenuToggleShadowColor'] : '';
+    if ( $sub_menu_toggle_shadow_color && ! preg_match( '/[;{}]/', $sub_menu_toggle_shadow_color ) ) {
+        $style_vars .= sprintf( ' --nav-submenu-toggle-shadow-color: %s;', esc_attr( $sub_menu_toggle_shadow_color ) );
+    }
+
     $style = $layout_inline_style . $style_vars;
 
     $wrapper_classes = [
