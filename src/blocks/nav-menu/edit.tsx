@@ -21,6 +21,11 @@ import {NavMenuAttributes, PaddingAttribute} from './attributes';
 import {setupCollapsibleSubmenus} from './collapsible';
 import metadata from './block.json';
 
+// Shared className stamped on every inspector panel below so the light editor
+// polish in _edit.scss can target these panels without leaking onto other
+// blocks' sidebars.
+const PANEL_CLASS = `${namespace}-inspector-panel`;
+
 export default function Edit(
     {
         attributes,
@@ -81,6 +86,8 @@ export default function Edit(
         })) || [])
     ];
 
+    const isVertical = orientation === 'vertical';
+
     // The collapsible toggle buttons are injected by front-end JS, which never
     // runs in the editor, so ServerSideRender alone shows no toggles. Mirror the
     // injection onto the preview here so the circular, ringed toggle — and its
@@ -109,14 +116,18 @@ export default function Edit(
 
     return (
         <div {...blockProps}>
-            {/* Standard Settings Tab */}
+            {/* ============================================================
+                SETTINGS TAB — structure & behavior
+                (Menu · Layout · Sub-menus · Mobile)
+               ============================================================ */}
             <InspectorControls>
-                <PanelBody title={__('Menu Selection', namespace)}>
+                <PanelBody className={PANEL_CLASS} title={__('Menu', namespace)}>
                     {!navigationMenus ? (
                         <Spinner/>
                     ) : (
                         <SelectControl
                             label={__('Navigation Menu', namespace)}
+                            help={__('Choose which saved navigation menu this block displays.', namespace)}
                             value={ref || 0}
                             options={menuOptions}
                             onChange={(value) => setAttributes({ref: parseInt(value, 10)})}
@@ -124,9 +135,10 @@ export default function Edit(
                     )}
                 </PanelBody>
 
-                <PanelBody title={__('Layout Settings', namespace)}>
+                <PanelBody className={PANEL_CLASS} title={__('Layout', namespace)}>
                     <SelectControl
                         label={__('Orientation', namespace)}
+                        help={__('Horizontal for header bars; vertical for sidebars and stacked menus.', namespace)}
                         value={orientation}
                         options={[
                             {label: __('Horizontal', namespace), value: 'horizontal'},
@@ -135,29 +147,22 @@ export default function Edit(
                         onChange={(value) => setAttributes({orientation: value as NavMenuAttributes['orientation']})}
                     />
                     <RangeControl
-                        label={__('Desktop Gap', namespace)}
+                        label={__('Item Spacing (px)', namespace)}
+                        help={__('Gap between top-level menu items on desktop.', namespace)}
                         value={gap}
                         onChange={(value) => setAttributes({gap: value ?? 24})}
                         min={0} max={120}
                     />
-                    <RangeControl
-                        label={__('Mobile Gap', namespace)}
-                        value={mobileGap}
-                        onChange={(value) => setAttributes({mobileGap: value ?? 12})}
-                        min={0} max={120}
-                    />
-                    <RangeControl
-                        label={__('Mobile Font Size (px)', namespace)}
-                        value={mobileFontSize}
-                        onChange={(value) => setAttributes({mobileFontSize: value ?? 24})}
-                        min={12} max={48}
-                    />
+                </PanelBody>
+
+                <PanelBody className={PANEL_CLASS} title={__('Sub-menus', namespace)}>
                     <ToggleControl
                         label={__('Show Sub-Menu Arrows', namespace)}
+                        help={__('Show an indicator next to items that contain a sub-menu.', namespace)}
                         checked={showSubMenuArrows}
                         onChange={(value) => setAttributes({ showSubMenuArrows: value })}
                     />
-                    {orientation === 'vertical' && (
+                    {isVertical && (
                         <ToggleControl
                             label={__('Collapsible Sub-Menus', namespace)}
                             help={__('Start sub-menus collapsed; visitors expand them with an arrow toggle next to the parent item. The editor preview shows the toggle but keeps sub-menus expanded so you can style everything.', namespace)}
@@ -165,7 +170,7 @@ export default function Edit(
                             onChange={(value) => setAttributes({ collapsibleSubMenus: value })}
                         />
                     )}
-                    {(showSubMenuArrows || (orientation === 'vertical' && collapsibleSubMenus)) && (
+                    {(showSubMenuArrows || (isVertical && collapsibleSubMenus)) && (
                         <TextareaControl
                             label={__('Sub-Menu Indicator (SVG)', namespace)}
                             help={__('SVG markup shown next to items with a sub-menu. Painted as a CSS mask, so it follows the menu text color. Clear to restore the default chevron.', namespace)}
@@ -176,6 +181,7 @@ export default function Edit(
                     )}
                     <SelectControl
                         label={__('Top-Level Sub-Menu Alignment', namespace)}
+                        help={__('Which edge a first-level dropdown aligns to (horizontal desktop).', namespace)}
                         value={subMenuAlignment}
                         options={[
                             { label: __('Align Left', namespace), value: 'left' },
@@ -189,6 +195,7 @@ export default function Edit(
                     />
                     <SelectControl
                         label={__('Nested Sub-Menu Direction', namespace)}
+                        help={__('Which side deeper fly-out sub-menus open toward (horizontal desktop).', namespace)}
                         value={nestedSubMenuDirection}
                         options={[
                             { label: __('Open Right', namespace), value: 'right' },
@@ -201,11 +208,31 @@ export default function Edit(
                         }
                     />
                 </PanelBody>
+
+                <PanelBody className={PANEL_CLASS} title={__('Mobile', namespace)} initialOpen={false}>
+                    <RangeControl
+                        label={__('Mobile Gap (px)', namespace)}
+                        help={__('Gap between items in the mobile overlay menu.', namespace)}
+                        value={mobileGap}
+                        onChange={(value) => setAttributes({mobileGap: value ?? 12})}
+                        min={0} max={120}
+                    />
+                    <RangeControl
+                        label={__('Mobile Font Size (px)', namespace)}
+                        help={__('Font size for menu items in the mobile overlay.', namespace)}
+                        value={mobileFontSize}
+                        onChange={(value) => setAttributes({mobileFontSize: value ?? 24})}
+                        min={12} max={48}
+                    />
+                </PanelBody>
             </InspectorControls>
 
-            {/* Styles Tab (Half-Filled Circle Icon) */}
+            {/* ============================================================
+                STYLES TAB — appearance
+                (Typography · Dimensions · Effects · Colors)
+               ============================================================ */}
             <InspectorControls group="styles">
-                <PanelBody title={__('Padding & Spacing', namespace)}>
+                <PanelBody className={PANEL_CLASS} title={__('Dimensions', namespace)}>
                     <BoxControl
                         label={__('Parent Item Padding', namespace)}
                         values={parentPadding}
@@ -232,82 +259,32 @@ export default function Edit(
                     />
                     <RangeControl
                         label={__('Sub-Menu Max Width (px)', namespace)}
+                        help={__('Maximum width of dropdown / expanded sub-menu panels.', namespace)}
                         value={subMenuWidth}
                         onChange={(value) => setAttributes({subMenuWidth: value ?? 240})}
                         min={100} max={600}
                     />
                     <RangeControl
                         label={__('Sub-Menu Border Radius (px)', namespace)}
+                        help={__('Corner rounding for sub-menu panels.', namespace)}
                         value={subMenuBorderRadius}
                         onChange={(value) => setAttributes({subMenuBorderRadius: value ?? 0})}
                         min={0} max={50}
                     />
+                </PanelBody>
+
+                <PanelBody className={PANEL_CLASS} title={__('Effects', namespace)} initialOpen={false}>
                     <TextControl
                         label={__('Sub-Menu Box Shadow', namespace)}
                         help={__('Any CSS box-shadow value, e.g. "0 8px 24px rgba(0,0,0,0.12)". Use "none" to remove. Applies to desktop dropdown panels.', namespace)}
                         value={subMenuBoxShadow}
                         onChange={(value) => setAttributes({subMenuBoxShadow: value})}
                     />
-
                 </PanelBody>
 
-                {/* Native Typography Tab Injection */}
-                <InspectorControls group="typography">
-                    <SelectControl
-                        label={__('Sub-Menu Text Align', namespace)}
-                        value={subMenuTextAlign}
-                        options={[
-                            { label: __('Left', namespace), value: 'left' },
-                            { label: __('Center', namespace), value: 'center' },
-                            { label: __('Right', namespace), value: 'right' },
-                        ]}
-                        onChange={(value) =>
-                            setAttributes({
-                                subMenuTextAlign: value as NavMenuAttributes['subMenuTextAlign'],
-                            })
-                        }
-                    />
-                    <SelectControl
-                        label={__('Text Transform', namespace)}
-                        value={textTransform}
-                        options={[
-                            { label: __('None', namespace), value: 'none' },
-                            { label: __('Uppercase', namespace), value: 'uppercase' },
-                            { label: __('Lowercase', namespace), value: 'lowercase' },
-                            { label: __('Capitalize', namespace), value: 'capitalize' },
-                        ]}
-                        onChange={(value) =>
-                            setAttributes({
-                                textTransform: value as NavMenuAttributes['textTransform'],
-                            })
-                        }
-                    />
-                    {/* NEW FONT WEIGHT CONTROL */}
-                    <SelectControl
-                        label={__('Font Weight', namespace)}
-                        value={fontWeight}
-                        options={[
-                            { label: __('Default', namespace), value: '' },
-                            { label: __('Thin (100)', namespace), value: '100' },
-                            { label: __('Extra Light (200)', namespace), value: '200' },
-                            { label: __('Light (300)', namespace), value: '300' },
-                            { label: __('Normal (400)', namespace), value: '400' },
-                            { label: __('Medium (500)', namespace), value: '500' },
-                            { label: __('Semi Bold (600)', namespace), value: '600' },
-                            { label: __('Bold (700)', namespace), value: '700' },
-                            { label: __('Extra Bold (800)', namespace), value: '800' },
-                            { label: __('Black (900)', namespace), value: '900' },
-                        ]}
-                        onChange={(value) =>
-                            setAttributes({
-                                fontWeight: value as NavMenuAttributes['fontWeight'],
-                            })
-                        }
-                    />
-                </InspectorControls>
-
                 <PanelColorSettings
-                    title={__('Parent Menu Colors', namespace)}
+                    className={PANEL_CLASS}
+                    title={__('Parent Colors', namespace)}
                     initialOpen={true}
                     colorSettings={[
                         { value: parentBgColor, onChange: (v) => setAttributes({ parentBgColor: v || 'transparent' }), label: __('Background', namespace) },
@@ -318,7 +295,8 @@ export default function Edit(
                 />
 
                 <PanelColorSettings
-                    title={__('Sub-Menu Colors', namespace)}
+                    className={PANEL_CLASS}
+                    title={__('Sub-menu Colors', namespace)}
                     initialOpen={false}
                     colorSettings={[
                         { value: subMenuBgColor, onChange: (v) => setAttributes({ subMenuBgColor: v || 'transparent' }), label: __('Container Background', namespace) },
@@ -328,13 +306,14 @@ export default function Edit(
                         { value: subMenuIndentColor, onChange: (v) => setAttributes({ subMenuIndentColor: v || '' }), label: __('Indent Indicator', namespace) },
                         // The collapsible toggle only exists for vertical menus, so its
                         // ring color is only worth surfacing there.
-                        ...(orientation === 'vertical' && collapsibleSubMenus ? [
+                        ...(isVertical && collapsibleSubMenus ? [
                             { value: subMenuToggleShadowColor, onChange: (v: string | undefined) => setAttributes({ subMenuToggleShadowColor: v || '' }), label: __('Collapsible Toggle Ring', namespace) },
                         ] : []),
                     ]}
                 />
 
                 <PanelColorSettings
+                    className={PANEL_CLASS}
                     title={__('Mobile Overlay Colors', namespace)}
                     initialOpen={false}
                     colorSettings={[
@@ -343,6 +322,61 @@ export default function Edit(
                         { value: overlayColor, onChange: (v) => setAttributes({ overlayColor: v || '' }), label: __('Text Color', namespace) },
                         { value: overlayColorHover, onChange: (v) => setAttributes({ overlayColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
                     ]}
+                />
+            </InspectorControls>
+
+            {/* Native Typography panel injection — lives in the Styles tab next to
+                the block-supports font controls (size / family / weight). */}
+            <InspectorControls group="typography">
+                <SelectControl
+                    label={__('Sub-Menu Text Align', namespace)}
+                    value={subMenuTextAlign}
+                    options={[
+                        { label: __('Left', namespace), value: 'left' },
+                        { label: __('Center', namespace), value: 'center' },
+                        { label: __('Right', namespace), value: 'right' },
+                    ]}
+                    onChange={(value) =>
+                        setAttributes({
+                            subMenuTextAlign: value as NavMenuAttributes['subMenuTextAlign'],
+                        })
+                    }
+                />
+                <SelectControl
+                    label={__('Text Transform', namespace)}
+                    value={textTransform}
+                    options={[
+                        { label: __('None', namespace), value: 'none' },
+                        { label: __('Uppercase', namespace), value: 'uppercase' },
+                        { label: __('Lowercase', namespace), value: 'lowercase' },
+                        { label: __('Capitalize', namespace), value: 'capitalize' },
+                    ]}
+                    onChange={(value) =>
+                        setAttributes({
+                            textTransform: value as NavMenuAttributes['textTransform'],
+                        })
+                    }
+                />
+                <SelectControl
+                    label={__('Font Weight', namespace)}
+                    value={fontWeight}
+                    options={[
+                        { label: __('Default', namespace), value: '' },
+                        { label: __('Thin (100)', namespace), value: '100' },
+                        { label: __('Extra Light (200)', namespace), value: '200' },
+                        { label: __('Light (300)', namespace), value: '300' },
+                        { label: __('Normal (400)', namespace), value: '400' },
+                        { label: __('Medium (500)', namespace), value: '500' },
+                        { label: __('Semi Bold (600)', namespace), value: '600' },
+                        { label: __('Bold (700)', namespace), value: '700' },
+                        { label: __('Extra Bold (800)', namespace), value: '800' },
+                        { label: __('Black (900)', namespace), value: '900' },
+                    ]}
+                    onChange={(value) =>
+                        setAttributes({
+                            fontWeight: value as NavMenuAttributes['fontWeight'],
+                        })
+                    }
                 />
             </InspectorControls>
 

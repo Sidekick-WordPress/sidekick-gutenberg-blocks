@@ -1,4 +1,46 @@
+@use "../../styles/defaults/functions" as *;
+@use "../../styles/defaults/variables" as *;
+
 // Over-rides the front-end initialization pattern
 .sgb-nav-menu {
     visibility: visible !important;
+}
+
+// ---------------------------------------------------------------------------
+// Editor sidebar polish
+// ---------------------------------------------------------------------------
+// Light, WordPress-native refinements for this block's inspector panels only.
+// Scoped to the `.sgb-inspector-panel` class that edit.tsx stamps on every
+// PanelBody / PanelColorSettings, so none of this leaks onto other blocks'
+// sidebars. Kept intentionally subtle: even vertical rhythm + calmer help text,
+// nothing that fights WordPress's own component styling or theme updates.
+.sgb-inspector-panel {
+    // Even spacing between the mixed control types in a panel (selects, ranges,
+    // toggles, BoxControl) so nothing bunches up. Child combinator keeps this
+    // off the nested inputs inside BoxControl / color pickers.
+    > .components-base-control,
+    > .components-toggle-control,
+    > .components-box-control {
+        margin-bottom: rem(20);
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    // Quieter, more legible help text under each control — non-italic, muted,
+    // with a little breathing room from the input above it.
+    .components-base-control__help {
+        margin-top: rem(6);
+        margin-bottom: 0;
+        color: $midGrey;
+        font-style: normal;
+        line-height: 1.4;
+    }
+
+    // Give the toggle rows a touch more separation from their help text so the
+    // Sub-menus panel (several stacked toggles) reads clearly.
+    .components-toggle-control .components-base-control__help {
+        margin-top: rem(4);
+    }
 }
