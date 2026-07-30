@@ -1,0 +1,25 @@
+{
+    "apiVersion": 3,
+    "name": "sgb/collection-feed",
+    "title": "Collection Feed (React)",
+    "category": "design",
+    "icon": "update",
+    "description": "Invisible controller that turns filter and pagination clicks on a product archive into refresh-less Store API fetches rendered by React.",
+    "attributes": {
+        "calAttribute": {
+            "type": "string",
+            "default": "pa_caliber"
+        },
+        "calPrefix": {
+            "type": "string",
+            "default": "Cal: "
+        }
+    },
+    "supports": {
+        "multiple": false,
+        "interactivity": {
+            "clientNavigation": true
+        }
+    },
+    "textdomain": "sidekick-gutenberg-blocks"
+}

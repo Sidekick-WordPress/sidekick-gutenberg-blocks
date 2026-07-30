@@ -1,0 +1,8 @@
+@use "../../styles/defaults/functions" as *;
+@use "../../styles/defaults/variables" as *;
+
+// sgb/product-attribute renders an inline <span>; consumers (e.g. the product
+// card's .kgm-product-card__cal) own the visual styling. Keep this minimal.
+.sgb-product-attribute {
+    display: block;
+}

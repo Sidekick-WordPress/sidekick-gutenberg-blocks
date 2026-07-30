@@ -1,0 +1,21 @@
+{
+    "apiVersion": 3,
+    "name": "sgb/collection-intro",
+    "title": "Collection Intro",
+    "category": "design",
+    "icon": "text",
+    "usesContext": ["termId"],
+    "attributes": {
+        "headingLevel": {
+            "type": "number",
+            "default": 2
+        }
+    },
+    "supports": {
+        "spacing": {
+            "padding": true,
+            "margin": true
+        }
+    },
+    "textdomain": "sidekick-gutenberg-blocks"
+}

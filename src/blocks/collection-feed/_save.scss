@@ -1,0 +1,51 @@
+@use "../../styles/defaults/functions" as *;
+
+// The server-rendered WC collection stays for first paint; once the feed takes
+// over it gets [hidden] and the React mount (same classes) occupies its grid slot.
+.kgm-collection__grid[hidden] {
+    display: none !important;
+}
+
+.sgb-collection-feed {
+    // Fixed-header clearance when pagination scrolls the feed back into view.
+    scroll-margin-top: rem(112);
+
+    .wc-block-product-template {
+        transition: opacity 0.15s ease;
+    }
+
+    &[aria-busy="true"] .wc-block-product-template {
+        opacity: 0.45;
+        pointer-events: none;
+    }
+
+    // The React pagination twin lacks WP's generated is-layout-flex container
+    // class, so lay it out here (theme SCSS styles the items themselves).
+    .kgm-collection__pagination {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: rem(8);
+    }
+}
+
+// First takeover: the server grid dims while the initial JSON is in flight.
+.kgm-collection__grid.sgb-feed-loading .wc-block-product-template {
+    opacity: 0.45;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+// Visually-hidden live region announcing result counts to assistive tech.
+.sgb-collection-feed__status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}

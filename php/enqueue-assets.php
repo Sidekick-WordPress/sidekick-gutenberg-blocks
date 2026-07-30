@@ -36,7 +36,9 @@ add_action('enqueue_block_assets', function () use ($asset_url_base, $asset_dir_
     wp_enqueue_script(
         SGB_NS . '-react-js',
         $react_js_url,
-        [ 'wp-element', 'wp-i18n' ],
+        // Keep in sync with build/js/react.min.asset.php — 'react' backs the
+        // collection-feed view's classic-runtime JSX (window.React).
+        [ 'react', 'wp-element', 'wp-i18n' ],
         sgb_ver($react_js_path), // FIX: Wrapped in sgb_ver() instead of passing the raw path string
         true
     );

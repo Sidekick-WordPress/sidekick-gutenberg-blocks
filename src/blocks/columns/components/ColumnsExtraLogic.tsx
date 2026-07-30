@@ -7,6 +7,22 @@ interface LogicProps {
     onLayoutChange?: (layoutClass: string, width: number) => void;
 }
 
+const getPreviewElement = (blockRef: HTMLElement): HTMLElement => {
+    const ownerDocument = blockRef.ownerDocument;
+
+    // In the iframe editor, documentElement is the preview viewport. In the
+    // legacy non-iframe editor, use the shared canvas rather than an individual
+    // block's width. Measuring a nested columns block itself makes its tier
+    // change when an outer column changes width, even though frontend media
+    // queries are viewport-based.
+    if (ownerDocument.defaultView?.frameElement) {
+        return ownerDocument.documentElement;
+    }
+
+    return blockRef.closest<HTMLElement>('.editor-styles-wrapper')
+        ?? ownerDocument.documentElement;
+};
+
 const ColumnsExtraLogic = ({ attributes, blockRef, onLayoutChange }: LogicProps) => {
     const { tabletBreakpoint = 768, desktopBreakpoint = 1024 } = attributes;
     const onLayoutChangeRef = useRef(onLayoutChange);
@@ -15,9 +31,14 @@ const ColumnsExtraLogic = ({ attributes, blockRef, onLayoutChange }: LogicProps)
     useEffect(() => {
         if (!blockRef) return;
 
+        const previewElement = getPreviewElement(blockRef);
+
         const onResize = (entries: ResizeObserverEntry[]) => {
             for (const entry of entries) {
-                const width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
+                const width = entry.target === entry.target.ownerDocument.documentElement
+                    ? entry.target.ownerDocument.defaultView?.innerWidth
+                        ?? entry.target.ownerDocument.documentElement.clientWidth
+                    : entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
 
                 let newClass: string;
                 if (width < tabletBreakpoint) {
@@ -39,7 +60,7 @@ const ColumnsExtraLogic = ({ attributes, blockRef, onLayoutChange }: LogicProps)
         };
 
         const observer = new ResizeObserver(onResize);
-        observer.observe(blockRef);
+        observer.observe(previewElement);
 
         return () => observer.disconnect();
 

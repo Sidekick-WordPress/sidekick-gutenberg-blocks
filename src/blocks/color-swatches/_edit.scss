@@ -1,0 +1,16 @@
+@use "../../styles/defaults/functions" as *;
+@use "../../styles/defaults/variables" as *;
+
+// Editor-only preview polish. On the front end the swatches render per product;
+// in the editor edit.tsx shows a small static placeholder (grey dots) plus a
+// note explaining that. The placeholder dots reuse the shared .sgb-color-swatches
+// styles from _save.scss, so only the note needs styling here.
+.sgb-color-swatches-editor {
+    &__note {
+        margin: rem(6) 0 0;
+        color: $midGrey;
+        font-size: rem(12);
+        font-style: italic;
+        line-height: 1.4;
+    }
+}

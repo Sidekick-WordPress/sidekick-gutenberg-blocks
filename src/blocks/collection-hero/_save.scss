@@ -1,0 +1,100 @@
+@use "../../styles/defaults/functions" as *;
+@use "../../styles/defaults/variables" as *;
+
+.sgb-collection-hero {
+    --sgb-hero-blur-bar-height: #{rem(50)};
+
+    position: relative;
+    min-height: var(--sgb-hero-min-height, #{rem(340)});
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+
+    // Frosted strip along the hero's bottom edge that blurs the lifestyle
+    // image behind it. Painted below the ::after scrim (same z-index, ::before
+    // paints first) so the darkening gradient stays continuous across the bar,
+    // and below the title (z-2) so descenders hang over it unblurred.
+    &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: var(--sgb-hero-blur-bar-height);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    // Background lifestyle image, painted behind the legibility gradient and
+    // the title copy.
+    &__media {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        z-index: 0;
+    }
+
+    // Legibility scrim: transparent at the top, darkening toward the bottom
+    // where the title sits, so light text stays readable over any image.
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to bottom,
+            transparent 0%,
+            transparent 40%,
+            rgba(0, 0, 0, 0.55) 100%
+        );
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    &__inner {
+        --sgb-hero-pad-x: #{rem(32)};
+
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        // Keep the title aligned with the page content on a full-bleed hero.
+        // Widen the box by its 2x side padding so the CONTENT (after the
+        // padding) lands on the theme's wide max-width edge, flush with the
+        // other alignwide elements.
+        max-width: calc(var(--wp--style--global--wide-size, 1920px) + (2 * var(--sgb-hero-pad-x)));
+        margin: 0 auto;
+        // Bottom padding equals the blur bar height, so the title's line box
+        // ends exactly on the bar's top edge.
+        padding: var(--sgb-hero-pad-x) var(--sgb-hero-pad-x) var(--sgb-hero-blur-bar-height);
+        box-sizing: border-box;
+
+        @media (max-width: $breakpointTablet) {
+            --sgb-hero-pad-x: #{rem(20)};
+        }
+    }
+
+    &__title {
+        color: #fff;
+        text-transform: none;
+        font-weight: 400;
+        letter-spacing: 0;
+        margin: 0;
+        font-size: clamp(2.5rem, 5vw, 4.5rem);
+        line-height: 1.05;
+        // The line box bottoms out on the bar's top edge (see __inner padding);
+        // shift down by the descender allowance so the BASELINE sits flush with
+        // the bar instead, letting p / g / y descenders hang over the blur.
+        transform: translateY(0.2em);
+    }
+
+    // Title alignment modifiers.
+    &--align-right &__inner {
+        text-align: right;
+    }
+
+    &--align-left &__inner {
+        text-align: left;
+    }
+}

@@ -136,7 +136,7 @@
         height: auto !important;
         margin-top: calc(var(--curr-ext-top, 0px) * -1) !important;
         margin-bottom: calc(var(--curr-ext-bottom, 0px) * -1) !important;
-        z-index: var(--curr-z-index, 1) !important;
+        z-index: var(--current-z-index, 1) !important;
     }
 
     &.has-entrance-animation {
