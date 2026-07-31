@@ -32,14 +32,25 @@ add_action('enqueue_block_assets', function () use ($asset_url_base, $asset_dir_
     $react_js_rel  = 'js/react.min.js';
     $react_js_url  = $asset_url_base . $react_js_rel;
     $react_js_path = $asset_dir_base . $react_js_rel;
+    $react_asset_php = $asset_dir_base . 'js/react.min.asset.php';
+
+    $react_deps = [ 'wp-element', 'wp-i18n' ];
+    $react_ver  = sgb_ver($react_js_path);
+    if ( file_exists( $react_asset_php ) ) {
+        $react_meta = require $react_asset_php;
+        if ( ! empty( $react_meta['dependencies'] ) ) {
+            $react_deps = $react_meta['dependencies'];
+        }
+        if ( ! empty( $react_meta['version'] ) ) {
+            $react_ver = $react_meta['version'];
+        }
+    }
 
     wp_enqueue_script(
         SGB_NS . '-react-js',
         $react_js_url,
-        // Keep in sync with build/js/react.min.asset.php — 'react' backs the
-        // collection-feed view's classic-runtime JSX (window.React).
-        [ 'react', 'wp-element', 'wp-i18n' ],
-        sgb_ver($react_js_path), // FIX: Wrapped in sgb_ver() instead of passing the raw path string
+        $react_deps,
+        $react_ver,
         true
     );
 

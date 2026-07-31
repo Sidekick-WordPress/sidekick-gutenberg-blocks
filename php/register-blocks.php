@@ -44,12 +44,6 @@ add_action( 'init', function() {
             ],
         ],
         'nav-menu' => [ 'dir' => __DIR__ . '/../src/blocks/nav-menu' ],
-        'collection-hero'  => [ 'dir' => __DIR__ . '/../src/blocks/collection-hero' ],
-        'collection-intro' => [ 'dir' => __DIR__ . '/../src/blocks/collection-intro' ],
-        'color-swatches'   => [ 'dir' => __DIR__ . '/../src/blocks/color-swatches' ],
-        'product-attribute' => [ 'dir' => __DIR__ . '/../src/blocks/product-attribute' ],
-        'add-to-cart'      => [ 'dir' => __DIR__ . '/../src/blocks/add-to-cart' ],
-        'collection-feed'  => [ 'dir' => __DIR__ . '/../src/blocks/collection-feed' ],
     ];
 
     foreach ( $dynamic_blocks as $slug => $config ) {
