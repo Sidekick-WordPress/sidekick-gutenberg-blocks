@@ -227,6 +227,10 @@
         --current-radius: var(--col-radius-mobile);
         --current-z-index: var(--col-zindex-mobile);
         --current-order: var(--col-order-mobile);
+
+        // WordPress can strip `order` from inline styles. Apply the resolved
+        // breakpoint value here so the frontend works without editor classes.
+        order: var(--current-order, 0) !important;
         @include apply-borders(mobile);
     }
 

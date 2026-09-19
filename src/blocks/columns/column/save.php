@@ -253,7 +253,7 @@ return function( $attributes, $content, $block ) {
 
     $style = sprintf(
         '%s' .
-        'flex: %s; max-width: %s; padding: var(--col-current-pad); position: relative; min-width: 0; display: flex; flex-direction: column; align-items: stretch; box-sizing: border-box; background-color: var(--current-bg-color); order: var(--current-order); z-index: var(--current-z-index); border-radius: var(--current-radius);',
+        'flex: %s; max-width: %s; padding: var(--col-current-pad); position: relative; min-width: 0; display: flex; flex-direction: column; align-items: stretch; box-sizing: border-box; background-color: var(--current-bg-color); z-index: var(--current-z-index); border-radius: var(--current-radius);',
         $style_vars_str,
         $get_flex($w_mobile), $get_max_w($w_mobile)
     );
