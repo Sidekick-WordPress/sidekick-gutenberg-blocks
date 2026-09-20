@@ -68,10 +68,11 @@ return function( $attributes, $content, $block ) {
     $bg_parallax    = ! empty( $attributes['backgroundFixedPosition'] );
     $bg_attachment  = $bg_parallax ? 'fixed' : 'scroll';
 
-    // Background Position (per-breakpoint)
+    // Position overrides only apply while that breakpoint has its own image.
+    // Older saved blocks may retain positions after an image override was removed.
     $bg_pos_mobile  = ! empty( $attributes['backgroundPosition'] ) ? $attributes['backgroundPosition'] : 'center';
-    $bg_pos_tablet  = ! empty( $attributes['tabletBackgroundPosition'] ) ? $attributes['tabletBackgroundPosition'] : 'var(--col-bg-pos-mobile)';
-    $bg_pos_desktop = ! empty( $attributes['desktopBackgroundPosition'] ) ? $attributes['desktopBackgroundPosition'] : 'var(--col-bg-pos-tablet)';
+    $bg_pos_tablet  = ( ! empty( $attributes['tabletBackgroundImage'] ) && ! empty( $attributes['tabletBackgroundPosition'] ) ) ? $attributes['tabletBackgroundPosition'] : 'var(--col-bg-pos-mobile)';
+    $bg_pos_desktop = ( ! empty( $attributes['desktopBackgroundImage'] ) && ! empty( $attributes['desktopBackgroundPosition'] ) ) ? $attributes['desktopBackgroundPosition'] : 'var(--col-bg-pos-tablet)';
 
     // Advanced Layout - Base
     $ext_t_base = ! empty( $attributes['extendTop'] ) ? $attributes['extendTop'] : '0px';

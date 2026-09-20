@@ -181,9 +181,15 @@ export default function Edit({attributes, setAttributes, clientId, className, is
             return backgroundVideo || '';
         })(),
 
+        // A breakpoint's position belongs to its image override. Older saved
+        // blocks may still have a position after that image was removed.
+        resolvedTabletBackgroundPosition = hasTabletBgImage && tabletBackgroundPosition
+            ? tabletBackgroundPosition : backgroundPosition || 'center',
+        resolvedDesktopBackgroundPosition = hasDesktopBgImage && desktopBackgroundPosition
+            ? desktopBackgroundPosition : resolvedTabletBackgroundPosition,
         activeBackgroundPosition = (() => {
-            if (layoutClass === 'is-desktop-layout') return desktopBackgroundPosition || tabletBackgroundPosition || backgroundPosition || 'center';
-            if (layoutClass === 'is-tablet-layout') return tabletBackgroundPosition || backgroundPosition || 'center';
+            if (layoutClass === 'is-desktop-layout') return resolvedDesktopBackgroundPosition;
+            if (layoutClass === 'is-tablet-layout') return resolvedTabletBackgroundPosition;
             return backgroundPosition || 'center';
         })(),
 
@@ -515,8 +521,11 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                         <ControlsMedia
                             panelLabel={__('Background Image / Video Override', namespace)}
                             imageUrl={tabletBackgroundImage}
-                            onSelectMedia={(media) => setAttributes({tabletBackgroundImage: media.url})}
-                            onRemoveMedia={() => setAttributes({tabletBackgroundImage: ''})}
+                            onSelectMedia={(media) => setAttributes({
+                                tabletBackgroundImage: media.url,
+                                tabletBackgroundPosition: tabletBackgroundImage ? tabletBackgroundPosition : undefined,
+                            })}
+                            onRemoveMedia={() => setAttributes({tabletBackgroundImage: '', tabletBackgroundPosition: undefined})}
                             videoUrl={tabletBackgroundVideo}
                             onSelectVideo={(media) => setAttributes({tabletBackgroundVideo: media.url})}
                             onRemoveVideo={() => setAttributes({tabletBackgroundVideo: ''})}
@@ -524,7 +533,7 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
                             onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                            backgroundPosition={tabletBackgroundPosition ?? backgroundPosition}
+                            backgroundPosition={resolvedTabletBackgroundPosition}
                             onChangeBackgroundPosition={(val) => setAttributes({tabletBackgroundPosition: val})}
                             backgroundRepeat={backgroundRepeat}
                             onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}
@@ -596,8 +605,11 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                         <ControlsMedia
                             panelLabel={__('Background Image / Video Override', namespace)}
                             imageUrl={desktopBackgroundImage}
-                            onSelectMedia={(media) => setAttributes({desktopBackgroundImage: media.url})}
-                            onRemoveMedia={() => setAttributes({desktopBackgroundImage: ''})}
+                            onSelectMedia={(media) => setAttributes({
+                                desktopBackgroundImage: media.url,
+                                desktopBackgroundPosition: desktopBackgroundImage ? desktopBackgroundPosition : undefined,
+                            })}
+                            onRemoveMedia={() => setAttributes({desktopBackgroundImage: '', desktopBackgroundPosition: undefined})}
                             videoUrl={desktopBackgroundVideo}
                             onSelectVideo={(media) => setAttributes({desktopBackgroundVideo: media.url})}
                             onRemoveVideo={() => setAttributes({desktopBackgroundVideo: ''})}
@@ -605,7 +617,7 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             onChangeOpacity={(val) => setAttributes({backgroundImageOpacity: val})}
                             backgroundSize={backgroundSize}
                             onChangeBackgroundSize={(val) => setAttributes({backgroundSize: val})}
-                            backgroundPosition={desktopBackgroundPosition ?? tabletBackgroundPosition ?? backgroundPosition}
+                            backgroundPosition={resolvedDesktopBackgroundPosition}
                             onChangeBackgroundPosition={(val) => setAttributes({desktopBackgroundPosition: val})}
                             backgroundRepeat={backgroundRepeat}
                             onChangeBackgroundRepeat={(val) => setAttributes({backgroundRepeat: val})}

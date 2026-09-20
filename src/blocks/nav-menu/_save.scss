@@ -509,6 +509,7 @@
     &__toggle {
         color: var(--nav-parent-color);
         padding: var(--nav-parent-padding);
+        padding-right: 0;
     }
 
     &__close {
