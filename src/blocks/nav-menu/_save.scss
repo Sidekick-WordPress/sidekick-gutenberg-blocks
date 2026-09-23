@@ -31,8 +31,7 @@
         letter-spacing: inherit;
         line-height: inherit;
         text-decoration: inherit;
-        text-transform: var(--nav-text-transform, inherit);
-        font-weight: var(--nav-font-weight, inherit);
+        text-transform: inherit;
         background-color: transparent !important;
     }
 
@@ -97,7 +96,7 @@
                 > .wp-block-navigation-item__content,
                 > button:not(.sgb-nav-menu__submenu-toggle),
                 > .wp-block-navigation-submenu__toggle {
-                    padding-right: var(--nav-parent-padding);
+                    padding-right: var(--nav-parent-padding-right);
                 }
 
                 > a::after,
@@ -308,6 +307,8 @@
         // absolutely-positioned dropdown (horizontal desktop). In vertical /
         // mobile modes the sub-menu expands inline, where a shadow looks wrong.
         .wp-block-navigation__submenu-container {
+            width: max-content;
+            max-width: var(--nav-sub-width, 240px);
             box-shadow: var(--nav-sub-box-shadow, none);
             border-radius: var(--nav-sub-border-radius, 0);
 
@@ -315,13 +316,13 @@
             // so the panel can't clip with overflow:hidden. Round the first/last
             // items directly so their hover fill is clipped to the panel corners.
             > li:first-child {
-                border-top-left-radius: var(--nav-sub-border-radius, 0);
-                border-top-right-radius: var(--nav-sub-border-radius, 0);
+                border-top-left-radius: var(--nav-sub-radius-topLeft, 0);
+                border-top-right-radius: var(--nav-sub-radius-topRight, 0);
             }
 
             > li:last-child {
-                border-bottom-left-radius: var(--nav-sub-border-radius, 0);
-                border-bottom-right-radius: var(--nav-sub-border-radius, 0);
+                border-bottom-left-radius: var(--nav-sub-radius-bottomLeft, 0);
+                border-bottom-right-radius: var(--nav-sub-radius-bottomRight, 0);
             }
         }
 
@@ -449,7 +450,8 @@
 .sgb-nav-menu,
 .sgb-nav-menu__overlay {
     .wp-block-navigation__submenu-container {
-        width: var(--nav-sub-width);
+        width: max-content;
+        min-width: 0;
         background-color: var(--nav-sub-bg);
         white-space: normal;
         word-break: break-word;

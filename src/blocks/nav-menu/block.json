@@ -26,13 +26,7 @@
             "default": 24
         },
         "parentPadding": {
-            "type": "object",
-            "default": {
-                "top": "0.5rem",
-                "right": "1rem",
-                "bottom": "0.5rem",
-                "left": "1rem"
-            }
+            "type": "object"
         },
         "parentBgColor": {
             "type": "string",
@@ -75,25 +69,18 @@
             "default": ""
         },
         "subMenuPadding": {
-            "type": "object",
-            "default": {
-                "top": "0.5rem",
-                "right": "1rem",
-                "bottom": "0.5rem",
-                "left": "1rem"
-            }
+            "type": "object"
         },
         "subMenuWidth": {
-            "type": "number",
-            "default": 240
+            "type": ["string", "number"],
+            "default": "240px"
         },
         "subMenuBoxShadow": {
             "type": "string",
             "default": "0 8px 24px rgba(0, 0, 0, 0.12)"
         },
         "subMenuBorderRadius": {
-            "type": "number",
-            "default": 0
+            "type": "number"
         },
         "subMenuTextAlign": {
             "type": "string",
@@ -136,16 +123,46 @@
             "default": ""
         },
         "textTransform": {
-            "type": "string",
-            "default": "none"
+            "type": "string"
         },
         "fontWeight": {
-            "type": "string",
-            "default": ""
+            "type": "string"
+        },
+        "styleVersion": {
+            "type": "number"
+        },
+        "style": {
+            "type": "object",
+            "default": {
+                "spacing": {
+                    "padding": {
+                        "top": "0.5rem",
+                        "right": "1rem",
+                        "bottom": "0.5rem",
+                        "left": "1rem"
+                    }
+                }
+            }
+        },
+        "subMenuStyle": {
+            "type": "object"
         }
     },
     "supports": {
-        "layout": true,
+        "html": false,
+        "layout": {
+            "allowEditing": false,
+            "allowInheriting": false
+        },
+        "spacing": {
+            "margin": true,
+            "padding": true,
+            "__experimentalSkipSerialization": ["padding"],
+            "__experimentalDefaultControls": {
+                "margin": true,
+                "padding": true
+            }
+        },
         "typography": {
             "fontSize": true,
             "lineHeight": true,
@@ -157,7 +174,9 @@
             "__experimentalLetterSpacing": true,
             "__experimentalDefaultControls": {
                 "fontSize": true,
-                "fontFamily": true
+                "fontFamily": true,
+                "fontAppearance": true,
+                "textTransform": true
             }
         }
     },

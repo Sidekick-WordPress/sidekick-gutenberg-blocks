@@ -1,5 +1,8 @@
 import {__} from '@wordpress/i18n';
-import {useBlockProps, InspectorControls, PanelColorSettings} from '@wordpress/block-editor';
+import {
+    useBlockProps, InspectorControls, PanelColorSettings,
+    __experimentalBorderRadiusControl as BorderRadiusControl,
+} from '@wordpress/block-editor';
 import {
     PanelBody,
     RangeControl,
@@ -17,7 +20,8 @@ import {BlockEditProps} from '@wordpress/blocks';
 
 // Plugin
 import namespace from '../../namespace';
-import {NavMenuAttributes, PaddingAttribute} from './attributes';
+import {NavMenuAttributes, BorderRadius} from './attributes';
+import {migrateMenuStyles} from './migrate';
 import {setupCollapsibleSubmenus} from './collapsible';
 import metadata from './block.json';
 
@@ -32,13 +36,17 @@ export default function Edit(
         setAttributes,
         className
     }: BlockEditProps<NavMenuAttributes>) {
+    const normalizedAttributes = migrateMenuStyles(attributes);
+    useEffect(() => {
+        if (normalizedAttributes !== attributes) setAttributes(normalizedAttributes);
+    }, [attributes, normalizedAttributes, setAttributes]);
+
     const {
         ref,
         orientation = 'horizontal',
         gap = 24,
         mobileGap = 12,
         mobileFontSize = 24,
-        parentPadding = {top: '0.5rem', right: '1rem', bottom: '0.5rem', left: '1rem'},
         parentBgColor = 'transparent',
         parentColor = 'inherit',
         subMenuColor = 'inherit',
@@ -49,10 +57,9 @@ export default function Edit(
         subMenuColorHover = '',
         overlayBgColorHover = '',
         overlayColorHover = '',
-        subMenuPadding = {top: '0.5rem', right: '1rem', bottom: '0.5rem', left: '1rem'},
-        subMenuWidth = 240,
+        subMenuStyle = {},
+        subMenuWidth = '240px',
         subMenuBoxShadow = '0 8px 24px rgba(0, 0, 0, 0.12)',
-        subMenuBorderRadius = 0,
         subMenuTextAlign = 'right',
         subMenuAlignment = 'left',
         nestedSubMenuDirection = 'right',
@@ -63,9 +70,19 @@ export default function Edit(
         subMenuToggleShadowColor = '',
         overlayBgColor = '',
         overlayColor = '',
-        textTransform = 'none',
-        fontWeight = '',
-    } = attributes;
+    } = normalizedAttributes;
+
+    const subMenuPadding = subMenuStyle.spacing?.padding;
+
+    // The editor wrapper already receives native block margin. Exclude only
+    // that spacing from the nested server preview so it is not applied twice.
+    const previewAttributes = {
+        ...normalizedAttributes,
+        style: {
+            ...normalizedAttributes.style,
+            spacing: {...normalizedAttributes.style?.spacing, margin: undefined},
+        },
+    };
 
     const blockProps = useBlockProps({
         className: `${className ?? ''} ${namespace}-nav-menu`.trim(),
@@ -79,10 +96,10 @@ export default function Edit(
     }, []);
 
     const menuOptions = [
-        {label: __('Select a menu', namespace), value: 0},
+        {label: __('Select a menu', namespace), value: '0'},
         ...(navigationMenus?.map((menu: any) => ({
             label: menu.title?.rendered || __('(Untitled)', namespace),
-            value: menu.id,
+            value: String(menu.id),
         })) || [])
     ];
 
@@ -116,10 +133,7 @@ export default function Edit(
 
     return (
         <div {...blockProps}>
-            {/* ============================================================
-                SETTINGS TAB — structure & behavior
-                (Menu · Layout · Sub-menus · Mobile)
-               ============================================================ */}
+            {/* Settings contain menu selection and behavior; appearance lives in Styles. */}
             <InspectorControls>
                 <PanelBody className={PANEL_CLASS} title={__('Menu', namespace)}>
                     {!navigationMenus ? (
@@ -128,7 +142,7 @@ export default function Edit(
                         <SelectControl
                             label={__('Navigation Menu', namespace)}
                             help={__('Choose which saved navigation menu this block displays.', namespace)}
-                            value={ref || 0}
+                            value={String(ref || 0)}
                             options={menuOptions}
                             onChange={(value) => setAttributes({ref: parseInt(value, 10)})}
                         />
@@ -146,22 +160,17 @@ export default function Edit(
                         ]}
                         onChange={(value) => setAttributes({orientation: value as NavMenuAttributes['orientation']})}
                     />
-                    <RangeControl
-                        label={__('Item Spacing (px)', namespace)}
-                        help={__('Gap between top-level menu items on desktop.', namespace)}
-                        value={gap}
-                        onChange={(value) => setAttributes({gap: value ?? 24})}
-                        min={0} max={120}
-                    />
                 </PanelBody>
 
-                <PanelBody className={PANEL_CLASS} title={__('Sub-menus', namespace)}>
-                    <ToggleControl
-                        label={__('Show Sub-Menu Arrows', namespace)}
-                        help={__('Show an indicator next to items that contain a sub-menu.', namespace)}
-                        checked={showSubMenuArrows}
-                        onChange={(value) => setAttributes({ showSubMenuArrows: value })}
-                    />
+                <PanelBody className={PANEL_CLASS} title={__('Submenu behavior', namespace)}>
+                    {!isVertical && (
+                        <ToggleControl
+                            label={__('Show Sub-Menu Arrows', namespace)}
+                            help={__('Show an indicator next to items that contain a sub-menu.', namespace)}
+                            checked={showSubMenuArrows}
+                            onChange={(value) => setAttributes({ showSubMenuArrows: value })}
+                        />
+                    )}
                     {isVertical && (
                         <ToggleControl
                             label={__('Collapsible Sub-Menus', namespace)}
@@ -170,7 +179,109 @@ export default function Edit(
                             onChange={(value) => setAttributes({ collapsibleSubMenus: value })}
                         />
                     )}
-                    {(showSubMenuArrows || (isVertical && collapsibleSubMenus)) && (
+                </PanelBody>
+            </InspectorControls>
+
+            <InspectorControls group="dimensions">
+                <p style={{gridColumn: '1 / -1'}}>{__('Padding applies inside top-level links; margin applies around the menu block. Submenu links have their own padding under Submenus.', namespace)}</p>
+            </InspectorControls>
+
+            <InspectorControls group="styles">
+                <PanelBody className={PANEL_CLASS} title={__('Menu items', namespace)}>
+                    <RangeControl
+                        label={__('Item Spacing (px)', namespace)}
+                        help={__('Gap between top-level menu items on desktop.', namespace)}
+                        value={gap}
+                        onChange={(value) => setAttributes({gap: value ?? 24})}
+                        min={0} max={120}
+                    />
+                    <PanelColorSettings
+                        enableAlpha={true}
+                        className={PANEL_CLASS}
+                        title={__('Colors', namespace)}
+                        initialOpen={true}
+                        colorSettings={[
+                            { value: parentBgColor, onChange: (v: string | undefined) => setAttributes({ parentBgColor: v || 'transparent' }), label: __('Background', namespace) },
+                            { value: parentBgColorHover, onChange: (v: string | undefined) => setAttributes({ parentBgColorHover: v || '' }), label: __('Background (Hover)', namespace) },
+                            { value: parentColor, onChange: (v: string | undefined) => setAttributes({ parentColor: v || 'inherit' }), label: __('Text Color', namespace) },
+                            { value: parentColorHover, onChange: (v: string | undefined) => setAttributes({ parentColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
+                        ]}
+                    />
+                </PanelBody>
+
+                <PanelBody className={PANEL_CLASS} title={__('Submenus', namespace)} initialOpen={false}>
+                    {!isVertical && (<>
+                        <SelectControl
+                            label={__('Top-Level Sub-Menu Alignment', namespace)}
+                            help={__('Which edge a first-level dropdown aligns to (horizontal desktop).', namespace)}
+                            value={subMenuAlignment}
+                            options={[
+                                { label: __('Align Left', namespace), value: 'left' },
+                                { label: __('Align Right', namespace), value: 'right' },
+                            ]}
+                            onChange={(value) =>
+                                setAttributes({
+                                    subMenuAlignment: value as NavMenuAttributes['subMenuAlignment'],
+                                })
+                            }
+                        />
+                        <SelectControl
+                            label={__('Nested Sub-Menu Direction', namespace)}
+                            help={__('Which side deeper fly-out sub-menus open toward (horizontal desktop).', namespace)}
+                            value={nestedSubMenuDirection}
+                            options={[
+                                { label: __('Open Right', namespace), value: 'right' },
+                                { label: __('Open Left', namespace), value: 'left' },
+                            ]}
+                            onChange={(value) =>
+                                setAttributes({
+                                    nestedSubMenuDirection: value as NavMenuAttributes['nestedSubMenuDirection'],
+                                })
+                            }
+                        />
+                        <TextControl
+                            label={__('Maximum width', namespace)}
+                            help={__('Desktop dropdown limit, e.g. 240px, 20rem, 50vw, 100%, or min(24rem, 80vw). Use none for no limit.', namespace)}
+                            value={String(subMenuWidth)}
+                            onChange={(value) => setAttributes({subMenuWidth: value})}
+                        />
+                        <BorderRadiusControl
+                            values={subMenuStyle.border?.radius}
+                            onChange={(radius: BorderRadius | undefined) => setAttributes({
+                                subMenuStyle: {...subMenuStyle, border: {...subMenuStyle.border, radius}},
+                            })}
+                        />
+                        <TextControl
+                            label={__('Box shadow', namespace)}
+                            help={__('CSS box-shadow for desktop dropdowns. Use none to remove.', namespace)}
+                            value={subMenuBoxShadow}
+                            onChange={(value) => setAttributes({subMenuBoxShadow: value})}
+                        />
+                    </>)}
+                    <SelectControl
+                        label={__('Sub-Menu Text Align', namespace)}
+                        value={subMenuTextAlign}
+                        options={[
+                            { label: __('Left', namespace), value: 'left' },
+                            { label: __('Center', namespace), value: 'center' },
+                            { label: __('Right', namespace), value: 'right' },
+                        ]}
+                        onChange={(value) =>
+                            setAttributes({
+                                subMenuTextAlign: value as NavMenuAttributes['subMenuTextAlign'],
+                            })
+                        }
+                    />
+                    <BoxControl
+                        label={__('Submenu link padding', namespace)}
+                        values={typeof subMenuPadding === 'string'
+                            ? {top: subMenuPadding, right: subMenuPadding, bottom: subMenuPadding, left: subMenuPadding}
+                            : subMenuPadding}
+                        onChange={(padding) => setAttributes({
+                            subMenuStyle: {...subMenuStyle, spacing: {...subMenuStyle.spacing, padding}},
+                        })}
+                    />
+                    {((!isVertical && showSubMenuArrows) || (isVertical && collapsibleSubMenus)) && (
                         <TextareaControl
                             label={__('Sub-Menu Indicator (SVG)', namespace)}
                             help={__('SVG markup shown next to items with a sub-menu. Painted as a CSS mask, so it follows the menu text color. Clear to restore the default chevron.', namespace)}
@@ -179,205 +290,56 @@ export default function Edit(
                             rows={4}
                         />
                     )}
-                    <SelectControl
-                        label={__('Top-Level Sub-Menu Alignment', namespace)}
-                        help={__('Which edge a first-level dropdown aligns to (horizontal desktop).', namespace)}
-                        value={subMenuAlignment}
-                        options={[
-                            { label: __('Align Left', namespace), value: 'left' },
-                            { label: __('Align Right', namespace), value: 'right' },
+                    <PanelColorSettings
+                        enableAlpha={true}
+                        className={PANEL_CLASS}
+                        title={__('Colors', namespace)}
+                        initialOpen={false}
+                        colorSettings={[
+                            { value: subMenuBgColor, onChange: (v: string | undefined) => setAttributes({ subMenuBgColor: v || 'transparent' }), label: __('Container Background', namespace) },
+                            { value: subMenuBgColorHover, onChange: (v: string | undefined) => setAttributes({ subMenuBgColorHover: v || '' }), label: __('Item Background (Hover)', namespace) },
+                            { value: subMenuColor, onChange: (v: string | undefined) => setAttributes({ subMenuColor: v || 'inherit' }), label: __('Text Color', namespace) },
+                            { value: subMenuColorHover, onChange: (v: string | undefined) => setAttributes({ subMenuColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
+                            { value: subMenuIndentColor, onChange: (v: string | undefined) => setAttributes({ subMenuIndentColor: v || '' }), label: __('Indent Indicator', namespace) },
+                            // The collapsible toggle only exists for vertical menus, so its
+                            // ring color is only worth surfacing there.
+                            ...(isVertical && collapsibleSubMenus ? [
+                                { value: subMenuToggleShadowColor, onChange: (v: string | undefined) => setAttributes({ subMenuToggleShadowColor: v || '' }), label: __('Collapsible Toggle Ring', namespace) },
+                            ] : []),
                         ]}
-                        onChange={(value) =>
-                            setAttributes({
-                                subMenuAlignment: value as NavMenuAttributes['subMenuAlignment'],
-                            })
-                        }
-                    />
-                    <SelectControl
-                        label={__('Nested Sub-Menu Direction', namespace)}
-                        help={__('Which side deeper fly-out sub-menus open toward (horizontal desktop).', namespace)}
-                        value={nestedSubMenuDirection}
-                        options={[
-                            { label: __('Open Right', namespace), value: 'right' },
-                            { label: __('Open Left', namespace), value: 'left' },
-                        ]}
-                        onChange={(value) =>
-                            setAttributes({
-                                nestedSubMenuDirection: value as NavMenuAttributes['nestedSubMenuDirection'],
-                            })
-                        }
                     />
                 </PanelBody>
 
-                <PanelBody className={PANEL_CLASS} title={__('Mobile', namespace)} initialOpen={false}>
-                    <RangeControl
-                        label={__('Mobile Gap (px)', namespace)}
-                        help={__('Gap between items in the mobile overlay menu.', namespace)}
-                        value={mobileGap}
-                        onChange={(value) => setAttributes({mobileGap: value ?? 12})}
-                        min={0} max={120}
-                    />
-                    <RangeControl
-                        label={__('Mobile Font Size (px)', namespace)}
-                        help={__('Font size for menu items in the mobile overlay.', namespace)}
-                        value={mobileFontSize}
-                        onChange={(value) => setAttributes({mobileFontSize: value ?? 24})}
-                        min={12} max={48}
-                    />
-                </PanelBody>
-            </InspectorControls>
-
-            {/* ============================================================
-                STYLES TAB — appearance
-                (Typography · Dimensions · Effects · Colors)
-               ============================================================ */}
-            <InspectorControls group="styles">
-                <PanelBody className={PANEL_CLASS} title={__('Dimensions', namespace)}>
-                    <BoxControl
-                        label={__('Parent Item Padding', namespace)}
-                        values={parentPadding}
-                        onChange={(v) => {
-                            const isReset = !v || Object.values(v).every(val => val === undefined || val === '');
-                            setAttributes({
-                                parentPadding: isReset
-                                    ? {top: '0px', right: '0px', bottom: '0px', left: '0px'}
-                                    : v as PaddingAttribute
-                            });
-                        }}
-                    />
-                    <BoxControl
-                        label={__('Sub-Menu Item Padding', namespace)}
-                        values={subMenuPadding}
-                        onChange={(v) => {
-                            const isReset = !v || Object.values(v).every(val => val === undefined || val === '');
-                            setAttributes({
-                                subMenuPadding: isReset
-                                    ? {top: '0px', right: '0px', bottom: '0px', left: '0px'}
-                                    : v as PaddingAttribute
-                            });
-                        }}
-                    />
-                    <RangeControl
-                        label={__('Sub-Menu Max Width (px)', namespace)}
-                        help={__('Maximum width of dropdown / expanded sub-menu panels.', namespace)}
-                        value={subMenuWidth}
-                        onChange={(value) => setAttributes({subMenuWidth: value ?? 240})}
-                        min={100} max={600}
-                    />
-                    <RangeControl
-                        label={__('Sub-Menu Border Radius (px)', namespace)}
-                        help={__('Corner rounding for sub-menu panels.', namespace)}
-                        value={subMenuBorderRadius}
-                        onChange={(value) => setAttributes({subMenuBorderRadius: value ?? 0})}
-                        min={0} max={50}
-                    />
-                </PanelBody>
-
-                <PanelBody className={PANEL_CLASS} title={__('Effects', namespace)} initialOpen={false}>
-                    <TextControl
-                        label={__('Sub-Menu Box Shadow', namespace)}
-                        help={__('Any CSS box-shadow value, e.g. "0 8px 24px rgba(0,0,0,0.12)". Use "none" to remove. Applies to desktop dropdown panels.', namespace)}
-                        value={subMenuBoxShadow}
-                        onChange={(value) => setAttributes({subMenuBoxShadow: value})}
-                    />
-                </PanelBody>
-
-                <PanelColorSettings
-                    className={PANEL_CLASS}
-                    title={__('Parent Colors', namespace)}
-                    initialOpen={true}
-                    colorSettings={[
-                        { value: parentBgColor, onChange: (v) => setAttributes({ parentBgColor: v || 'transparent' }), label: __('Background', namespace) },
-                        { value: parentBgColorHover, onChange: (v) => setAttributes({ parentBgColorHover: v || '' }), label: __('Background (Hover)', namespace) },
-                        { value: parentColor, onChange: (v) => setAttributes({ parentColor: v || 'inherit' }), label: __('Text Color', namespace) },
-                        { value: parentColorHover, onChange: (v) => setAttributes({ parentColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
-                    ]}
-                />
-
-                <PanelColorSettings
-                    className={PANEL_CLASS}
-                    title={__('Sub-menu Colors', namespace)}
-                    initialOpen={false}
-                    colorSettings={[
-                        { value: subMenuBgColor, onChange: (v) => setAttributes({ subMenuBgColor: v || 'transparent' }), label: __('Container Background', namespace) },
-                        { value: subMenuBgColorHover, onChange: (v) => setAttributes({ subMenuBgColorHover: v || '' }), label: __('Item Background (Hover)', namespace) },
-                        { value: subMenuColor, onChange: (v) => setAttributes({ subMenuColor: v || 'inherit' }), label: __('Text Color', namespace) },
-                        { value: subMenuColorHover, onChange: (v) => setAttributes({ subMenuColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
-                        { value: subMenuIndentColor, onChange: (v) => setAttributes({ subMenuIndentColor: v || '' }), label: __('Indent Indicator', namespace) },
-                        // The collapsible toggle only exists for vertical menus, so its
-                        // ring color is only worth surfacing there.
-                        ...(isVertical && collapsibleSubMenus ? [
-                            { value: subMenuToggleShadowColor, onChange: (v: string | undefined) => setAttributes({ subMenuToggleShadowColor: v || '' }), label: __('Collapsible Toggle Ring', namespace) },
-                        ] : []),
-                    ]}
-                />
-
-                <PanelColorSettings
-                    className={PANEL_CLASS}
-                    title={__('Mobile Overlay Colors', namespace)}
-                    initialOpen={false}
-                    colorSettings={[
-                        { value: overlayBgColor, onChange: (v) => setAttributes({ overlayBgColor: v || '' }), label: __('Overlay Background', namespace) },
-                        { value: overlayBgColorHover, onChange: (v) => setAttributes({ overlayBgColorHover: v || '' }), label: __('Item Background (Hover)', namespace) },
-                        { value: overlayColor, onChange: (v) => setAttributes({ overlayColor: v || '' }), label: __('Text Color', namespace) },
-                        { value: overlayColorHover, onChange: (v) => setAttributes({ overlayColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
-                    ]}
-                />
-            </InspectorControls>
-
-            {/* Native Typography panel injection — lives in the Styles tab next to
-                the block-supports font controls (size / family / weight). */}
-            <InspectorControls group="typography">
-                <SelectControl
-                    label={__('Sub-Menu Text Align', namespace)}
-                    value={subMenuTextAlign}
-                    options={[
-                        { label: __('Left', namespace), value: 'left' },
-                        { label: __('Center', namespace), value: 'center' },
-                        { label: __('Right', namespace), value: 'right' },
-                    ]}
-                    onChange={(value) =>
-                        setAttributes({
-                            subMenuTextAlign: value as NavMenuAttributes['subMenuTextAlign'],
-                        })
-                    }
-                />
-                <SelectControl
-                    label={__('Text Transform', namespace)}
-                    value={textTransform}
-                    options={[
-                        { label: __('None', namespace), value: 'none' },
-                        { label: __('Uppercase', namespace), value: 'uppercase' },
-                        { label: __('Lowercase', namespace), value: 'lowercase' },
-                        { label: __('Capitalize', namespace), value: 'capitalize' },
-                    ]}
-                    onChange={(value) =>
-                        setAttributes({
-                            textTransform: value as NavMenuAttributes['textTransform'],
-                        })
-                    }
-                />
-                <SelectControl
-                    label={__('Font Weight', namespace)}
-                    value={fontWeight}
-                    options={[
-                        { label: __('Default', namespace), value: '' },
-                        { label: __('Thin (100)', namespace), value: '100' },
-                        { label: __('Extra Light (200)', namespace), value: '200' },
-                        { label: __('Light (300)', namespace), value: '300' },
-                        { label: __('Normal (400)', namespace), value: '400' },
-                        { label: __('Medium (500)', namespace), value: '500' },
-                        { label: __('Semi Bold (600)', namespace), value: '600' },
-                        { label: __('Bold (700)', namespace), value: '700' },
-                        { label: __('Extra Bold (800)', namespace), value: '800' },
-                        { label: __('Black (900)', namespace), value: '900' },
-                    ]}
-                    onChange={(value) =>
-                        setAttributes({
-                            fontWeight: value as NavMenuAttributes['fontWeight'],
-                        })
-                    }
-                />
+                {!isVertical && (
+                    <PanelBody className={PANEL_CLASS} title={__('Mobile overlay', namespace)} initialOpen={false}>
+                        <RangeControl
+                            label={__('Mobile Gap (px)', namespace)}
+                            help={__('Gap between items in the mobile overlay menu.', namespace)}
+                            value={mobileGap}
+                            onChange={(value) => setAttributes({mobileGap: value ?? 12})}
+                            min={0} max={120}
+                        />
+                        <RangeControl
+                            label={__('Mobile Font Size (px)', namespace)}
+                            help={__('Font size for menu items in the mobile overlay.', namespace)}
+                            value={mobileFontSize}
+                            onChange={(value) => setAttributes({mobileFontSize: value ?? 24})}
+                            min={12} max={48}
+                        />
+                        <PanelColorSettings
+                            enableAlpha={true}
+                            className={PANEL_CLASS}
+                            title={__('Colors', namespace)}
+                            initialOpen={false}
+                            colorSettings={[
+                                { value: overlayBgColor, onChange: (v: string | undefined) => setAttributes({ overlayBgColor: v || '' }), label: __('Overlay Background', namespace) },
+                                { value: overlayBgColorHover, onChange: (v: string | undefined) => setAttributes({ overlayBgColorHover: v || '' }), label: __('Item Background (Hover)', namespace) },
+                                { value: overlayColor, onChange: (v: string | undefined) => setAttributes({ overlayColor: v || '' }), label: __('Text Color', namespace) },
+                                { value: overlayColorHover, onChange: (v: string | undefined) => setAttributes({ overlayColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
+                            ]}
+                        />
+                    </PanelBody>
+                )}
             </InspectorControls>
 
             {ref ? (
@@ -396,7 +358,7 @@ export default function Edit(
                 >
                     <ServerSideRender
                         block={metadata.name}
-                        attributes={attributes}
+                        attributes={previewAttributes}
                     />
                 </div>
             ) : (

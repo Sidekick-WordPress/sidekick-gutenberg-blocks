@@ -84,11 +84,13 @@ add_action('enqueue_block_editor_assets', function () use ($asset_url_base, $ass
     $blocks_js_rel  = 'js/blocks.min.js';
     $blocks_js_url  = $asset_url_base . $blocks_js_rel;
     $blocks_js_path = $asset_dir_base . $blocks_js_rel;
+    $blocks_asset_php = $asset_dir_base . 'js/blocks.min.asset.php';
+    $blocks_meta = file_exists( $blocks_asset_php ) ? require $blocks_asset_php : [];
 
     wp_enqueue_script(
         SGB_NS . '-blocks-js',
         $blocks_js_url,
-        [ 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-editor' ],
+        $blocks_meta['dependencies'] ?? [ 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-data', 'wp-server-side-render' ],
         sgb_ver($blocks_js_path), // FIX: Wrapped in sgb_ver()
         true
     );

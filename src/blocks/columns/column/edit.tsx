@@ -459,6 +459,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         />
                         <Divider />
                         <BorderBoxControl
+                            enableAlpha={true}
                             label={__('Borders', namespace)}
                             colors={themeColors}
                             value={border}
@@ -488,6 +489,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background', namespace)}</p>
                         <ColorPalette
+                            enableAlpha={true}
                             colors={themeColors}
                             value={backgroundColor}
                             onChange={(v) => setAttributes({backgroundColor: v || ''})}
@@ -495,6 +497,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         />
                         <p style={{ margin: '12px 0 4px', fontSize: '11px' }}>{__('Gradient', namespace)}</p>
                         <GradientPicker
+                            enableAlpha={true}
                             gradients={themeGradients}
                             value={backgroundGradient || undefined}
                             onChange={(v) => setAttributes({backgroundGradient: v || ''})}
@@ -587,6 +590,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         />
                         <Divider />
                         <BorderBoxControl
+                            enableAlpha={true}
                             label={__('Borders Override', namespace)}
                             colors={themeColors}
                             value={tabletBorder}
@@ -620,6 +624,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background Override', namespace)}</p>
                         <ColorPalette
+                            enableAlpha={true}
                             colors={themeColors}
                             value={tabletBackgroundColor}
                             onChange={(v) => setAttributes({tabletBackgroundColor: v || ''})}
@@ -627,6 +632,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         />
                         <p style={{ margin: '12px 0 4px', fontSize: '11px' }}>{__('Gradient Override', namespace)}</p>
                         <GradientPicker
+                            enableAlpha={true}
                             gradients={themeGradients}
                             value={tabletBackgroundGradient || undefined}
                             onChange={(v) => setAttributes({tabletBackgroundGradient: v || ''})}
@@ -722,6 +728,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         />
                         <Divider />
                         <BorderBoxControl
+                            enableAlpha={true}
                             label={__('Borders Override', namespace)}
                             colors={themeColors}
                             value={desktopBorder}
@@ -755,6 +762,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background Override', namespace)}</p>
                         <ColorPalette
+                            enableAlpha={true}
                             colors={themeColors}
                             value={desktopBackgroundColor}
                             onChange={(v) => setAttributes({desktopBackgroundColor: v || ''})}
@@ -762,6 +770,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         />
                         <p style={{ margin: '12px 0 4px', fontSize: '11px' }}>{__('Gradient Override', namespace)}</p>
                         <GradientPicker
+                            enableAlpha={true}
                             gradients={themeGradients}
                             value={desktopBackgroundGradient || undefined}
                             onChange={(v) => setAttributes({desktopBackgroundGradient: v || ''})}

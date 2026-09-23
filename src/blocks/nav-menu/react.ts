@@ -146,6 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'font-size',
             'font-style',
             'font-weight',
+            'line-height',
+            'text-transform',
             'letter-spacing',
             'text-decoration-line',
         ];
@@ -210,7 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (window.getComputedStyle(navInner).display !== 'none') {
                 const navDesktopWidth = getOuterWidth(navInner);
-                return totalSiblingWidth + navDesktopWidth + totalGapWidth + BUFFER;
+                const navStyle = window.getComputedStyle(navWrapper);
+                const navMargins = (parseFloat(navStyle.marginLeft) || 0) + (parseFloat(navStyle.marginRight) || 0);
+                return totalSiblingWidth + navDesktopWidth + navMargins + totalGapWidth + BUFFER;
             }
 
             return requiredDesktopWidth;

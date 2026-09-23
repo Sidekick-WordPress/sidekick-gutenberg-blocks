@@ -1,13 +1,14 @@
 {
     "name": "sidekick-gutenberg-blocks",
-    "version": "1.0.2",
+    "version": "1.1.2",
     "description": "",
     "main": "index.js",
     "author": "Josh Baker / Black Tie Digital",
     "license": "ISC",
     "scripts": {
         "start": "webpack --config webpack/dev.config.js",
-        "build": "webpack --config webpack/prod.config.js"
+        "build": "webpack --config webpack/prod.config.js",
+        "test:nav-menu": "node --test tests/nav-menu-migration.test.cjs"
     },
     "devDependencies": {
         "@babel/cli": "^7.12.8",
