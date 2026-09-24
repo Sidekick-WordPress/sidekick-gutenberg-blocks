@@ -68,6 +68,10 @@
             "type": "string",
             "default": ""
         },
+        "hoverTransitionDuration": {
+            "type": "number",
+            "default": 200
+        },
         "subMenuPadding": {
             "type": "object"
         },

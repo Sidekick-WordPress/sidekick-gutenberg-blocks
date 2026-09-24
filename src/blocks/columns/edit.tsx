@@ -694,30 +694,23 @@ export default function Edit({attributes, setAttributes, clientId, className, is
 
                     <Divider />
 
+                    {/* Bound each control without changing the other breakpoint while typing. */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <RangeControl
                             label={__('Tablet BP', namespace)}
                             value={tabletBreakpoint}
                             onChange={(v) => {
-                                const val = v ?? 768;
-                                setAttributes({
-                                    tabletBreakpoint: val,
-                                    desktopBreakpoint: Math.max(val + 1, desktopBreakpoint)
-                                });
+                                if (v !== undefined) setAttributes({tabletBreakpoint: v});
                             }}
-                            min={300} max={1500}
+                            min={300} max={Math.max(300, Math.min(1500, desktopBreakpoint - 1))}
                         />
                         <RangeControl
                             label={__('Desktop BP', namespace)}
                             value={desktopBreakpoint}
                             onChange={(v) => {
-                                const val = v ?? 1024;
-                                setAttributes({
-                                    desktopBreakpoint: val,
-                                    tabletBreakpoint: Math.min(val - 1, tabletBreakpoint)
-                                });
+                                if (v !== undefined) setAttributes({desktopBreakpoint: v});
                             }}
-                            min={300} max={2500}
+                            min={Math.max(301, tabletBreakpoint + 1)} max={2500}
                         />
                     </div>
                 </PanelBody>

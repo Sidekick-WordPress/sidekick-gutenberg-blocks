@@ -240,6 +240,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 reattachOverlay();
             }
 
+            // Keep a shared container marked while any of its menus is mobile.
+            parent.classList.toggle('is-mobile-layout', Array.from(parent.children).some(
+                (child) => child.matches('.sgb-nav-menu.is-mobile-menu')
+            ));
+
             // NEW: Reveal the menu now that the layout is locked in
             if (!navWrapper.classList.contains('is-initialized')) {
                 // requestAnimationFrame ensures the browser applies the mobile/desktop

@@ -47,6 +47,7 @@ export interface NavMenuAttributes {
     subMenuColorHover?: string;
     overlayBgColorHover?: string;
     overlayColorHover?: string;
+    hoverTransitionDuration?: number;
     subMenuPadding?: PaddingAttribute;
     subMenuWidth?: string | number;
     subMenuBoxShadow?: string;

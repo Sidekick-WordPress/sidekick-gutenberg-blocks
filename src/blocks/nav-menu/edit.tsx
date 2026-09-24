@@ -57,6 +57,7 @@ export default function Edit(
         subMenuColorHover = '',
         overlayBgColorHover = '',
         overlayColorHover = '',
+        hoverTransitionDuration = 200,
         subMenuStyle = {},
         subMenuWidth = '240px',
         subMenuBoxShadow = '0 8px 24px rgba(0, 0, 0, 0.12)',
@@ -206,6 +207,15 @@ export default function Edit(
                             { value: parentColor, onChange: (v: string | undefined) => setAttributes({ parentColor: v || 'inherit' }), label: __('Text Color', namespace) },
                             { value: parentColorHover, onChange: (v: string | undefined) => setAttributes({ parentColorHover: v || '' }), label: __('Text Color (Hover)', namespace) },
                         ]}
+                    />
+                    <RangeControl
+                        label={__('Hover transition duration (ms)', namespace)}
+                        help={__('Background and text transition time for all menu items, including submenus and the mobile overlay. Set to 0 for instant changes.', namespace)}
+                        value={hoverTransitionDuration}
+                        onChange={(value) => setAttributes({hoverTransitionDuration: value ?? 200})}
+                        min={0} max={2000} step={10}
+                        allowReset
+                        resetFallbackValue={200}
                     />
                 </PanelBody>
 

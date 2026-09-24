@@ -13,6 +13,7 @@ return function( $attributes, $content ) {
     $gap         = isset( $attributes['gap'] ) ? (int) $attributes['gap'] : 24;
     $mobile_gap  = isset( $attributes['mobileGap'] ) ? (int) $attributes['mobileGap'] : 12;
     $mobile_font_size = isset( $attributes['mobileFontSize'] ) ? (int) $attributes['mobileFontSize'] : 24;
+    $hover_transition_duration = max( 0, min( 2000, (int) ( $attributes['hoverTransitionDuration'] ?? 200 ) ) );
 
     $parent_padding_arr = sgb_nav_menu_padding_sides( $attributes['style']['spacing']['padding'] ?? null );
     $sub_padding_arr = sgb_nav_menu_padding_sides( $attributes['subMenuStyle']['spacing']['padding'] ?? null );
@@ -101,6 +102,7 @@ return function( $attributes, $content ) {
         '--nav-sub-color-hover' => $sub_menu_color_hover,
         '--nav-overlay-bg-hover' => $overlay_bg_hover,
         '--nav-overlay-color-hover' => $overlay_color_hover,
+        '--nav-hover-transition-duration' => $hover_transition_duration . 'ms',
         '--nav-sub-box-shadow' => $sub_menu_box_shadow,
         '--nav-sub-border-radius' => $sub_menu_radius,
         '--nav-mobile-font-size' => $mobile_font_size . 'px',
