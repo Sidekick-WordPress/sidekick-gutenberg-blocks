@@ -10,6 +10,7 @@ import Edit from './edit';
 import Save from './save';
 import './column';
 import Icon from './icon';
+import {ZERO_SPACING} from './spacing';
 
 registerBlockType(`${namespace}/columns`, {
     apiVersion: 3,
@@ -17,6 +18,14 @@ registerBlockType(`${namespace}/columns`, {
     icon: Icon,
     category: 'layout',
     attributes: parentAttributes,
+    // Inserter defaults are serialized explicitly. Schema defaults would also
+    // apply to older blocks and mask their saved core margins or cleared values.
+    variations: [{
+        name: 'default',
+        isDefault: true,
+        scope: ['inserter'],
+        attributes: {mobileMargin: {...ZERO_SPACING}},
+    }],
     providesContext: {
         [`${namespace}/tabletBreakpoint`]: 'tabletBreakpoint',
         [`${namespace}/desktopBreakpoint`]: 'desktopBreakpoint'

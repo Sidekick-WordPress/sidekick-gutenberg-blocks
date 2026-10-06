@@ -21,16 +21,21 @@ return function( $attributes, $content ) {
     $mobile_max_h = ! empty( $attributes['mobileMaxHeight'] ) ? $attributes['mobileMaxHeight'] : '';
     $mobile_align = isset( $attributes['horizontalAlignment'] ) ? $attributes['horizontalAlignment'] : 'center';
 
+    // Zero is an explicit override; only missing or cleared values inherit.
+    $has_padding_value = function( $value ) {
+        return $value !== null && $value !== '';
+    };
+
     // Tablet Attributes (Overrides)
     $has_tab_gap = isset( $attributes['tabletGap'] ) && $attributes['tabletGap'] !== '';
-    $has_tab_pad = ! empty( $attributes['tabletPadding'] ) && count( array_filter( (array) $attributes['tabletPadding'] ) ) > 0;
+    $has_tab_pad = count( array_filter( (array) ( $attributes['tabletPadding'] ?? [] ), $has_padding_value ) ) > 0;
     $has_tab_max_w = ! empty( $attributes['tabletMaxWidth'] );
     $has_tab_max_h = ! empty( $attributes['tabletMaxHeight'] );
     $has_tab_align = ! empty( $attributes['tabletHorizontalAlignment'] );
 
     // Desktop Attributes (Overrides)
     $has_desk_gap = isset( $attributes['gap'] ) && $attributes['gap'] !== '';
-    $has_desk_pad = ! empty( $attributes['padding'] ) && count( array_filter( (array) $attributes['padding'] ) ) > 0;
+    $has_desk_pad = count( array_filter( (array) ( $attributes['padding'] ?? [] ), $has_padding_value ) ) > 0;
     $has_desk_max_w = ! empty( $attributes['desktopMaxWidth'] );
     $has_desk_max_h = ! empty( $attributes['desktopMaxHeight'] );
     $has_desk_align = ! empty( $attributes['desktopHorizontalAlignment'] );
@@ -121,6 +126,7 @@ return function( $attributes, $content ) {
     $margin_rules = [];
     $resolved_margins = [];
     $margin_pointers = [];
+    $had_horizontal_margin = false;
     foreach ( $margin_inputs as $breakpoint => $input ) {
         $input = $margin_box( $input );
         $margin_rules[$breakpoint] = '';
@@ -141,9 +147,19 @@ return function( $attributes, $content ) {
                 $margin_rules[$breakpoint] .= 'margin-' . $side . ': var(--cols-current-margin-' . $side . ') !important; ';
             }
         }
-        if ( isset( $resolved_margins['left'] ) || isset( $resolved_margins['right'] ) ) {
-            $margin_rules[$breakpoint] .= 'width: auto !important; ';
+        $has_horizontal_margin = false;
+        foreach ( [ 'left', 'right' ] as $side ) {
+            if ( isset( $resolved_margins[$side] ) && ! preg_match( '/^[-+]?0(?:\.0+)?(?:[a-z%]+)?$/i', $resolved_margins[$side] ) ) {
+                $has_horizontal_margin = true;
+            }
         }
+        if ( $has_horizontal_margin ) {
+            $margin_rules[$breakpoint] .= 'width: auto !important; ';
+        } elseif ( $had_horizontal_margin ) {
+            // A zero override restores the original full width at this tier.
+            $margin_rules[$breakpoint] .= 'width: 100% !important; ';
+        }
+        $had_horizontal_margin = $had_horizontal_margin || $has_horizontal_margin;
     }
 
     $css_max_w_mobile = $mobile_max_w ?: 'none';

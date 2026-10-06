@@ -34,7 +34,9 @@ export const ensureUnit = (val: string | number | undefined, defaultUnit = 'px')
 export const getPaddingStr = (p: PaddingAttribute | undefined, fallback = '0px') => {
     const parsed = parsePadding(p) as PaddingAttribute;
 
-    return `${parsed.top || fallback} ${parsed.right || fallback} ${parsed.bottom || fallback} ${parsed.left || fallback}`;
+    return [parsed.top, parsed.right, parsed.bottom, parsed.left]
+        .map(value => (value || fallback).replace(/^var:preset\|spacing\|([a-z0-9-]+)$/i, 'var(--wp--preset--spacing--$1)'))
+        .join(' ');
 };
 
 // Column-width presets like 1/3 or 1/6 are repeating decimals. The RangeControl

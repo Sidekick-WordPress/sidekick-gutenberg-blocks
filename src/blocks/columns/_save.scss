@@ -228,8 +228,7 @@
         }
     }
 
-    &.has-cols-margin-left,
-    &.has-cols-margin-right {
+    &.has-cols-horizontal-margin {
         // Let horizontal margins share the available width with the block.
         width: auto !important;
     }

@@ -57,6 +57,21 @@ foreach ( [ 'mobile', 'tablet', 'desktop' ] as $breakpoint ) {
 }
 check_margin( ! str_contains( implode( '', $default_rules ), 'width: auto' ), 'Untouched Columns changed width.' );
 
+$zero_margins = array_fill_keys( [ 'top', 'right', 'bottom', 'left' ], '0' );
+$new_columns = $render_columns( [ 'mobileMargin' => $zero_margins ], '' );
+foreach ( column_margin_rules( $new_columns ) as $rule ) {
+    foreach ( array_keys( $zero_margins ) as $side ) {
+        check_margin( has_margin_rule( $rule, $side ), 'New Columns zero margins did not cascade.' );
+    }
+    check_margin( ! str_contains( $rule, 'width: auto' ), 'Default zero margins changed the original full width.' );
+}
+$reset_width = column_margin_rules( $render_columns( [
+    'mobileMargin' => [ 'left' => '2rem', 'right' => '1rem' ],
+    'tabletMargin' => [ 'left' => '0', 'right' => '0' ],
+], '' ) );
+check_margin( str_contains( $reset_width[0], 'width: auto' ), 'Nonzero margins did not adjust width.' );
+check_margin( str_contains( $reset_width[1], 'width: 100% !important' ) && str_contains( $reset_width[2], 'width: 100% !important' ), 'Zero overrides did not restore full width.' );
+
 $legacy_attributes = [ 'style' => [ 'spacing' => [ 'margin' => [ 'top' => 0, 'bottom' => 'var:preset|spacing|40' ] ] ] ];
 $legacy = $render_columns( $legacy_attributes, '' );
 check_margin( str_contains( $legacy, '--cols-margin-top-mobile: 0px;' ), 'Saved core zero was lost.' );
@@ -93,6 +108,39 @@ check_margin( str_contains( $cascade, '--cols-margin-top-desktop: 0px;' ), 'Expl
 $cascade_rules = column_margin_rules( $cascade );
 check_margin( has_margin_rule( $cascade_rules[1], 'top' ) && has_margin_rule( $cascade_rules[1], 'bottom' ), 'Partial tablet values did not retain base sides.' );
 
+$presets = $render_columns( [
+    'mobilePadding' => [ 'top' => 'var:preset|spacing|small', 'right' => '2em', 'bottom' => 0, 'left' => 'calc(1rem + 2px)' ],
+    'tabletPadding' => [ 'top' => 'var:preset|spacing|40', 'right' => '1rem', 'bottom' => '0px', 'left' => 12 ],
+    'padding' => [ 'top' => 'var:preset|spacing|x-large', 'right' => 'var(--custom-spacing)', 'bottom' => '3vh', 'left' => '0' ],
+    'mobileMargin' => [ 'top' => 'var:preset|spacing|small' ],
+    'tabletMargin' => [ 'right' => 'var:preset|spacing|40' ],
+    'desktopMargin' => [ 'bottom' => 'var:preset|spacing|x-large' ],
+], '' );
+check_margin( str_contains( $presets, '--pad-mobile: var(--wp--preset--spacing--small) 2em 0px calc(1rem + 2px);' ), 'Base padding preset or custom values did not render.' );
+check_margin( str_contains( $presets, '--pad-tablet: var(--wp--preset--spacing--40) 1rem 0px 12px;' ), 'Tablet padding preset or custom values did not render.' );
+check_margin( str_contains( $presets, '--pad-desktop: var(--wp--preset--spacing--x-large) var(--custom-spacing) 3vh 0px;' ), 'Desktop padding preset or custom values did not render.' );
+foreach ( [ 'top-mobile' => 'small', 'right-tablet' => '40', 'bottom-desktop' => 'x-large' ] as $side_breakpoint => $slug ) {
+    check_margin( str_contains( $presets, '--cols-margin-' . $side_breakpoint . ': var(--wp--preset--spacing--' . $slug . ');' ), 'Responsive margin preset did not render.' );
+}
+check_margin( ! str_contains( $presets, 'var:preset|spacing|' ), 'An unconverted spacing token reached rendered CSS.' );
+check_margin( sgb_get_padding_str( 12 ) === '12px 12px 12px 12px', 'Legacy scalar padding changed.' );
+check_margin( sgb_get_padding_str( 0, '1rem' ) === '0px 0px 0px 0px', 'Explicit zero scalar padding used the fallback.' );
+check_margin( sgb_get_padding_str( [ 'top' => 'var:preset|spacing|small' ], '1rem' ) === 'var(--wp--preset--spacing--small) 1rem 1rem 1rem', 'Partial padding lost its fallback.' );
+
+$padding_base = [ 'mobilePadding' => array_fill_keys( [ 'top', 'right', 'bottom', 'left' ], 'var:preset|spacing|small' ) ];
+foreach ( [ 'tabletPadding' => 'tablet', 'padding' => 'desktop' ] as $attribute => $breakpoint ) {
+    foreach ( [ 0, '0' ] as $zero ) {
+        $zero_padding = $render_columns( $padding_base + [ $attribute => array_fill_keys( [ 'top', 'right', 'bottom', 'left' ], $zero ) ], '' );
+        check_margin( str_contains( $zero_padding, '--pad-' . $breakpoint . ': 0px 0px 0px 0px;' ), 'All-zero ' . $breakpoint . ' padding inherited nonzero base padding.' );
+        check_margin( ! str_contains( $zero_padding, 'var:preset|spacing|' ), 'Zero padding override left an unconverted base spacing token.' );
+    }
+    foreach ( [ null, [], [ 'top' => '', 'bottom' => null ] ] as $empty_padding ) {
+        $inherited_padding = $render_columns( $padding_base + [ $attribute => $empty_padding ], '' );
+        $inherited_breakpoint = $breakpoint === 'tablet' ? 'mobile' : 'tablet';
+        check_margin( str_contains( $inherited_padding, '--pad-' . $breakpoint . ': var(--pad-' . $inherited_breakpoint . ');' ), 'Empty ' . $breakpoint . ' padding stopped inheriting.' );
+    }
+}
+
 $shorthand = $render_columns( [ 'style' => [ 'spacing' => [ 'margin' => 'calc(1rem + var(--extra, 2px)) auto 3px' ] ] ], '' );
 check_margin( str_contains( $shorthand, '--cols-margin-top-mobile: calc(1rem + var(--extra, 2px));' ), 'Legacy shorthand split a CSS function.' );
 check_margin( str_contains( $shorthand, '--cols-margin-right-mobile: auto;' ) && str_contains( $shorthand, '--cols-margin-left-mobile: auto;' ), 'Legacy shorthand horizontal sides were not expanded.' );
@@ -110,4 +158,4 @@ foreach ( [ '1px; 2rem', 'calc(1rem + 2px', ')1rem(', '1px 2px 3px 4px 5px' ] as
     }
 }
 
-echo "PASS: untouched spacing, legacy zero/presets/shorthand, reset, partial inheritance, responsive activation, custom breakpoints, horizontal width, and CSS sanitization.\n";
+echo "PASS: untouched spacing, legacy zero/presets/shorthand, reset, partial inheritance, responsive activation, custom breakpoints, responsive padding/margin presets, custom units, horizontal width, and CSS sanitization.\n";
