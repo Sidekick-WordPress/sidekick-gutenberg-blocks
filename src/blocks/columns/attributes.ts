@@ -28,6 +28,11 @@ export interface CoreColumnsAttributes {
     desktopMaxHeight: string;
     desktopHorizontalAlignment: string;
 
+    // Border Radius (Mobile base, Tablet/Desktop overrides)
+    borderRadius: string | Record<string, string>;
+    tabletBorderRadius: string | Record<string, string>;
+    desktopBorderRadius: string | Record<string, string>;
+
     backgroundImage: string;
     backgroundColor: string;
     backgroundGradient: string;
@@ -78,6 +83,10 @@ export const parentAttributes: Record<keyof CoreColumnsAttributes, BlockAttribut
     desktopMaxWidth: { type: 'string' },
     desktopMaxHeight: { type: 'string' },
     desktopHorizontalAlignment: { type: 'string' },
+
+    borderRadius: { type: 'object' },
+    tabletBorderRadius: { type: 'object' },
+    desktopBorderRadius: { type: 'object' },
 
     backgroundImage: { type: 'string', default: '' },
     backgroundColor: { type: 'string', default: '' },

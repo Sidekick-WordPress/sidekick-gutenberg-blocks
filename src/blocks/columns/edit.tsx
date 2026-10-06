@@ -1,5 +1,5 @@
 import {__} from '@wordpress/i18n';
-import {useBlockProps, useInnerBlocksProps, InspectorControls, BlockControls} from '@wordpress/block-editor';
+import {useBlockProps, useInnerBlocksProps, InspectorControls, BlockControls, __experimentalBorderRadiusControl as BorderRadiusControl} from '@wordpress/block-editor';
 import {useMemo, useState, useEffect, useCallback} from '@wordpress/element';
 import {
     PanelBody,
@@ -32,6 +32,19 @@ import ControlsMedia from "../../components/edit-controls/ControlsMedia";
 import {CoreColumnsAttributes} from './attributes';
 import ColumnsExtraLogic from "./components/ColumnsExtraLogic";
 import TierNote, {TIER_LABELS} from "./components/TierNote";
+
+type BorderRadiusValue = string | Record<string, string> | undefined;
+
+const borderRadiusToCss = (value: BorderRadiusValue): string => {
+    if (typeof value === 'string') return value || '0px';
+    return ['topLeft', 'topRight', 'bottomRight', 'bottomLeft']
+        .map(corner => value?.[corner] || '0px').join(' ');
+};
+
+const hasBorderRadiusValue = (value: BorderRadiusValue): boolean => {
+    if (!value) return false;
+    return typeof value === 'string' || Object.values(value).some(v => !!v);
+};
 
 // Row-level splits applied to the EXISTING columns (tablet + desktop widths;
 // base/mobile stays at each column's own value, typically 100 = stacked).
@@ -91,6 +104,10 @@ export default function Edit({attributes, setAttributes, clientId, className, is
             desktopBackgroundGradient,
             desktopBackgroundVideo,
 
+            borderRadius,
+            tabletBorderRadius,
+            desktopBorderRadius,
+
             backgroundImageOpacity,
             backgroundSize,
             backgroundPosition,
@@ -135,6 +152,9 @@ export default function Edit({attributes, setAttributes, clientId, className, is
         hasDesktopBgImage = !!desktopBackgroundImage,
         hasDesktopBgColor = !!desktopBackgroundColor,
         hasDesktopBgGradient = !!desktopBackgroundGradient,
+
+        hasTabletBorderRadius = hasBorderRadiusValue(tabletBorderRadius),
+        hasDesktopBorderRadius = hasBorderRadiusValue(desktopBorderRadius),
 
         // CSS Variables
         cssGapMobile = `${mobileGap || 0}px`,
@@ -269,6 +289,10 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                 '--max-height-tablet': cssMaxHeightTablet,
                 '--max-height-mobile': cssMaxHeightMobile,
 
+                '--cols-radius-mobile': borderRadiusToCss(borderRadius),
+                '--cols-radius-tablet': hasTabletBorderRadius ? borderRadiusToCss(tabletBorderRadius) : 'var(--cols-radius-mobile)',
+                '--cols-radius-desktop': hasDesktopBorderRadius ? borderRadiusToCss(desktopBorderRadius) : 'var(--cols-radius-tablet)',
+
                 '--h-align-desktop': cssHAlignDesktop,
                 '--h-align-tablet': cssHAlignTablet,
                 '--h-align-mobile': cssHAlignMobile,
@@ -294,6 +318,7 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                 maxHeight: 'var(--current-max-height)',
                 position: 'relative',
                 backgroundColor: 'var(--current-bg-color)',
+                borderRadius: 'var(--cols-current-radius)',
             } as CSSProperties
         }),
         template = useMemo(() => {
@@ -423,6 +448,12 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                         />
 
                         <Divider />
+                        <BorderRadiusControl
+                            values={borderRadius as any}
+                            onChange={(v) => setAttributes({borderRadius: v as any})}
+                        />
+
+                        <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background', namespace)}</p>
                         <ColorPalette
                             enableAlpha={true}
@@ -503,6 +534,12 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                                 {label: __('Right', namespace), value: 'right'}
                             ]}
                             onChange={(v) => setAttributes({tabletHorizontalAlignment: v})}
+                        />
+
+                        <Divider />
+                        <BorderRadiusControl
+                            values={tabletBorderRadius as any}
+                            onChange={(v) => setAttributes({tabletBorderRadius: hasBorderRadiusValue(v) ? v as any : undefined})}
                         />
 
                         <Divider />
@@ -589,6 +626,12 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                                 {label: __('Right', namespace), value: 'right'}
                             ]}
                             onChange={(v) => setAttributes({desktopHorizontalAlignment: v})}
+                        />
+
+                        <Divider />
+                        <BorderRadiusControl
+                            values={desktopBorderRadius as any}
+                            onChange={(v) => setAttributes({desktopBorderRadius: hasBorderRadiusValue(v) ? v as any : undefined})}
                         />
 
                         <Divider />
@@ -752,6 +795,7 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                     style={{
                         position: 'absolute',
                         inset: 0,
+                        borderRadius: 'inherit',
                         backgroundImage: 'var(--current-bg-gradient, none), var(--current-bg-image)',
                         backgroundSize: backgroundSize || 'cover',
                         backgroundPosition: activeBackgroundPosition,
@@ -778,6 +822,7 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             height: '100%',
                             objectFit: 'cover',
                             objectPosition: 'center',
+                            borderRadius: 'inherit',
                             opacity: (backgroundImageOpacity !== undefined ? backgroundImageOpacity : 100) / 100,
                             pointerEvents: 'none',
                             zIndex: 0,

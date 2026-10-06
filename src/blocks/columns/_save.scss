@@ -12,7 +12,7 @@
 
 @each $bp in (mobile, tablet, desktop) {
     // Columns block raw inputs
-    @each $name in (gap, pad, max-width, max-height, margin-l, margin-r, bg-image, bg-color, bg-gradient, h-align) {
+    @each $name in (gap, pad, max-width, max-height, margin-l, margin-r, bg-image, bg-color, bg-gradient, h-align, cols-radius) {
         @property --#{$name}-#{$bp} {
             syntax: '*';
             inherits: false;
@@ -206,6 +206,9 @@
     --current-bg-image: var(--bg-image-mobile);
     --current-bg-color: var(--bg-color-mobile);
     --current-bg-gradient: var(--bg-gradient-mobile);
+    --cols-current-radius: var(--cols-radius-mobile, 0px);
+
+    border-radius: var(--cols-current-radius);
 
     // COLUMN DEFAULT POINTERS
     > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
@@ -250,6 +253,7 @@
         --current-bg-image: var(--bg-image-mobile) !important;
         --current-bg-color: var(--bg-color-mobile) !important;
         --current-bg-gradient: var(--bg-gradient-mobile) !important;
+        --cols-current-radius: var(--cols-radius-mobile, 0px) !important;
 
         > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
         > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
@@ -289,6 +293,7 @@
         --current-bg-image: var(--bg-image-tablet) !important;
         --current-bg-color: var(--bg-color-tablet) !important;
         --current-bg-gradient: var(--bg-gradient-tablet) !important;
+        --cols-current-radius: var(--cols-radius-tablet, var(--cols-radius-mobile, 0px)) !important;
 
         > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
         > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
@@ -329,6 +334,7 @@
         --current-bg-image: var(--bg-image-desktop) !important;
         --current-bg-color: var(--bg-color-desktop) !important;
         --current-bg-gradient: var(--bg-gradient-desktop) !important;
+        --cols-current-radius: var(--cols-radius-desktop, var(--cols-radius-tablet, var(--cols-radius-mobile, 0px))) !important;
 
         > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
         > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {

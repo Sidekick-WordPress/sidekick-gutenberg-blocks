@@ -52,6 +52,26 @@ return function( $attributes, $content ) {
     $css_max_h_tablet = $has_tab_max_h ? $attributes['tabletMaxHeight'] : 'var(--max-height-mobile)';
     $css_max_h_desktop = $has_desk_max_h ? $attributes['desktopMaxHeight'] : 'var(--max-height-tablet)';
 
+    // Border radius cascades from mobile to tablet to desktop.
+    $radius_css = function( $value, $fallback = '0px' ) {
+        if ( is_string( $value ) ) return $value !== '' ? $value : $fallback;
+        if ( is_array( $value ) ) {
+            $corners = [];
+            $has_value = false;
+            foreach ( [ 'topLeft', 'topRight', 'bottomRight', 'bottomLeft' ] as $corner ) {
+                $corner_value = $value[$corner] ?? '';
+                $has_corner = $corner_value !== '';
+                $has_value = $has_value || $has_corner;
+                $corners[] = $has_corner ? $corner_value : '0px';
+            }
+            return $has_value ? implode( ' ', $corners ) : $fallback;
+        }
+        return $fallback;
+    };
+    $css_radius_mobile = $radius_css( $attributes['borderRadius'] ?? null );
+    $css_radius_tablet = $radius_css( $attributes['tabletBorderRadius'] ?? null, 'var(--cols-radius-mobile)' );
+    $css_radius_desktop = $radius_css( $attributes['desktopBorderRadius'] ?? null, 'var(--cols-radius-tablet)' );
+
     // Alignment logic
     $get_margin_l = function($align) { return $align === 'left' ? '0' : 'auto'; };
     $get_margin_r = function($align) { return $align === 'right' ? '0' : 'auto'; };
@@ -98,6 +118,7 @@ return function( $attributes, $content ) {
     $style = sprintf(
         '--gap-mobile: %s; --gap-tablet: %s; --gap-desktop: %s; ' .
         '--pad-mobile: %s; --pad-tablet: %s; --pad-desktop: %s; ' .
+        '--cols-radius-mobile: %s; --cols-radius-tablet: %s; --cols-radius-desktop: %s; ' .
         '--max-width-mobile: %s; --max-width-tablet: %s; --max-width-desktop: %s; ' .
         '--max-height-mobile: %s; --max-height-tablet: %s; --max-height-desktop: %s; ' .
         '--margin-l-mobile: %s; --margin-r-mobile: %s; ' .
@@ -107,9 +128,10 @@ return function( $attributes, $content ) {
         '--bg-color-mobile: %s; --bg-color-tablet: %s; --bg-color-desktop: %s; ' .
         '--bg-gradient-mobile: %s; --bg-gradient-tablet: %s; --bg-gradient-desktop: %s; ' .
         '--bg-pos-mobile: %s; --bg-pos-tablet: %s; --bg-pos-desktop: %s; ' .
-        'padding: var(--current-pad); position: relative; max-height: var(--current-max-height); box-sizing: border-box; display: block; width: 100%%; background-color: var(--current-bg-color);',
+        'padding: var(--current-pad); position: relative; max-height: var(--current-max-height); box-sizing: border-box; display: block; width: 100%%; background-color: var(--current-bg-color); border-radius: var(--cols-current-radius);',
         esc_attr( $css_gap_mobile ), esc_attr( $css_gap_tablet ), esc_attr( $css_gap_desktop ),
         esc_attr( $css_pad_mobile ), esc_attr( $css_pad_tablet ), esc_attr( $css_pad_desktop ),
+        esc_attr( $css_radius_mobile ), esc_attr( $css_radius_tablet ), esc_attr( $css_radius_desktop ),
         esc_attr( $css_max_w_mobile ), esc_attr( $css_max_w_tablet ), esc_attr( $css_max_w_desktop ),
         esc_attr( $css_max_h_mobile ), esc_attr( $css_max_h_tablet ), esc_attr( $css_max_h_desktop ),
         $get_margin_l($align_mobile), $get_margin_r($align_mobile),
@@ -141,6 +163,7 @@ return function( $attributes, $content ) {
         <style>
             .<?php echo $block_id; ?> {
                 --current-bg-pos: var(--bg-pos-mobile);
+                --cols-current-radius: var(--cols-radius-mobile);
             }
             @media (min-width: <?php echo $tablet_bp; ?>px) {
                 .<?php echo $block_id; ?> {
@@ -154,6 +177,7 @@ return function( $attributes, $content ) {
                     --current-bg-color: var(--bg-color-tablet);
                     --current-bg-gradient: var(--bg-gradient-tablet);
                     --current-bg-pos: var(--bg-pos-tablet);
+                    --cols-current-radius: var(--cols-radius-tablet);
                 }
             }
             @media (min-width: <?php echo $desktop_bp; ?>px) {
@@ -168,13 +192,14 @@ return function( $attributes, $content ) {
                     --current-bg-color: var(--bg-color-desktop);
                     --current-bg-gradient: var(--bg-gradient-desktop);
                     --current-bg-pos: var(--bg-pos-desktop);
+                    --cols-current-radius: var(--cols-radius-desktop);
                 }
             }
         </style>
 
         <div
             class="<?php echo esc_attr( $namespace ); ?>-background-layer"
-            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; background-image: var(--current-bg-gradient, none), var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: var(--current-bg-pos, center); background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
+            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; border-radius: inherit; background-image: var(--current-bg-gradient, none), var(--current-bg-image); background-size: <?php echo esc_attr( $bg_size ); ?>; background-position: var(--current-bg-pos, center); background-repeat: <?php echo esc_attr( $bg_repeat ); ?>; background-attachment: <?php echo esc_attr( $bg_attachment ); ?>; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
         ></div>
 
         <?php if ( $has_bg_video ) : ?>
@@ -191,7 +216,7 @@ return function( $attributes, $content ) {
             loop
             playsinline
             autoplay
-            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; z-index: 0; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
+            style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; z-index: 0; border-radius: inherit; opacity: <?php echo esc_attr( $bg_opacity / 100 ); ?>;"
         ></video>
         <?php endif; ?>
 
