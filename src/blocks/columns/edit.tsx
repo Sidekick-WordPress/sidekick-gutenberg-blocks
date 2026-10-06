@@ -21,7 +21,7 @@ import type {CSSProperties} from 'react';
 
 // Plugin
 import namespace from '../../namespace';
-import {getPaddingStr, parsePadding, normalizeColumnWidth} from "../../helpers/styles";
+import {getPaddingStr, normalizeColumnWidth} from "../../helpers/styles";
 import {normalizeHtmlId} from "../../helpers/html";
 import {PaddingAttribute} from "../../models/attr-shapes/padding-margin";
 import VersatileMessage from "../../components/VersitileMessage";
@@ -532,7 +532,6 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             key="padding-tablet"
                             label={__('Padding', namespace)}
                             values={tabletPadding}
-                            inheritedValues={hasTabletPadding ? undefined : parsePadding(mobilePadding)}
                             onChange={(v) => setAttributes({tabletPadding: v as PaddingAttribute})}
                             resetLabel={__('Inherit Base', namespace)}
                         />
@@ -541,7 +540,6 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             key="margin-tablet"
                             label={__('Margin', namespace)}
                             values={margins.tablet}
-                            inheritedValues={margins.resolved.mobile}
                             onChange={(v) => setAttributes({tabletMargin: v})}
                             allowNegative
                             resetLabel={__('Inherit Base', namespace)}
@@ -640,7 +638,6 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             key="padding-desktop"
                             label={__('Padding', namespace)}
                             values={padding}
-                            inheritedValues={hasDesktopPadding ? undefined : parsePadding(hasTabletPadding ? tabletPadding : mobilePadding)}
                             onChange={(v) => setAttributes({padding: v as PaddingAttribute})}
                             resetLabel={__('Inherit Tablet / Base', namespace)}
                         />
@@ -649,7 +646,6 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             key="margin-desktop"
                             label={__('Margin', namespace)}
                             values={margins.desktop}
-                            inheritedValues={margins.resolved.tablet}
                             onChange={(v) => setAttributes({desktopMargin: v})}
                             allowNegative
                             resetLabel={__('Inherit Tablet / Base', namespace)}
