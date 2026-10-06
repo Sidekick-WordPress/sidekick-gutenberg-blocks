@@ -19,6 +19,13 @@
         }
     }
 
+    @each $side in (top, right, bottom, left) {
+        @property --cols-margin-#{$side}-#{$bp} {
+            syntax: '*';
+            inherits: false;
+        }
+    }
+
     // Column block raw inputs
     @each $name in (col-pad, col-w, col-valign, col-inner-max, col-halign, col-bg-image, col-bg-color, col-bg-gradient, col-order, col-zindex, col-radius) {
         @property --#{$name}-#{$bp} {
@@ -210,6 +217,23 @@
 
     border-radius: var(--cols-current-radius);
 
+    // Outer margins are optional. Only editor sides with an effective value
+    // get a declaration; PHP applies the equivalent rules at each breakpoint.
+    // Leaving a side blank preserves the surrounding WordPress layout spacing.
+    @each $side in (top, right, bottom, left) {
+        --cols-current-margin-#{$side}: var(--cols-margin-#{$side}-mobile);
+
+        &.has-cols-margin-#{$side} {
+            margin-#{$side}: var(--cols-current-margin-#{$side}) !important;
+        }
+    }
+
+    &.has-cols-margin-left,
+    &.has-cols-margin-right {
+        // Let horizontal margins share the available width with the block.
+        width: auto !important;
+    }
+
     // COLUMN DEFAULT POINTERS
     > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
     > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
@@ -255,6 +279,10 @@
         --current-bg-gradient: var(--bg-gradient-mobile) !important;
         --cols-current-radius: var(--cols-radius-mobile, 0px) !important;
 
+        @each $side in (top, right, bottom, left) {
+            --cols-current-margin-#{$side}: var(--cols-margin-#{$side}-mobile) !important;
+        }
+
         > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
         > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
             @include col-width(--col-w-mobile);
@@ -294,6 +322,10 @@
         --current-bg-color: var(--bg-color-tablet) !important;
         --current-bg-gradient: var(--bg-gradient-tablet) !important;
         --cols-current-radius: var(--cols-radius-tablet, var(--cols-radius-mobile, 0px)) !important;
+
+        @each $side in (top, right, bottom, left) {
+            --cols-current-margin-#{$side}: var(--cols-margin-#{$side}-tablet, var(--cols-margin-#{$side}-mobile)) !important;
+        }
 
         > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
         > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {
@@ -335,6 +367,10 @@
         --current-bg-color: var(--bg-color-desktop) !important;
         --current-bg-gradient: var(--bg-gradient-desktop) !important;
         --cols-current-radius: var(--cols-radius-desktop, var(--cols-radius-tablet, var(--cols-radius-mobile, 0px))) !important;
+
+        @each $side in (top, right, bottom, left) {
+            --cols-current-margin-#{$side}: var(--cols-margin-#{$side}-desktop, var(--cols-margin-#{$side}-tablet, var(--cols-margin-#{$side}-mobile))) !important;
+        }
 
         > .#{$namespace}-columns-inner > .wp-block-#{$namespace}-column,
         > .#{$namespace}-columns-inner > .block-editor-block-list__block[data-type="#{$namespace}/column"] {

@@ -30,6 +30,7 @@ import ControlsMedia from "../../components/edit-controls/ControlsMedia";
 
 // Block
 import {CoreColumnsAttributes} from './attributes';
+import {getResponsiveMargins, MARGIN_SIDES, normalizeMargin} from './margins';
 import ColumnsExtraLogic from "./components/ColumnsExtraLogic";
 import TierNote, {TIER_LABELS} from "./components/TierNote";
 
@@ -133,6 +134,11 @@ export default function Edit({attributes, setAttributes, clientId, className, is
         [blockElement, setBlockElement] = useState<HTMLElement | null>(null),
         [layoutInfo, setLayoutInfo] = useState<{cls: string; width: number}>({cls: '', width: 0}),
         layoutClass = layoutInfo.cls,
+        margins = getResponsiveMargins(attributes),
+        activeMargin = margins.resolved[layoutClass === 'is-desktop-layout' ? 'desktop'
+            : layoutClass === 'is-tablet-layout' ? 'tablet' : 'mobile'],
+        marginClasses = MARGIN_SIDES.filter(side => activeMargin[side] !== undefined)
+            .map(side => `has-cols-margin-${side}`),
 
         // Detection Logic
         hasTabletGap = tabletGap !== undefined && (tabletGap as any) !== '',
@@ -274,8 +280,9 @@ export default function Edit({attributes, setAttributes, clientId, className, is
         blockProps = useBlockProps({
             ref: setBlockElement,
             id: normalizeHtmlId(htmlId) || undefined,
-            className: [className, layoutClass].filter(Boolean).join(' '),
+            className: [className, layoutClass, ...marginClasses].filter(Boolean).join(' '),
             style: {
+                ...margins.cssVars,
                 '--gap-desktop': cssGapDesktop,
                 '--gap-tablet': cssGapTablet,
                 '--gap-mobile': cssGapMobile,
@@ -425,6 +432,17 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             onChange={(v) => setAttributes({mobilePadding: v as PaddingAttribute})}
                         />
                         <Divider />
+                        <BoxControl
+                            label={__('Margin', namespace)}
+                            values={margins.mobile}
+                            onChange={(v) => setAttributes({mobileMargin: normalizeMargin(v)})}
+                            resetValues={{}}
+                            inputProps={{min: undefined}}
+                        />
+                        <p className="components-base-control__help">
+                            {__('Space outside this block. Leave blank for theme spacing; use 0 to remove it.', namespace)}
+                        </p>
+                        <Divider />
                         <UnitControl
                             label={__('Max Width', namespace)}
                             value={mobileMaxWidth}
@@ -512,6 +530,17 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             values={parsePadding(tabletPadding)}
                             onChange={(v) => setAttributes({tabletPadding: v as PaddingAttribute})}
                         />
+                        <Divider />
+                        <BoxControl
+                            label={__('Margin', namespace)}
+                            values={margins.tablet}
+                            onChange={(v) => setAttributes({tabletMargin: normalizeMargin(v)})}
+                            resetValues={{}}
+                            inputProps={{min: undefined}}
+                        />
+                        <p className="components-base-control__help">
+                            {__('Blank sides inherit the Base margin.', namespace)}
+                        </p>
                         <Divider />
                         <UnitControl
                             label={__('Max Width', namespace)}
@@ -604,6 +633,17 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             values={parsePadding(padding)}
                             onChange={(v) => setAttributes({padding: v as PaddingAttribute})}
                         />
+                        <Divider />
+                        <BoxControl
+                            label={__('Margin', namespace)}
+                            values={margins.desktop}
+                            onChange={(v) => setAttributes({desktopMargin: normalizeMargin(v)})}
+                            resetValues={{}}
+                            inputProps={{min: undefined}}
+                        />
+                        <p className="components-base-control__help">
+                            {__('Blank sides inherit the Tablet or Base margin.', namespace)}
+                        </p>
                         <Divider />
                         <UnitControl
                             label={__('Max Width', namespace)}

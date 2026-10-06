@@ -1,7 +1,8 @@
 import {BlockAttribute} from '@wordpress/blocks';
 import {PaddingAttribute} from "../../models/attr-shapes/padding-margin";
+import type {MarginAttributes} from './margins';
 
-export interface CoreColumnsAttributes {
+export interface CoreColumnsAttributes extends MarginAttributes {
     htmlId: string;
     columns: number;
     tabletBreakpoint: number;
@@ -59,6 +60,10 @@ export const parentAttributes: Record<keyof CoreColumnsAttributes, BlockAttribut
     columns: {type: 'number', default: 2},
     tabletBreakpoint: {type: 'number', default: 768},
     desktopBreakpoint: {type: 'number', default: 1024},
+    style: { type: 'object' },
+    mobileMargin: { type: 'object' },
+    tabletMargin: { type: 'object' },
+    desktopMargin: { type: 'object' },
 
     // Base Layout (Mobile)
     mobileGap: { type: 'number', default: 20 },

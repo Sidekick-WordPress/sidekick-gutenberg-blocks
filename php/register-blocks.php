@@ -19,6 +19,11 @@ add_action( 'init', function() {
                     'type'    => 'number',
                     'default' => 1024,
                 ],
+                // Preserve saved core margins after replacing their controls.
+                'style' => [ 'type' => 'object' ],
+                'mobileMargin' => [ 'type' => 'object' ],
+                'tabletMargin' => [ 'type' => 'object' ],
+                'desktopMargin' => [ 'type' => 'object' ],
             ],
             'provides_context' => [
                 SGB_NS . '/tabletBreakpoint'  => 'tabletBreakpoint',
@@ -26,7 +31,8 @@ add_action( 'init', function() {
             ],
             'supports' => [
                 'spacing' => [
-                    'margin' => [ 'top', 'bottom' ],
+                    'margin' => false,
+                    '__experimentalSkipSerialization' => [ 'margin' ],
                 ],
             ],
         ],

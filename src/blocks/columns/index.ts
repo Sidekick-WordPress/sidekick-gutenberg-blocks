@@ -23,7 +23,8 @@ registerBlockType(`${namespace}/columns`, {
     },
     supports: {
         spacing: {
-            margin: [ 'top', 'bottom' ]
+            margin: false,
+            __experimentalSkipSerialization: ['margin'],
         },
     },
     edit: Edit,

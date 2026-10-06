@@ -8,7 +8,8 @@
     "scripts": {
         "start": "webpack --config webpack/dev.config.js",
         "build": "webpack --config webpack/prod.config.js",
-        "test:nav-menu": "node --test tests/nav-menu-migration.test.cjs"
+        "test:nav-menu": "node --test tests/nav-menu-migration.test.cjs",
+        "test:columns": "node --test tests/columns-margins.test.cjs"
     },
     "devDependencies": {
         "@babel/cli": "^7.12.8",

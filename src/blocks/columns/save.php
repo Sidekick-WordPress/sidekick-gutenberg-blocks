@@ -44,6 +44,108 @@ return function( $attributes, $content ) {
     $css_pad_tablet = $has_tab_pad ? sgb_get_padding_str( $attributes['tabletPadding'], '0px' ) : 'var(--pad-mobile)';
     $css_pad_desktop = $has_desk_pad ? sgb_get_padding_str( $attributes['padding'], '0px' ) : 'var(--pad-tablet)';
 
+    // An explicitly empty base margin clears legacy core spacing. An absent
+    // base attribute continues to use saved core values without a resave.
+    $margin_sides = [ 'top', 'right', 'bottom', 'left' ];
+    $margin_value = function( $value ) {
+        if ( ! is_string( $value ) && ! is_numeric( $value ) ) {
+            return null;
+        }
+        if ( is_float( $value ) && ! is_finite( $value ) ) {
+            return null;
+        }
+        $value = trim( (string) $value );
+        if ( $value === '' || preg_match( '/[;{}<>\\\\\x00-\x1F\x7F]/', $value ) || strpos( $value, '/*' ) !== false || strpos( $value, '*/' ) !== false ) {
+            return null;
+        }
+        if ( is_numeric( $value ) ) {
+            return is_finite( (float) $value ) ? $value . 'px' : null;
+        }
+        if ( preg_match( '/^var:preset\|spacing\|([a-z0-9-]+)$/i', $value, $matches ) ) {
+            return 'var(--wp--preset--spacing--' . $matches[1] . ')';
+        }
+        return $value;
+    };
+    $margin_box = function( $input ) use ( $margin_sides, $margin_value ) {
+        if ( is_array( $input ) ) {
+            return $input;
+        }
+        $value = $margin_value( $input );
+        if ( $value === null ) {
+            return [];
+        }
+        // Legacy scalar margins can use CSS shorthand. Split only outside
+        // functions so values such as calc(1rem + 2px) remain intact.
+        $parts = [];
+        $part = '';
+        $depth = 0;
+        foreach ( str_split( $value ) as $character ) {
+            if ( $character === '(' ) {
+                $depth++;
+            } elseif ( $character === ')' ) {
+                $depth--;
+                if ( $depth < 0 ) {
+                    return [];
+                }
+            }
+            if ( ctype_space( $character ) && $depth === 0 ) {
+                if ( $part !== '' ) {
+                    $parts[] = $part;
+                    $part = '';
+                }
+            } else {
+                $part .= $character;
+            }
+        }
+        if ( $part !== '' ) {
+            $parts[] = $part;
+        }
+        if ( $depth !== 0 || count( $parts ) < 1 || count( $parts ) > 4 ) {
+            return [];
+        }
+        return array_combine( $margin_sides, [
+            $parts[0],
+            $parts[1] ?? $parts[0],
+            $parts[2] ?? $parts[0],
+            $parts[3] ?? $parts[1] ?? $parts[0],
+        ] );
+    };
+    $margin_inputs = [
+        'mobile' => array_key_exists( 'mobileMargin', $attributes )
+            ? $attributes['mobileMargin']
+            : ( $attributes['style']['spacing']['margin'] ?? null ),
+        'tablet' => $attributes['tabletMargin'] ?? null,
+        'desktop' => $attributes['desktopMargin'] ?? null,
+    ];
+    $margin_vars = '';
+    $margin_rules = [];
+    $resolved_margins = [];
+    $margin_pointers = [];
+    foreach ( $margin_inputs as $breakpoint => $input ) {
+        $input = $margin_box( $input );
+        $margin_rules[$breakpoint] = '';
+        foreach ( $margin_sides as $side ) {
+            $value = $margin_value( $input[$side] ?? null );
+            $variable = '--cols-margin-' . $side . '-' . $breakpoint;
+            // Setting every raw variable also isolates nested Columns in
+            // browsers without support for non-inheriting @property rules.
+            $margin_vars .= $variable . ': ' . ( $value ?? 'initial' ) . '; ';
+            if ( $value !== null ) {
+                $resolved_margins[$side] = $value;
+            }
+            $margin_pointers[$side] = 'var(' . $variable . ( isset( $margin_pointers[$side] ) ? ', ' . $margin_pointers[$side] : '' ) . ')';
+            $margin_rules[$breakpoint] .= '--cols-current-margin-' . $side . ': ' . $margin_pointers[$side] . '; ';
+            // Omit unset sides entirely so the theme's original spacing stays
+            // in effect. Explicit zero must still beat WordPress block gaps.
+            if ( isset( $resolved_margins[$side] ) ) {
+                $margin_rules[$breakpoint] .= 'margin-' . $side . ': var(--cols-current-margin-' . $side . ') !important; ';
+            }
+        }
+        if ( isset( $resolved_margins['left'] ) || isset( $resolved_margins['right'] ) ) {
+            $margin_rules[$breakpoint] .= 'width: auto !important; ';
+        }
+    }
+
     $css_max_w_mobile = $mobile_max_w ?: 'none';
     $css_max_w_tablet = $has_tab_max_w ? $attributes['tabletMaxWidth'] : 'var(--max-width-mobile)';
     $css_max_w_desktop = $has_desk_max_w ? $attributes['desktopMaxWidth'] : 'var(--max-width-tablet)';
@@ -142,6 +244,7 @@ return function( $attributes, $content ) {
         esc_attr( $bg_grad_base ), esc_attr( $bg_grad_tab ), esc_attr( $bg_grad_desk ),
         esc_attr( $bg_pos_mobile ), esc_attr( $bg_pos_tablet ), esc_attr( $bg_pos_desktop )
     );
+    $style .= ' ' . $margin_vars;
 
     $wrapper_args = [
         'style' => $style,
@@ -164,6 +267,7 @@ return function( $attributes, $content ) {
             .<?php echo $block_id; ?> {
                 --current-bg-pos: var(--bg-pos-mobile);
                 --cols-current-radius: var(--cols-radius-mobile);
+                <?php echo $margin_rules['mobile']; ?>
             }
             @media (min-width: <?php echo $tablet_bp; ?>px) {
                 .<?php echo $block_id; ?> {
@@ -178,6 +282,7 @@ return function( $attributes, $content ) {
                     --current-bg-gradient: var(--bg-gradient-tablet);
                     --current-bg-pos: var(--bg-pos-tablet);
                     --cols-current-radius: var(--cols-radius-tablet);
+                    <?php echo $margin_rules['tablet']; ?>
                 }
             }
             @media (min-width: <?php echo $desktop_bp; ?>px) {
@@ -193,6 +298,7 @@ return function( $attributes, $content ) {
                     --current-bg-gradient: var(--bg-gradient-desktop);
                     --current-bg-pos: var(--bg-pos-desktop);
                     --cols-current-radius: var(--cols-radius-desktop);
+                    <?php echo $margin_rules['desktop']; ?>
                 }
             }
         </style>
