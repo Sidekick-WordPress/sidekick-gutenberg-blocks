@@ -4,19 +4,27 @@ defined('ABSPATH') || exit;
 require_once __DIR__ . '/styles.php';
 
 return function( $attributes, $content ) {
-    $legacy_typography = ( $attributes['styleVersion'] ?? null ) !== 1;
     $attributes = sgb_nav_menu_migrate_styles( $attributes );
     $namespace = defined('SGB_NS') ? SGB_NS : 'sgb';
 
     $ref         = isset( $attributes['ref'] ) ? (int) $attributes['ref'] : 0;
     $orientation = isset( $attributes['orientation'] ) ? $attributes['orientation'] : 'horizontal';
     $gap         = isset( $attributes['gap'] ) ? (int) $attributes['gap'] : 24;
-    $mobile_gap  = isset( $attributes['mobileGap'] ) ? (int) $attributes['mobileGap'] : 12;
-    $mobile_font_size = isset( $attributes['mobileFontSize'] ) ? (int) $attributes['mobileFontSize'] : 24;
+    // All-item spacing replaces the legacy gap between top-level groups.
+    $mobile_gap  = max( 0, (int) ( $attributes['mobileItemSpacing'] ?? 12 ) );
+    $mobile_sub_menu_indent = max( 0, (int) ( $attributes['mobileSubMenuIndent'] ?? 24 ) );
     $hover_transition_duration = max( 0, min( 2000, (int) ( $attributes['hoverTransitionDuration'] ?? 200 ) ) );
 
     $parent_padding_arr = sgb_nav_menu_padding_sides( $attributes['style']['spacing']['padding'] ?? null );
     $sub_padding_arr = sgb_nav_menu_padding_sides( $attributes['subMenuStyle']['spacing']['padding'] ?? null );
+    $desktop_item_padding = sgb_nav_menu_padding_sides( $attributes['desktopItemPadding'] ?? null );
+    $mobile_item_padding = sgb_nav_menu_padding_sides( $attributes['mobileItemPadding'] ?? null );
+    // The hamburger occupies the same space as the desktop list's line box,
+    // including both container padding and parent item padding.
+    $toggle_padding = array();
+    foreach ( $parent_padding_arr as $side => $padding ) {
+        $toggle_padding[] = 'calc(' . $padding . ' + ' . $desktop_item_padding[ $side ] . ')';
+    }
     $parent_padding = implode( ' ', $parent_padding_arr );
     $parent_padding_left = $parent_padding_arr['left'];
     $sub_menu_padding = implode( ' ', $sub_padding_arr );
@@ -83,15 +91,21 @@ return function( $attributes, $content ) {
     $css_variables = array(
         '--nav-gap-desktop' => $gap . 'px',
         '--nav-gap-mobile' => $mobile_gap . 'px',
+        '--nav-mobile-indent' => $mobile_sub_menu_indent . 'px',
         '--nav-current-gap' => 'var(--nav-gap-desktop)',
         '--nav-parent-padding' => $parent_padding,
         '--nav-parent-padding-left' => $parent_padding_left,
         '--nav-parent-padding-right' => $parent_padding_arr['right'],
+        '--nav-item-padding' => implode( ' ', $desktop_item_padding ),
+        '--nav-item-padding-right' => $desktop_item_padding['right'],
+        '--nav-mobile-item-padding' => implode( ' ', $mobile_item_padding ),
+        '--nav-toggle-padding' => implode( ' ', $toggle_padding ),
         '--nav-parent-bg' => $parent_bg_color,
         '--nav-parent-color' => $parent_color,
         '--nav-sub-color' => $sub_menu_color,
         '--nav-sub-bg' => $sub_menu_bg_color,
         '--nav-sub-padding' => $sub_menu_padding,
+        '--nav-sub-padding-right' => $sub_padding_arr['right'],
         '--nav-sub-width' => $sub_menu_width,
         '--nav-sub-text-align' => $sub_menu_text_align,
         '--nav-overlay-bg' => $overlay_bg,
@@ -105,8 +119,22 @@ return function( $attributes, $content ) {
         '--nav-hover-transition-duration' => $hover_transition_duration . 'ms',
         '--nav-sub-box-shadow' => $sub_menu_box_shadow,
         '--nav-sub-border-radius' => $sub_menu_radius,
-        '--nav-mobile-font-size' => $mobile_font_size . 'px',
     );
+    $desktop_typography = sgb_nav_menu_desktop_typography( $attributes );
+    $mobile_typography = $attributes['mobileMenuStyle']['typography'] ?? array(
+        'fontSize' => ( $attributes['mobileFontSize'] ?? 24 ) . 'px',
+    );
+    $typography_groups = array(
+        'parent' => $desktop_typography,
+        'sub' => sgb_nav_menu_typography( $attributes['subMenuStyle']['typography'] ?? array() ),
+        'mobile-parent' => sgb_nav_menu_typography( $mobile_typography ),
+        'mobile-sub' => sgb_nav_menu_typography( $attributes['mobileSubMenuStyle']['typography'] ?? array() ),
+    );
+    foreach ( $typography_groups as $group => $declarations ) {
+        foreach ( $declarations as $property => $value ) {
+            $css_variables[ '--nav-' . $group . '-' . $property ] = $value;
+        }
+    }
     foreach ( $sub_menu_corners as $corner => $radius ) {
         $css_variables[ '--nav-sub-radius-' . $corner ] = $radius;
     }
@@ -137,11 +165,13 @@ return function( $attributes, $content ) {
 
     $style = $layout_inline_style . $style_vars;
 
-    // Core serializes native typography on the wrapper. Older posts still need
-    // their legacy values rendered until the editor saves the migrated attrs.
-    if ( $legacy_typography ) {
-        $legacy_styles = wp_style_engine_get_styles( array( 'typography' => $attributes['style']['typography'] ?? array() ) );
-        $style .= $legacy_styles['css'] ?? '';
+    // Keep parent font metrics on the nav so the hamburger continues to match.
+    // Decoration belongs on links: an underline on an ancestor cannot be
+    // cancelled by a submenu's own text-decoration:none.
+    foreach ( $desktop_typography as $property => $value ) {
+        if ( $property !== 'text-decoration' ) {
+            $style .= $property . ':' . $value . ';';
+        }
     }
 
     $wrapper_classes = [
@@ -216,7 +246,7 @@ return function( $attributes, $content ) {
                 class="<?php echo esc_attr( "{$namespace}-nav-menu__inner" ); ?>"
                 style="<?php echo esc_attr(
                     sprintf(
-                        'display:flex; flex-direction:%s; flex-wrap:wrap; align-items:%s; gap:var(--nav-current-gap); list-style:none; padding:0; margin:0;',
+                        'display:flex; flex-direction:%s; flex-wrap:wrap; align-items:%s; gap:var(--nav-current-gap); list-style:none; padding:var(--nav-parent-padding); margin:0;',
                         $flex_direction,
                         $align_items
                     )

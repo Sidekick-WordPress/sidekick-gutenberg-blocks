@@ -21,6 +21,20 @@
             "type": "number",
             "default": 12
         },
+        "mobileSubMenuIndent": {
+            "type": "number",
+            "default": 24
+        },
+        "mobileItemSpacing": {
+            "type": "number",
+            "default": 12
+        },
+        "desktopItemPadding": {
+            "type": "object"
+        },
+        "mobileItemPadding": {
+            "type": "object"
+        },
         "mobileFontSize": {
             "type": "number",
             "default": 24
@@ -150,6 +164,18 @@
         },
         "subMenuStyle": {
             "type": "object"
+        },
+        "mobileMenuStyle": {
+            "type": "object"
+        },
+        "mobileSubMenuStyle": {
+            "type": "object"
+        },
+        "fontSize": {
+            "type": "string"
+        },
+        "fontFamily": {
+            "type": "string"
         }
     },
     "supports": {
@@ -160,29 +186,13 @@
         },
         "spacing": {
             "margin": true,
-            "padding": true,
+            "padding": false,
             "__experimentalSkipSerialization": ["padding"],
             "__experimentalDefaultControls": {
-                "margin": true,
-                "padding": true
+                "margin": true
             }
         },
-        "typography": {
-            "fontSize": true,
-            "lineHeight": true,
-            "__experimentalFontFamily": true,
-            "__experimentalFontWeight": true,
-            "__experimentalFontStyle": true,
-            "__experimentalTextTransform": true,
-            "__experimentalTextDecoration": true,
-            "__experimentalLetterSpacing": true,
-            "__experimentalDefaultControls": {
-                "fontSize": true,
-                "fontFamily": true,
-                "fontAppearance": true,
-                "textTransform": true
-            }
-        }
+        "typography": false
     },
     "style": "file:./style.css"
 }

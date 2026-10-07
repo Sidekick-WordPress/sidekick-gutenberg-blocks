@@ -43,7 +43,9 @@ function sgb_nav_menu_css_value( $value, $fallback = '0px' ) {
 function sgb_nav_menu_padding_sides( $padding ) {
     $sides = array();
     foreach ( array( 'top', 'right', 'bottom', 'left' ) as $side ) {
-        $sides[ $side ] = sgb_nav_menu_css_value( is_array( $padding ) ? ( $padding[ $side ] ?? null ) : $padding );
+        $value = sgb_nav_menu_css_value( is_array( $padding ) ? ( $padding[ $side ] ?? null ) : $padding );
+        // Unitless zero is valid padding, but needs a unit when added in calc().
+        $sides[ $side ] = $value === '0' ? '0px' : $value;
     }
     return $sides;
 }
@@ -54,4 +56,41 @@ function sgb_nav_menu_radius_corners( $radius ) {
         $corners[ $corner ] = sgb_nav_menu_css_value( is_array( $radius ) ? ( $radius[ $corner ] ?? null ) : $radius );
     }
     return $corners;
+}
+
+/** Share the same typography schema across the four menu contexts. */
+function sgb_nav_menu_typography( $typography ) {
+    $properties = array(
+        'fontFamily' => 'font-family',
+        'fontSize' => 'font-size',
+        'fontStyle' => 'font-style',
+        'fontWeight' => 'font-weight',
+        'lineHeight' => 'line-height',
+        'letterSpacing' => 'letter-spacing',
+        'textTransform' => 'text-transform',
+        'textDecoration' => 'text-decoration',
+    );
+    $declarations = array();
+    foreach ( $properties as $attribute => $property ) {
+        $value = sgb_nav_menu_css_value( $typography[ $attribute ] ?? null, '' );
+        if ( $value !== '' ) {
+            // The size picker can emit a numeric pixel value. Line height and
+            // font weight intentionally remain unitless.
+            if ( $property === 'font-size' && is_numeric( $value ) ) {
+                $value .= 'px';
+            }
+            $declarations[ $property ] = $value;
+        }
+    }
+    return $declarations;
+}
+
+function sgb_nav_menu_desktop_typography( $attributes ) {
+    $typography = $attributes['style']['typography'] ?? array();
+    foreach ( array( 'fontFamily' => 'font-family', 'fontSize' => 'font-size' ) as $attribute => $preset ) {
+        if ( ! empty( $attributes[ $attribute ] ) ) {
+            $typography[ $attribute ] = 'var:preset|' . $preset . '|' . $attributes[ $attribute ];
+        }
+    }
+    return sgb_nav_menu_typography( $typography );
 }

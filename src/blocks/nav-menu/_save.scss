@@ -1,6 +1,12 @@
 @use "../../styles/defaults/functions" as *;
 @use "../../styles/defaults/variables" as *;
 
+@mixin menu-typography($group) {
+    @each $property in font-family, font-size, font-style, font-weight, line-height, letter-spacing, text-transform {
+        #{$property}: var(--nav-#{$group}-#{$property}, inherit);
+    }
+}
+
 // 1. Root: hidden until JS locks in the desktop/mobile layout
 .sgb-nav-menu {
     visibility: hidden;
@@ -57,7 +63,9 @@
             > button:not(.sgb-nav-menu__submenu-toggle),
             > .wp-block-navigation-submenu__toggle {
                 position: relative;
-                padding-right: calc(#{rem(22)} + 0.75em);
+                // Reserve only the icon's width beyond normal item padding.
+                // The configured padding surrounds both the label and icon.
+                padding-right: calc(var(--nav-item-padding-right, 0px) + 1.1em);
             }
 
             > a::after,
@@ -69,7 +77,7 @@
                 // mask so it inherits the link's currentColor, hover included.
                 content: "";
                 position: absolute;
-                right: rem(8);
+                right: var(--nav-item-padding-right, 0px);
                 top: 50%;
                 transform: translateY(-50%);
                 width: 1.1em;
@@ -96,7 +104,7 @@
                 > .wp-block-navigation-item__content,
                 > button:not(.sgb-nav-menu__submenu-toggle),
                 > .wp-block-navigation-submenu__toggle {
-                    padding-right: var(--nav-parent-padding-right);
+                    padding-right: var(--nav-item-padding-right, 0px);
                 }
 
                 > a::after,
@@ -282,7 +290,9 @@
             > .wp-block-navigation-item__content,
             > button,
             > .wp-block-navigation-submenu__toggle {
-                padding: var(--nav-parent-padding);
+                // Item padding is independent of the desktop list's padding.
+                padding: var(--nav-item-padding, 0px);
+                text-decoration: var(--nav-parent-text-decoration, inherit);
                 color: var(--nav-parent-color);
                 box-sizing: border-box;
                 transition: color var(--nav-hover-transition-duration, 200ms) ease;
@@ -453,6 +463,7 @@
 .sgb-nav-menu,
 .sgb-nav-menu__overlay {
     .wp-block-navigation__submenu-container {
+        --nav-item-padding-right: var(--nav-sub-padding-right, 0px);
         width: max-content;
         min-width: 0;
         background-color: var(--nav-sub-bg);
@@ -481,6 +492,8 @@
         .wp-block-navigation-item__content,
         button:not(.sgb-nav-menu__submenu-toggle),
         .wp-block-navigation-submenu__toggle {
+            @include menu-typography(sub);
+            text-decoration: var(--nav-sub-text-decoration, var(--nav-parent-text-decoration, inherit));
             padding: var(--nav-sub-padding);
             color: var(--nav-sub-color);
             width: 100%;
@@ -512,9 +525,17 @@
     }
 
     &__toggle {
+        // Match the desktop line box plus container and item padding.
+        font: inherit;
         color: var(--nav-parent-color);
-        padding: var(--nav-parent-padding);
-        padding-right: 0;
+        padding: var(--nav-toggle-padding, var(--nav-parent-padding));
+
+        svg {
+            // The SVG's 24px height must not impose a minimum button height.
+            // Keep its width while fitting the icon into the menu's line box.
+            height: 1lh;
+            flex-shrink: 0;
+        }
     }
 
     &__close {
@@ -560,18 +581,34 @@
     --nav-current-gap: var(--nav-gap-mobile) !important;
 
     .sgb-nav-menu__overlay-header {
+        // Overlay the close button without reserving a row above the menu.
+        // Inherit the overlay's inset so its corner position stays unchanged.
+        position: absolute;
+        inset: 0 0 auto;
+        z-index: 1;
+        padding: inherit;
+        padding-bottom: 0;
+        box-sizing: border-box;
         display: flex;
         justify-content: flex-end;
-        width: 100%;
-        margin-bottom: rem(32);
+        pointer-events: none;
     }
 
     .sgb-nav-menu__close {
         display: block;
         color: inherit;
+        pointer-events: auto;
     }
 
     .sgb-nav-menu__inner {
+        @include menu-typography(mobile-parent);
+        font-size: var(--nav-mobile-parent-font-size, 24px);
+        // Preserve a unitless desktop line-height ratio instead of inheriting
+        // the pixel snapshot copied onto the detached overlay.
+        line-height: var(--nav-mobile-parent-line-height, var(--nav-parent-line-height, 1.4));
+        // Desktop container padding must not reach the overlay list.
+        padding: 0 !important;
+        box-sizing: border-box;
         flex-direction: column !important;
         // The <ul> carries an inline `flex-wrap:wrap` (save.php) for desktop
         // row-wrapping. Left unreset here it makes this column scroll container
@@ -581,12 +618,8 @@
         // single column so overflow goes block-direction and overflow-y scrolls.
         // !important is required to beat the inline value (same reason as above).
         flex-wrap: nowrap !important;
-        align-items: center !important;
-        justify-content: center !important;
-        // `safe` keeps the menu centered when it fits, but falls back to top-
-        // aligned once it overflows so the first items stay reachable while
-        // scrolling. Engines without `safe` ignore this and keep `center`.
-        justify-content: safe center !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
         flex-grow: 1;
         min-height: 0; // let the list shrink + scroll within the fixed overlay
         // Vertical scroll only. overflow-x must be explicitly hidden: leaving it
@@ -598,17 +631,40 @@
         -webkit-overflow-scrolling: touch;
 
         li {
+            // Every branch is a column: link -> child list uses the same gap
+            // as sibling links, including the last child -> next parent.
+            display: flex;
+            flex-direction: column;
+            gap: var(--nav-gap-mobile, 12px);
+            flex-shrink: 0;
             width: 100%;
+            min-width: 0;
+            padding: 0;
 
             a {
-                text-align: left;
+                text-align: start;
             }
+        }
+
+        // All mobile submenus are expanded; the core disclosure icon would
+        // otherwise become an extra row in the vertical item flow.
+        .wp-block-navigation__submenu-icon {
+            display: none;
         }
 
         a,
         .wp-block-navigation-item__content,
         .wp-block-navigation-submenu__toggle {
-            font-size: var(--nav-mobile-font-size, #{rem(24)});
+            // Reset desktop submenu overrides before applying mobile settings.
+            // Keep decoration on links so child menus can independently reset it.
+            font-family: inherit;
+            font-size: inherit;
+            font-style: inherit;
+            font-weight: inherit;
+            line-height: inherit;
+            letter-spacing: inherit;
+            text-transform: inherit;
+            text-decoration: var(--nav-mobile-parent-text-decoration, var(--nav-parent-text-decoration, inherit));
             transition: color var(--nav-hover-transition-duration, 200ms) ease;
         }
 
@@ -642,11 +698,31 @@
         .wp-block-navigation-item__content,
         button,
         .wp-block-navigation-submenu__toggle {
+            // Every level shares mobile item padding; list gaps stay separate.
+            padding: var(--nav-mobile-item-padding, 0px) !important;
+            box-sizing: border-box;
+            min-width: 0;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            text-align: start;
             color: var(--nav-overlay-color) !important;
         }
 
         .wp-block-navigation__submenu-container {
-            display: block !important;
+            a,
+            .wp-block-navigation-item__content,
+            button:not(.sgb-nav-menu__submenu-toggle),
+            .wp-block-navigation-submenu__toggle {
+                @include menu-typography(mobile-sub);
+                text-decoration: var(--nav-mobile-sub-text-decoration, var(--nav-mobile-parent-text-decoration, var(--nav-parent-text-decoration, inherit)));
+            }
+
+            display: flex !important;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            gap: var(--nav-gap-mobile, 12px);
+            align-items: stretch;
+            justify-content: flex-start;
             position: static !important;
             top: auto !important;
             right: auto !important;
@@ -655,12 +731,23 @@
             pointer-events: auto !important;
             overflow: visible !important;
             width: 100%;
-            padding-top: 0;
+            max-width: none;
+            box-sizing: border-box;
+            border: 0;
+            padding: 0 !important;
+            padding-inline-start: var(--nav-mobile-indent, 24px) !important;
+            transform: none !important;
             background-color: transparent;
-            padding-left: var(--nav-parent-padding-left, 1rem) !important;
+            // One continuous guide per branch, inside the indent rather than
+            // behind its text. Logical padding accumulates at every depth.
+            box-shadow: inset min(3px, var(--nav-mobile-indent, 24px)) 0 0 var(--nav-indent-color, color-mix(in srgb, var(--nav-overlay-color, currentColor) 18%, transparent));
+
+            &:dir(rtl) {
+                box-shadow: inset calc(-1 * min(3px, var(--nav-mobile-indent, 24px))) 0 0 var(--nav-indent-color, color-mix(in srgb, var(--nav-overlay-color, currentColor) 18%, transparent));
+            }
 
             & > li {
-                box-shadow: inset rem(3) 0 0 0 var(--nav-indent-color, color-mix(in srgb, var(--nav-overlay-color, currentColor) 18%, transparent));
+                box-shadow: none;
                 transition: background-color var(--nav-hover-transition-duration, 200ms) ease;
 
                 a,
@@ -683,22 +770,6 @@
             }
         }
 
-        li:has(> .wp-block-navigation__submenu-container) {
-            > ul,
-            > .wp-block-navigation__submenu-container {
-                display: block !important;
-                position: static !important;
-                top: auto !important;
-                right: auto !important;
-                left: auto !important;
-                opacity: 1 !important;
-                pointer-events: auto !important;
-                overflow: visible !important;
-                width: 100%;
-                padding-top: 0;
-                transform: none !important;
-            }
-        }
     }
 
     &.is-open {

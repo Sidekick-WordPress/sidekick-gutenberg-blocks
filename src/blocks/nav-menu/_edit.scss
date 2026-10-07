@@ -6,6 +6,16 @@
     visibility: visible !important;
 }
 
+.sgb-nav-menu-typography-controls {
+    display: grid;
+    gap: rem(20);
+}
+
+// Keep the two device groups distinct while their child panels remain inset.
+.sgb-nav-menu-device-panel > .components-panel__body {
+    margin-inline: 0;
+}
+
 // ---------------------------------------------------------------------------
 // Editor sidebar polish
 // ---------------------------------------------------------------------------
