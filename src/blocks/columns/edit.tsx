@@ -1,4 +1,4 @@
-import {__} from '@wordpress/i18n';
+import {__, sprintf} from '@wordpress/i18n';
 import {useBlockProps, useInnerBlocksProps, InspectorControls, BlockControls, __experimentalBorderRadiusControl as BorderRadiusControl} from '@wordpress/block-editor';
 import {useMemo, useState, useEffect, useCallback} from '@wordpress/element';
 import {
@@ -47,22 +47,20 @@ const hasBorderRadiusValue = (value: BorderRadiusValue): boolean => {
     return typeof value === 'string' || Object.values(value).some(v => !!v);
 };
 
-// Row-level splits applied to the EXISTING columns (tablet + desktop widths;
-// base/mobile stays at each column's own value, typically 100 = stacked).
-// Rendered 3-per-row in the inspector — keep labels compact.
-const LAYOUT_PRESETS = [
-    {label: '100', widths: [100]},
-    {label: '50·50', widths: [50, 50]},
-    {label: '33·33·33', widths: [33.333333, 33.333333, 33.333333]},
-    {label: '33·67', widths: [33.333333, 66.666667]},
-    {label: '67·33', widths: [66.666667, 33.333333]},
-    {label: '25·50·25', widths: [25, 50, 25]},
-    {label: '25·75', widths: [25, 75]},
-    {label: '75·25', widths: [75, 25]},
-    {label: '50·25·25', widths: [50, 25, 25]},
-    {label: '25·25·50', widths: [25, 25, 50]},
-    {label: '25×4', widths: [25, 25, 25, 25]},
-    {label: '20×5', widths: [20, 20, 20, 20, 20]},
+// Each choice appends one column; retain exact fractions for repeating widths.
+const COLUMN_WIDTH_OPTIONS = [
+    {label: '100%', width: 100},
+    {label: '80%', width: 80},
+    {label: '75%', width: 75},
+    {label: '66.7%', width: 66.666667},
+    {label: '60%', width: 60},
+    {label: '50%', width: 50},
+    {label: '40%', width: 40},
+    {label: '33.3%', width: 33.333333},
+    {label: '25%', width: 25},
+    {label: '20%', width: 20},
+    {label: '16.7%', width: 16.666667},
+    {label: __('Auto', namespace), width: 0},
 ];
 
 export default function Edit({attributes, setAttributes, clientId, className, isSelected}: BlockEditProps<CoreColumnsAttributes>) {
@@ -117,7 +115,7 @@ export default function Edit({attributes, setAttributes, clientId, className, is
             backgroundRepeat,
             backgroundFixedPosition
         } = attributes,
-        {replaceInnerBlocks, updateBlockAttributes, insertBlocks, removeBlocks, selectBlock} = useDispatch('core/block-editor'),
+        {insertBlocks, removeBlocks, selectBlock} = useDispatch('core/block-editor'),
         {getBlocks, themeColors, themeGradients, innerBlocks, selectedId, selectedParents} = useSelect((select: any) => {
             const sel = select('core/block-editor');
             const settings = sel.getSettings();
@@ -234,37 +232,8 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                 attrs.desktopWidth = w;
             }
             const newBlock = createBlock(`${namespace}/column`, attrs);
-            replaceInnerBlocks(clientId, [...currentBlocks, newBlock], false);
+            insertBlocks(newBlock, currentBlocks.length, clientId, false);
             setAttributes({columns: currentBlocks.length + 1});
-        },
-
-        applyLayoutPreset = (widths: number[]) => {
-            const blocks = getBlocks(clientId);
-            const target = widths.length;
-            const widthAt = (i: number) => widths[Math.min(i, widths.length - 1)];
-
-            blocks.forEach((b: any, i: number) => {
-                updateBlockAttributes(b.clientId, {tabletWidth: widthAt(i), desktopWidth: widthAt(i)});
-            });
-
-            if (blocks.length < target) {
-                const added = [];
-                for (let i = blocks.length; i < target; i++) {
-                    added.push(createBlock(`${namespace}/column`, {width: 100, tabletWidth: widthAt(i), desktopWidth: widthAt(i)}));
-                }
-                insertBlocks(added, blocks.length, clientId, false);
-            } else if (blocks.length > target) {
-                // Trim trailing EMPTY columns down to the preset count — never delete content.
-                const removable: string[] = [];
-                for (let i = blocks.length - 1; i >= target; i--) {
-                    if (!blocks[i].innerBlocks || blocks[i].innerBlocks.length === 0) {
-                        removable.push(blocks[i].clientId);
-                    } else {
-                        break;
-                    }
-                }
-                if (removable.length) removeBlocks(removable, false);
-            }
         },
 
         removeColumn = (block: any) => {
@@ -745,42 +714,24 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                 <PanelBody title={__('Columns', namespace)}>
                     <div style={{marginBottom: '16px'}}>
                         <div style={{marginBottom: '8px', fontWeight: 500}}>
-                            {__('Layout Presets', namespace)}
+                            {__('Add Column', namespace)}
                         </div>
                         <div style={{margin: '0 0 8px', fontSize: '11px', color: '#757575'}}>
-                            {__('Sets Tablet & Desktop widths on the existing columns; adds columns when needed. Mobile keeps stacking.', namespace)}
+                            {__('Choose a width to add a column. Mobile is 100%; tablet and desktop use the selected width. Auto shares the remaining space.', namespace)}
                         </div>
 
                         <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px'}}>
-                            {LAYOUT_PRESETS.map((preset) => (
+                            {COLUMN_WIDTH_OPTIONS.map((option) => (
                                 <Button
-                                    key={preset.label}
+                                    key={option.width}
                                     variant="secondary"
+                                    label={sprintf(__('Add a %s column', namespace), option.label)}
                                     style={{justifyContent: 'center', paddingLeft: '4px', paddingRight: '4px', fontSize: '12px'}}
-                                    onClick={() => applyLayoutPreset(preset.widths)}
+                                    onClick={() => addColumn(option.width)}
                                 >
-                                    {preset.label}
+                                    {option.label}
                                 </Button>
                             ))}
-                        </div>
-
-                        <div style={{margin: '16px 0 4px', fontWeight: 500}}>
-                            {__('Manage Columns', namespace)}
-                        </div>
-                        <div style={{margin: '0 0 8px', fontSize: '11px', color: '#757575'}}>
-                            {__('Widths: Mobile · Tablet · Desktop. Click a name to select that column.', namespace)}
-                        </div>
-
-                        {innerBlocks?.map(renderColumnRow)}
-
-                        <div style={{marginTop: '10px'}}>
-                            <Button
-                                variant="secondary"
-                                icon="plus"
-                                onClick={() => addColumn(0)}
-                            >
-                                {__('Add Column', namespace)}
-                            </Button>
                         </div>
                     </div>
 
@@ -805,6 +756,13 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             min={Math.max(301, tabletBreakpoint + 1)} max={2500}
                         />
                     </div>
+                </PanelBody>
+
+                <PanelBody title={__('Manage Columns', namespace)} initialOpen={false}>
+                    <p className="components-base-control__help">
+                        {__('Widths: Mobile · Tablet · Desktop. Click a name to select that column.', namespace)}
+                    </p>
+                    {innerBlocks?.map(renderColumnRow)}
                 </PanelBody>
 
                 <PanelBody title={__('HTML Attributes', namespace)} initialOpen={false}>
