@@ -1,5 +1,6 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
+import { addFilter } from '@wordpress/hooks';
 
 // Plugin
 import namespace from '../../namespace';
@@ -10,7 +11,9 @@ import Edit from './edit';
 import Save from './save';
 import './column';
 import Icon from './icon';
-import {ZERO_SPACING} from './spacing';
+import {ZERO_SPACING, recoverClearedColumnsPadding} from './spacing';
+
+addFilter('blocks.getBlockAttributes', `${namespace}/columns-padding`, recoverClearedColumnsPadding);
 
 registerBlockType(`${namespace}/columns`, {
     apiVersion: 3,
@@ -31,6 +34,7 @@ registerBlockType(`${namespace}/columns`, {
         [`${namespace}/desktopBreakpoint`]: 'desktopBreakpoint'
     },
     supports: {
+        shadow: true,
         spacing: {
             margin: false,
             __experimentalSkipSerialization: ['margin'],

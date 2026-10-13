@@ -24,12 +24,16 @@ add_action( 'init', function() {
                 'mobileMargin' => [ 'type' => 'object' ],
                 'tabletMargin' => [ 'type' => 'object' ],
                 'desktopMargin' => [ 'type' => 'object' ],
+                'border' => [ 'type' => 'object' ],
+                'tabletBorder' => [ 'type' => 'object' ],
+                'desktopBorder' => [ 'type' => 'object' ],
             ],
             'provides_context' => [
                 SGB_NS . '/tabletBreakpoint'  => 'tabletBreakpoint',
                 SGB_NS . '/desktopBreakpoint' => 'desktopBreakpoint',
             ],
             'supports' => [
+                'shadow' => true,
                 'spacing' => [
                     'margin' => false,
                     '__experimentalSkipSerialization' => [ 'margin' ],

@@ -1,8 +1,9 @@
 import {BlockAttribute} from '@wordpress/blocks';
 import {PaddingAttribute} from "../../models/attr-shapes/padding-margin";
 import type {MarginAttributes} from './margins';
+import type {BorderAttributes} from './borders';
 
-export interface CoreColumnsAttributes extends MarginAttributes {
+export interface CoreColumnsAttributes extends MarginAttributes, BorderAttributes {
     htmlId: string;
     columns: number;
     tabletBreakpoint: number;
@@ -89,6 +90,9 @@ export const parentAttributes: Record<keyof CoreColumnsAttributes, BlockAttribut
     desktopMaxHeight: { type: 'string' },
     desktopHorizontalAlignment: { type: 'string' },
 
+    border: { type: 'object' },
+    tabletBorder: { type: 'object' },
+    desktopBorder: { type: 'object' },
     borderRadius: { type: 'object' },
     tabletBorderRadius: { type: 'object' },
     desktopBorderRadius: { type: 'object' },

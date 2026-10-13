@@ -16,6 +16,9 @@ if ( ! function_exists( 'sgb_get_padding_str' ) ) {
                 $value = isset( $p[$side] ) && $p[$side] !== '' ? $p[$side] : $fallback;
                 if ( is_numeric( $value ) ) {
                     $value .= 'px';
+                } elseif ( is_string( $value ) && preg_match( '/^(?:var:preset\|spacing\|0|var\(--wp--preset--spacing--0\))$/i', $value ) ) {
+                    // The native control's "None" preset has no CSS variable.
+                    $value = '0px';
                 } elseif ( is_string( $value ) && preg_match( '/^var:preset\|spacing\|([a-z0-9-]+)$/i', $value, $matches ) ) {
                     $value = 'var(--wp--preset--spacing--' . $matches[1] . ')';
                 }

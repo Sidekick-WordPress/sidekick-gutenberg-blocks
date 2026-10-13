@@ -35,7 +35,10 @@ export const getPaddingStr = (p: PaddingAttribute | undefined, fallback = '0px')
     const parsed = parsePadding(p) as PaddingAttribute;
 
     return [parsed.top, parsed.right, parsed.bottom, parsed.left]
-        .map(value => (value || fallback).replace(/^var:preset\|spacing\|([a-z0-9-]+)$/i, 'var(--wp--preset--spacing--$1)'))
+        .map(value => (value || fallback)
+            // Also handle zero presets already saved by the native control.
+            .replace(/^(?:var:preset\|spacing\|0|var\(--wp--preset--spacing--0\))$/i, '0px')
+            .replace(/^var:preset\|spacing\|([a-z0-9-]+)$/i, 'var(--wp--preset--spacing--$1)'))
         .join(' ');
 };
 

@@ -200,7 +200,17 @@
     }
 }
 
+// Container borders use their own variables, separate from each child column.
+@mixin columns-borders($tier) {
+    @each $side in (top, right, bottom, left) {
+        @each $property in (width, style, color) {
+            border-#{$side}-#{$property}: var(--cols-border-#{$side}-#{$property}-#{$tier});
+        }
+    }
+}
+
 .wp-block-#{$namespace}-columns {
+    @include columns-borders(mobile);
     // DEFAULT POINTERS — mobile-first base state.
     // Frontend breakpoints: PHP per-block <style> media queries (same specificity, later in document).
     // Editor breakpoints: is-*-layout classes below (toggled by ResizeObserver, higher specificity).
@@ -267,6 +277,7 @@
 
     // BASE / MOBILE
     &.is-mobile-layout {
+        @include columns-borders(mobile);
         --current-gap: var(--gap-mobile) !important;
         --current-pad: var(--pad-mobile) !important;
         --current-max-width: var(--max-width-mobile) !important;
@@ -311,6 +322,7 @@
 
     // TABLET
     &.is-tablet-layout {
+        @include columns-borders(tablet);
         --current-gap: var(--gap-tablet) !important;
         --current-pad: var(--pad-tablet) !important;
         --current-max-width: var(--max-width-tablet) !important;
@@ -356,6 +368,7 @@
 
     // DESKTOP
     &.is-desktop-layout {
+        @include columns-borders(desktop);
         --current-gap: var(--gap-desktop) !important;
         --current-pad: var(--pad-desktop) !important;
         --current-max-width: var(--max-width-desktop) !important;

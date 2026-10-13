@@ -1,5 +1,6 @@
 <?php
 defined('ABSPATH') || exit;
+require_once __DIR__ . '/borders.php';
 
 return function( $attributes, $content ) {
     $namespace = defined('SGB_NS') ? SGB_NS : 'sgb';
@@ -65,6 +66,9 @@ return function( $attributes, $content ) {
         }
         if ( is_numeric( $value ) ) {
             return is_finite( (float) $value ) ? $value . 'px' : null;
+        }
+        if ( preg_match( '/^(?:var:preset\|spacing\|0|var\(--wp--preset--spacing--0\))$/i', $value ) ) {
+            return '0px';
         }
         if ( preg_match( '/^var:preset\|spacing\|([a-z0-9-]+)$/i', $value, $matches ) ) {
             return 'var(--wp--preset--spacing--' . $matches[1] . ')';
@@ -261,6 +265,10 @@ return function( $attributes, $content ) {
         esc_attr( $bg_pos_mobile ), esc_attr( $bg_pos_tablet ), esc_attr( $bg_pos_desktop )
     );
     $style .= ' ' . $margin_vars;
+    $borders = sgb_get_columns_borders( $attributes );
+    foreach ( $borders['css_vars'] as $variable => $value ) {
+        $style .= ' ' . $variable . ': ' . esc_attr( $value ) . ';';
+    }
 
     $wrapper_args = [
         'style' => $style,
@@ -284,6 +292,7 @@ return function( $attributes, $content ) {
                 --current-bg-pos: var(--bg-pos-mobile);
                 --cols-current-radius: var(--cols-radius-mobile);
                 <?php echo $margin_rules['mobile']; ?>
+                <?php echo sgb_get_columns_border_rules( 'mobile' ); ?>
             }
             @media (min-width: <?php echo $tablet_bp; ?>px) {
                 .<?php echo $block_id; ?> {
@@ -299,6 +308,7 @@ return function( $attributes, $content ) {
                     --current-bg-pos: var(--bg-pos-tablet);
                     --cols-current-radius: var(--cols-radius-tablet);
                     <?php echo $margin_rules['tablet']; ?>
+                    <?php echo sgb_get_columns_border_rules( 'tablet' ); ?>
                 }
             }
             @media (min-width: <?php echo $desktop_bp; ?>px) {
@@ -315,6 +325,7 @@ return function( $attributes, $content ) {
                     --current-bg-pos: var(--bg-pos-desktop);
                     --cols-current-radius: var(--cols-radius-desktop);
                     <?php echo $margin_rules['desktop']; ?>
+                    <?php echo sgb_get_columns_border_rules( 'desktop' ); ?>
                 }
             }
         </style>

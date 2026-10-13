@@ -1,5 +1,5 @@
 import {__, sprintf} from '@wordpress/i18n';
-import {useBlockProps, useInnerBlocksProps, InspectorControls, BlockControls, __experimentalBorderRadiusControl as BorderRadiusControl} from '@wordpress/block-editor';
+import {useBlockProps, useInnerBlocksProps, InspectorControls, BlockControls} from '@wordpress/block-editor';
 import {useMemo, useState, useEffect, useCallback} from '@wordpress/element';
 import {
     PanelBody,
@@ -33,6 +33,9 @@ import {getResponsiveMargins, MARGIN_SIDES} from './margins';
 import ColumnsExtraLogic from "./components/ColumnsExtraLogic";
 import TierNote, {TIER_LABELS} from "./components/TierNote";
 import SpacingControl from './components/SpacingControl';
+import {getBasePaddingValues} from './spacing';
+import {getResponsiveBorders} from './borders';
+import ResponsiveBorderControls from './components/ResponsiveBorderControls';
 
 type BorderRadiusValue = string | Record<string, string> | undefined;
 
@@ -133,6 +136,7 @@ export default function Edit({attributes, setAttributes, clientId, className, is
         [layoutInfo, setLayoutInfo] = useState<{cls: string; width: number}>({cls: '', width: 0}),
         layoutClass = layoutInfo.cls,
         margins = getResponsiveMargins(attributes),
+        borders = getResponsiveBorders(attributes),
         activeMargin = margins.resolved[layoutClass === 'is-desktop-layout' ? 'desktop'
             : layoutClass === 'is-tablet-layout' ? 'tablet' : 'mobile'],
         marginClasses = MARGIN_SIDES.filter(side => activeMargin[side] !== undefined)
@@ -254,6 +258,7 @@ export default function Edit({attributes, setAttributes, clientId, className, is
             className: [className, layoutClass, ...marginClasses, hasHorizontalMargin && 'has-cols-horizontal-margin'].filter(Boolean).join(' '),
             style: {
                 ...margins.cssVars,
+                ...borders.cssVars,
                 '--gap-desktop': cssGapDesktop,
                 '--gap-tablet': cssGapTablet,
                 '--gap-mobile': cssGapMobile,
@@ -401,7 +406,7 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                             key="padding-mobile"
                             label={__('Padding', namespace)}
                             values={mobilePadding}
-                            onChange={(v) => setAttributes({mobilePadding: v as PaddingAttribute})}
+                            onChange={(v) => setAttributes({mobilePadding: getBasePaddingValues(v)})}
                         />
                         <Divider />
                         <SpacingControl
@@ -435,12 +440,6 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                                 {label: __('Right', namespace), value: 'right'}
                             ]}
                             onChange={(v) => setAttributes({horizontalAlignment: v})}
-                        />
-
-                        <Divider />
-                        <BorderRadiusControl
-                            values={borderRadius as any}
-                            onChange={(v) => setAttributes({borderRadius: v as any})}
                         />
 
                         <Divider />
@@ -538,12 +537,6 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                                 {label: __('Right', namespace), value: 'right'}
                             ]}
                             onChange={(v) => setAttributes({tabletHorizontalAlignment: v})}
-                        />
-
-                        <Divider />
-                        <BorderRadiusControl
-                            values={tabletBorderRadius as any}
-                            onChange={(v) => setAttributes({tabletBorderRadius: hasBorderRadiusValue(v) ? v as any : undefined})}
                         />
 
                         <Divider />
@@ -647,12 +640,6 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                         />
 
                         <Divider />
-                        <BorderRadiusControl
-                            values={desktopBorderRadius as any}
-                            onChange={(v) => setAttributes({desktopBorderRadius: hasBorderRadiusValue(v) ? v as any : undefined})}
-                        />
-
-                        <Divider />
                         <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background Override', namespace)}</p>
                         <ColorPalette
                             enableAlpha={true}
@@ -709,6 +696,14 @@ export default function Edit({attributes, setAttributes, clientId, className, is
                     />
                 </ToolbarGroup>
             </BlockControls>
+
+            <ResponsiveBorderControls
+                attributes={attributes}
+                setAttributes={setAttributes}
+                layoutClass={layoutInfo.cls}
+                width={layoutInfo.width}
+                colors={themeColors}
+            />
 
             <InspectorControls>
                 <PanelBody title={__('Columns', namespace)}>

@@ -14,6 +14,9 @@ const normalizeValue = (value: unknown): string | undefined => {
     if (typeof value === 'number' && !Number.isFinite(value)) return undefined;
     const css = String(value).trim();
     if (!css || /[;{}<>\\\x00-\x1f\x7f]|\/\*|\*\//.test(css)) return undefined;
+    // WordPress can emit its synthetic "None" preset as a token. There is no
+    // theme CSS variable for it, so persist and render an explicit zero.
+    if (/^(?:var:preset\|spacing\|0|var\(--wp--preset--spacing--0\))$/i.test(css)) return '0px';
     if (/^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(css)) {
         return Number.isFinite(Number(css)) ? `${css}px` : undefined;
     }

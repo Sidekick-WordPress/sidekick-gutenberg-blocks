@@ -1,6 +1,6 @@
 {
     "name": "sidekick-gutenberg-blocks",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "description": "",
     "main": "index.js",
     "author": "Josh Baker / Black Tie Digital",
@@ -9,7 +9,7 @@
         "start": "webpack --config webpack/dev.config.js",
         "build": "webpack --config webpack/prod.config.js",
         "test:nav-menu": "node --test tests/nav-menu-migration.test.cjs",
-        "test:columns": "node --test tests/columns-margins.test.cjs tests/columns-spacing.test.cjs"
+        "test:columns": "node --test tests/columns-spacing.test.cjs tests/columns-borders.test.cjs"
     },
     "devDependencies": {
         "@babel/cli": "^7.12.8",
