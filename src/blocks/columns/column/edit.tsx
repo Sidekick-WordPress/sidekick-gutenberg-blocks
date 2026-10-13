@@ -1,14 +1,11 @@
 import {__} from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
-import {useBlockProps, useInnerBlocksProps, InspectorControls, __experimentalBorderRadiusControl as BorderRadiusControl} from '@wordpress/block-editor';
+import {useBlockProps, useInnerBlocksProps, InspectorControls} from '@wordpress/block-editor';
 import {
     PanelBody,
     SelectControl,
     ColorPalette,
     GradientPicker,
-    BoxControl,
-    BorderBoxControl,
-    RangeControl,
     TabPanel,
     TextControl,
     ToggleControl,
@@ -19,18 +16,21 @@ import {BlockEditProps} from '@wordpress/blocks';
 import {useState, useEffect, useRef} from '@wordpress/element';
 import type {CSSProperties} from 'react';
 import ControlsMedia from "../../../components/edit-controls/ControlsMedia";
+import BreakpointLabel from '../../../components/edit-controls/BreakpointLabel';
+import {BreakpointRangeControl, BreakpointBorderBoxControl, BreakpointBorderRadiusControl} from '../components/BreakpointControls';
 
 // Plugin
 import namespace from '../../../namespace';
-import {getPaddingStr, parsePadding, ensureUnit, normalizeColumnWidth} from "../../../helpers/styles";
+import {getPaddingStr, ensureUnit, normalizeColumnWidth} from "../../../helpers/styles";
 import {normalizeHtmlId} from "../../../helpers/html";
-import {PaddingAttribute} from "../../../models/attr-shapes/padding-margin";
 
 // Block
 import {ColumnAttributes} from './attributes';
 import VersatileMessage from "../../../components/VersitileMessage";
 import TierNote from "../components/TierNote";
 import WidthPresetButtons from "../components/WidthPresetButtons";
+import SpacingControl from '../components/SpacingControl';
+import {getBasePaddingValues} from '../spacing';
 
 type BorderRadiusValue = string | Record<string, string> | undefined;
 
@@ -413,7 +413,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             type="warning"
                         />
                         <TierNote tab="mobile" activeTier={parentLayoutClass} />
-                        <RangeControl
+                        <BreakpointRangeControl
+                            breakpoint="mobile"
                             label={__('Width (%)', namespace)}
                             value={width}
                             onChange={(v) => setAttributes({width: normalizeColumnWidth(v) ?? 100})}
@@ -425,14 +426,17 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onSelect={(w) => setAttributes({width: w})}
                         />
                         <Divider />
-                        <BoxControl
+                        <SpacingControl
+                            breakpoint="mobile"
+                            key="padding-mobile"
                             label={__('Padding', namespace)}
-                            values={parsePadding(mobilePadding)}
-                            onChange={(v) => setAttributes({mobilePadding: v as PaddingAttribute})}
+                            // Preserve the 10px fallback on untouched sides of older partial values.
+                            values={cssPadMobile}
+                            onChange={(v) => setAttributes({mobilePadding: getBasePaddingValues(v)})}
                         />
                         <Divider />
                         <SelectControl
-                            label={__('Vertical Position', namespace)}
+                            label={<BreakpointLabel breakpoint="mobile" label={__('Vertical Position', namespace)} />}
                             value={vAlign}
                             options={[
                                 {label: 'Top', value: 'flex-start'},
@@ -443,7 +447,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({vAlign: v})}
                         />
                         <Divider />
-                        <RangeControl
+                        <BreakpointRangeControl
+                            breakpoint="mobile"
                             label={__('Flex Order', namespace)}
                             value={mobileOrder}
                             onChange={(v) => setAttributes({mobileOrder: v ?? 0})}
@@ -451,14 +456,16 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             help={__('Lower numbers appear first. Cascades to Tablet & Desktop unless overridden there.', namespace)}
                         />
                         <Divider />
-                        <RangeControl
+                        <BreakpointRangeControl
+                            breakpoint="mobile"
                             label={__('Z-Index', namespace)}
                             value={zIndex}
                             onChange={(v) => setAttributes({zIndex: v ?? 1})}
                             min={0} max={100}
                         />
                         <Divider />
-                        <BorderBoxControl
+                        <BreakpointBorderBoxControl
+                            breakpoint="mobile"
                             enableAlpha={true}
                             label={__('Borders', namespace)}
                             colors={themeColors}
@@ -466,18 +473,19 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({ border: v })}
                         />
                         <Divider />
-                        <BorderRadiusControl
+                        <BreakpointBorderRadiusControl
+                            breakpoint="mobile"
                             values={borderRadius as any}
                             onChange={(v) => setAttributes({ borderRadius: v as any })}
                         />
                         <Divider />
                         <UnitControl
-                            label={__('Inner Content Max Width', namespace)}
+                            label={<BreakpointLabel breakpoint="mobile" label={__('Inner Content Max Width', namespace)} />}
                             value={innerMaxWidth}
                             onChange={(v) => setAttributes({innerMaxWidth: v || ''})}
                         />
                         <SelectControl
-                            label={__('Inner Content Align', namespace)}
+                            label={<BreakpointLabel breakpoint="mobile" label={__('Inner Content Align', namespace)} />}
                             value={contentHAlign}
                             options={[
                                 {label: 'Left', value: 'left'},
@@ -487,7 +495,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({contentHAlign: v})}
                         />
                         <Divider />
-                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background', namespace)}</p>
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}><BreakpointLabel breakpoint="mobile" label={__('Background', namespace)} /></p>
                         <ColorPalette
                             enableAlpha={true}
                             colors={themeColors}
@@ -495,7 +503,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({backgroundColor: v || ''})}
                             clearable
                         />
-                        <p style={{ margin: '12px 0 4px', fontSize: '11px' }}>{__('Gradient', namespace)}</p>
+                        <p style={{ margin: '12px 0 4px', fontSize: '11px' }}><BreakpointLabel breakpoint="mobile" label={__('Gradient', namespace)} /></p>
                         <GradientPicker
                             enableAlpha={true}
                             gradients={themeGradients}
@@ -504,6 +512,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             clearable
                         />
                         <ControlsMedia
+                            breakpoint="mobile"
                             panelLabel={__('Background Image / Video', namespace)}
                             imageUrl={backgroundImage}
                             onSelectMedia={(media) => setAttributes({backgroundImage: media.url})}
@@ -523,12 +532,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
                         />
                         <Divider />
-                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <UnitControl label={__('Ext Top', namespace)} value={extendTop} onChange={(v) => setAttributes({extendTop: v || ''})} />
-                            <UnitControl label={__('Ext Bottom', namespace)} value={extendBottom} onChange={(v) => setAttributes({extendBottom: v || ''})} />
-                            <UnitControl label={__('Trans X', namespace)} value={translateX} onChange={(v) => setAttributes({translateX: v || ''})} />
-                            <UnitControl label={__('Trans Y', namespace)} value={translateY} onChange={(v) => setAttributes({translateY: v || ''})} />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}><BreakpointLabel breakpoint="mobile" label={__('Advanced Layout', namespace)} /></p>
+                        <div className="sgb-responsive-advanced-layout" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+                            <UnitControl label={<BreakpointLabel breakpoint="mobile" label={__('Extend Top', namespace)} />} value={extendTop} onChange={(v) => setAttributes({extendTop: v || ''})} />
+                            <UnitControl label={<BreakpointLabel breakpoint="mobile" label={__('Extend Bottom', namespace)} />} value={extendBottom} onChange={(v) => setAttributes({extendBottom: v || ''})} />
+                            <UnitControl label={<BreakpointLabel breakpoint="mobile" label={__('Translate X', namespace)} />} value={translateX} onChange={(v) => setAttributes({translateX: v || ''})} />
+                            <UnitControl label={<BreakpointLabel breakpoint="mobile" label={__('Translate Y', namespace)} />} value={translateY} onChange={(v) => setAttributes({translateY: v || ''})} />
                         </div>
                     </div>
                 );
@@ -540,7 +549,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             type="warning"
                         />
                         <TierNote tab="tablet" activeTier={parentLayoutClass} />
-                        <RangeControl
+                        <BreakpointRangeControl
+                            breakpoint="tablet"
                             label={__('Width (%)', namespace)}
                             value={tabletWidth}
                             onChange={(v) => setAttributes({tabletWidth: normalizeColumnWidth(v)})}
@@ -553,14 +563,17 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onSelect={(w) => setAttributes({tabletWidth: w})}
                         />
                         <Divider />
-                        <BoxControl
+                        <SpacingControl
+                            breakpoint="tablet"
+                            key="padding-tablet"
                             label={__('Padding', namespace)}
-                            values={parsePadding(tabletPadding)}
-                            onChange={(v) => setAttributes({tabletPadding: v as PaddingAttribute})}
+                            values={tabletPadding}
+                            onChange={(v) => setAttributes({tabletPadding: v})}
+                            resetLabel={__('Inherit Base', namespace)}
                         />
                         <Divider />
                         <SelectControl
-                            label={__('Vertical Position', namespace)}
+                            label={<BreakpointLabel breakpoint="tablet" label={__('Vertical Position', namespace)} />}
                             value={tabletVAlign}
                             options={[
                                 {label: __('Inherit', namespace), value: ''},
@@ -572,7 +585,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({tabletVAlign: v})}
                         />
                         <Divider />
-                        <RangeControl
+                        <BreakpointRangeControl
+                            breakpoint="tablet"
                             label={__('Flex Order', namespace)}
                             value={tabletOrder}
                             onChange={(v) => setAttributes({tabletOrder: v})}
@@ -581,7 +595,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             help={__('Inherits from Base when empty.', namespace)}
                         />
                         <Divider />
-                        <RangeControl
+                        <BreakpointRangeControl
+                            breakpoint="tablet"
                             label={__('Z-Index', namespace)}
                             value={tabletZIndex}
                             onChange={(v) => setAttributes({tabletZIndex: v})}
@@ -589,15 +604,17 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             allowReset
                         />
                         <Divider />
-                        <BorderBoxControl
+                        <BreakpointBorderBoxControl
+                            breakpoint="tablet"
                             enableAlpha={true}
-                            label={__('Borders Override', namespace)}
+                            label={__('Borders', namespace)}
                             colors={themeColors}
                             value={tabletBorder}
                             onChange={(v) => setAttributes({ tabletBorder: v })}
                         />
                         <Divider />
-                        <BorderRadiusControl
+                        <BreakpointBorderRadiusControl
+                            breakpoint="tablet"
                             values={tabletBorderRadius as any}
                             onChange={(v) => {
                                 const isEmpty = !v || (typeof v === 'object' && !Object.values(v).some(x => !!x));
@@ -606,12 +623,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         />
                         <Divider />
                         <UnitControl
-                            label={__('Inner Content Max Width', namespace)}
+                            label={<BreakpointLabel breakpoint="tablet" label={__('Inner Content Max Width', namespace)} />}
                             value={tabletInnerMaxWidth}
                             onChange={(v) => setAttributes({tabletInnerMaxWidth: v || undefined})}
                         />
                         <SelectControl
-                            label={__('Inner Content Align', namespace)}
+                            label={<BreakpointLabel breakpoint="tablet" label={__('Inner Content Align', namespace)} />}
                             value={tabletContentHAlign}
                             options={[
                                 {label: __('Inherit', namespace), value: ''},
@@ -622,7 +639,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({tabletContentHAlign: v})}
                         />
                         <Divider />
-                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background Override', namespace)}</p>
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}><BreakpointLabel breakpoint="tablet" label={__('Background', namespace)} /></p>
                         <ColorPalette
                             enableAlpha={true}
                             colors={themeColors}
@@ -630,7 +647,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({tabletBackgroundColor: v || ''})}
                             clearable
                         />
-                        <p style={{ margin: '12px 0 4px', fontSize: '11px' }}>{__('Gradient Override', namespace)}</p>
+                        <p style={{ margin: '12px 0 4px', fontSize: '11px' }}><BreakpointLabel breakpoint="tablet" label={__('Gradient', namespace)} /></p>
                         <GradientPicker
                             enableAlpha={true}
                             gradients={themeGradients}
@@ -639,7 +656,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             clearable
                         />
                         <ControlsMedia
-                            panelLabel={__('Background Image / Video Override', namespace)}
+                            breakpoint="tablet"
+                            panelLabel={__('Background Image / Video', namespace)}
                             imageUrl={tabletBackgroundImage}
                             onSelectMedia={(media) => setAttributes({
                                 tabletBackgroundImage: media.url,
@@ -661,12 +679,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
                         />
                         <Divider />
-                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <UnitControl label={__('Ext Top', namespace)} value={tabExtendTop} onChange={(v) => setAttributes({tabExtendTop: v || ''})} />
-                            <UnitControl label={__('Ext Bottom', namespace)} value={tabExtendBottom} onChange={(v) => setAttributes({tabExtendBottom: v || ''})} />
-                            <UnitControl label={__('Trans X', namespace)} value={tabTranslateX} onChange={(v) => setAttributes({tabTranslateX: v || ''})} />
-                            <UnitControl label={__('Trans Y', namespace)} value={tabTranslateY} onChange={(v) => setAttributes({tabTranslateY: v || ''})} />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}><BreakpointLabel breakpoint="tablet" label={__('Advanced Layout', namespace)} /></p>
+                        <div className="sgb-responsive-advanced-layout" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+                            <UnitControl label={<BreakpointLabel breakpoint="tablet" label={__('Extend Top', namespace)} />} value={tabExtendTop} onChange={(v) => setAttributes({tabExtendTop: v || ''})} />
+                            <UnitControl label={<BreakpointLabel breakpoint="tablet" label={__('Extend Bottom', namespace)} />} value={tabExtendBottom} onChange={(v) => setAttributes({tabExtendBottom: v || ''})} />
+                            <UnitControl label={<BreakpointLabel breakpoint="tablet" label={__('Translate X', namespace)} />} value={tabTranslateX} onChange={(v) => setAttributes({tabTranslateX: v || ''})} />
+                            <UnitControl label={<BreakpointLabel breakpoint="tablet" label={__('Translate Y', namespace)} />} value={tabTranslateY} onChange={(v) => setAttributes({tabTranslateY: v || ''})} />
                         </div>
                     </div>
                 );
@@ -678,7 +696,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             type="warning"
                         />
                         <TierNote tab="desktop" activeTier={parentLayoutClass} />
-                        <RangeControl
+                        <BreakpointRangeControl
+                            breakpoint="desktop"
                             label={__('Width (%)', namespace)}
                             value={desktopWidth}
                             onChange={(v) => setAttributes({desktopWidth: normalizeColumnWidth(v)})}
@@ -691,14 +710,17 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onSelect={(w) => setAttributes({desktopWidth: w})}
                         />
                         <Divider />
-                        <BoxControl
+                        <SpacingControl
+                            breakpoint="desktop"
+                            key="padding-desktop"
                             label={__('Padding', namespace)}
-                            values={parsePadding(padding)}
-                            onChange={(v) => setAttributes({padding: v as PaddingAttribute})}
+                            values={padding}
+                            onChange={(v) => setAttributes({padding: v})}
+                            resetLabel={__('Inherit Tablet / Base', namespace)}
                         />
                         <Divider />
                         <SelectControl
-                            label={__('Vertical Position', namespace)}
+                            label={<BreakpointLabel breakpoint="desktop" label={__('Vertical Position', namespace)} />}
                             value={desktopVAlign}
                             options={[
                                 {label: __('Inherit', namespace), value: ''},
@@ -710,7 +732,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({desktopVAlign: v})}
                         />
                         <Divider />
-                        <RangeControl
+                        <BreakpointRangeControl
+                            breakpoint="desktop"
                             label={__('Flex Order', namespace)}
                             value={desktopOrder}
                             onChange={(v) => setAttributes({desktopOrder: v})}
@@ -719,7 +742,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             help={__('Inherits from Tablet when empty.', namespace)}
                         />
                         <Divider />
-                        <RangeControl
+                        <BreakpointRangeControl
+                            breakpoint="desktop"
                             label={__('Z-Index', namespace)}
                             value={desktopZIndex}
                             onChange={(v) => setAttributes({desktopZIndex: v})}
@@ -727,15 +751,17 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             allowReset
                         />
                         <Divider />
-                        <BorderBoxControl
+                        <BreakpointBorderBoxControl
+                            breakpoint="desktop"
                             enableAlpha={true}
-                            label={__('Borders Override', namespace)}
+                            label={__('Borders', namespace)}
                             colors={themeColors}
                             value={desktopBorder}
                             onChange={(v) => setAttributes({ desktopBorder: v })}
                         />
                         <Divider />
-                        <BorderRadiusControl
+                        <BreakpointBorderRadiusControl
+                            breakpoint="desktop"
                             values={desktopBorderRadius as any}
                             onChange={(v) => {
                                 const isEmpty = !v || (typeof v === 'object' && !Object.values(v).some(x => !!x));
@@ -744,12 +770,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                         />
                         <Divider />
                         <UnitControl
-                            label={__('Inner Content Max Width', namespace)}
+                            label={<BreakpointLabel breakpoint="desktop" label={__('Inner Content Max Width', namespace)} />}
                             value={desktopInnerMaxWidth}
                             onChange={(v) => setAttributes({desktopInnerMaxWidth: v || undefined})}
                         />
                         <SelectControl
-                            label={__('Inner Content Align', namespace)}
+                            label={<BreakpointLabel breakpoint="desktop" label={__('Inner Content Align', namespace)} />}
                             value={desktopContentHAlign}
                             options={[
                                 {label: __('Inherit', namespace), value: ''},
@@ -760,7 +786,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({desktopContentHAlign: v})}
                         />
                         <Divider />
-                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Background Override', namespace)}</p>
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}><BreakpointLabel breakpoint="desktop" label={__('Background', namespace)} /></p>
                         <ColorPalette
                             enableAlpha={true}
                             colors={themeColors}
@@ -768,7 +794,7 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChange={(v) => setAttributes({desktopBackgroundColor: v || ''})}
                             clearable
                         />
-                        <p style={{ margin: '12px 0 4px', fontSize: '11px' }}>{__('Gradient Override', namespace)}</p>
+                        <p style={{ margin: '12px 0 4px', fontSize: '11px' }}><BreakpointLabel breakpoint="desktop" label={__('Gradient', namespace)} /></p>
                         <GradientPicker
                             enableAlpha={true}
                             gradients={themeGradients}
@@ -777,7 +803,8 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             clearable
                         />
                         <ControlsMedia
-                            panelLabel={__('Background Image / Video Override', namespace)}
+                            breakpoint="desktop"
+                            panelLabel={__('Background Image / Video', namespace)}
                             imageUrl={desktopBackgroundImage}
                             onSelectMedia={(media) => setAttributes({
                                 desktopBackgroundImage: media.url,
@@ -799,12 +826,12 @@ export default function Edit({attributes, setAttributes, className, context}: Bl
                             onChangeParallax={(val) => setAttributes({backgroundFixedPosition: val})}
                         />
                         <Divider />
-                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}>{__('Advanced Layout', namespace)}</p>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <UnitControl label={__('Ext Top', namespace)} value={deskExtendTop} onChange={(v) => setAttributes({deskExtendTop: v || ''})} />
-                            <UnitControl label={__('Ext Bottom', namespace)} value={deskExtendBottom} onChange={(v) => setAttributes({deskExtendBottom: v || ''})} />
-                            <UnitControl label={__('Trans X', namespace)} value={deskTranslateX} onChange={(v) => setAttributes({deskTranslateX: v || ''})} />
-                            <UnitControl label={__('Trans Y', namespace)} value={deskTranslateY} onChange={(v) => setAttributes({deskTranslateY: v || ''})} />
+                        <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 500, textTransform: 'uppercase' }}><BreakpointLabel breakpoint="desktop" label={__('Advanced Layout', namespace)} /></p>
+                        <div className="sgb-responsive-advanced-layout" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+                            <UnitControl label={<BreakpointLabel breakpoint="desktop" label={__('Extend Top', namespace)} />} value={deskExtendTop} onChange={(v) => setAttributes({deskExtendTop: v || ''})} />
+                            <UnitControl label={<BreakpointLabel breakpoint="desktop" label={__('Extend Bottom', namespace)} />} value={deskExtendBottom} onChange={(v) => setAttributes({deskExtendBottom: v || ''})} />
+                            <UnitControl label={<BreakpointLabel breakpoint="desktop" label={__('Translate X', namespace)} />} value={deskTranslateX} onChange={(v) => setAttributes({deskTranslateX: v || ''})} />
+                            <UnitControl label={<BreakpointLabel breakpoint="desktop" label={__('Translate Y', namespace)} />} value={deskTranslateY} onChange={(v) => setAttributes({deskTranslateY: v || ''})} />
                         </div>
                     </div>
                 );

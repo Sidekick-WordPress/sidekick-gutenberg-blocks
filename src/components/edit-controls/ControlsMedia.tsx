@@ -1,10 +1,11 @@
-import {__} from '@wordpress/i18n';
+import {__, sprintf} from '@wordpress/i18n';
 import {PanelBody, RangeControl, ToggleControl, SelectControl, Button, FocalPointPicker} from '@wordpress/components';
 import {MediaUpload, MediaUploadCheck} from '@wordpress/block-editor';
 
 // Plugin
 import {sizeOptions, repeatOptions} from "../../models/attr-shapes/background-image";
 import namespace from '../../namespace';
+import BreakpointLabel, {BREAKPOINT_ICONS, getBreakpointLabel, type Breakpoint} from './BreakpointLabel';
 
 const parseFocalPoint = (position: string | undefined): { x: number; y: number } => {
     if (!position || position === 'center') return { x: 0.5, y: 0.5 };
@@ -31,6 +32,7 @@ const focalPointToCss = (fp: { x: number; y: number }): string =>
 
 export interface ControlsMediaProps {
     panelLabel?: string;
+    breakpoint?: Breakpoint;
     imageUrl: string;
     onSelectMedia: (media: any) => void;
     onRemoveMedia: () => void;
@@ -52,6 +54,7 @@ export interface ControlsMediaProps {
 export default function ControlsMedia(
     {
         panelLabel = __('Background Media', namespace),
+        breakpoint,
         imageUrl,
         onSelectMedia,
         onRemoveMedia,
@@ -70,8 +73,18 @@ export default function ControlsMedia(
         onChangeBackgroundRepeat
     }: ControlsMediaProps) {
 
+    // These settings are shared by all image/video overrides in Columns.
+    const sharedLabel = (label: string) => breakpoint
+        // translators: %s: A background control that applies to all breakpoints.
+        ? sprintf(__('All Sizes %s', namespace), label) : label;
+
     return (
-        <PanelBody title={panelLabel} initialOpen={false}>
+        <PanelBody
+            title={breakpoint ? getBreakpointLabel(breakpoint, panelLabel) : panelLabel}
+            icon={breakpoint ? BREAKPOINT_ICONS[breakpoint] : undefined}
+            className={breakpoint ? `${namespace}-breakpoint-media` : undefined}
+            initialOpen={false}
+        >
             {/* The outer 'as any' wrapper forces PanelBody to accept the children regardless of React version mismatches */}
             {(
                 <div className={`${namespace}-background-settings-wrapper`}>
@@ -165,7 +178,7 @@ export default function ControlsMedia(
                         <>
                             {!!imageUrl && !!onChangeParallax && parallax !== undefined && (
                                 <ToggleControl
-                                    label={__('Background Fixed Position', namespace)}
+                                    label={sharedLabel(__('Background Fixed Position', namespace))}
                                     checked={parallax}
                                     onChange={onChangeParallax}
                                 />
@@ -173,7 +186,7 @@ export default function ControlsMedia(
 
                             {!!onChangeOpacity && opacity !== undefined && (
                                 <RangeControl
-                                    label={__('Media Opacity (%)', namespace)}
+                                    label={sharedLabel(__('Media Opacity (%)', namespace))}
                                     value={opacity}
                                     onChange={onChangeOpacity}
                                     min={0}
@@ -183,7 +196,7 @@ export default function ControlsMedia(
 
                             {!!imageUrl && !!onChangeBackgroundSize && backgroundSize !== undefined && (
                                 <SelectControl
-                                    label={__('Background Size', namespace)}
+                                    label={sharedLabel(__('Background Size', namespace))}
                                     value={backgroundSize as any}
                                     options={sizeOptions}
                                     onChange={onChangeBackgroundSize}
@@ -192,7 +205,9 @@ export default function ControlsMedia(
 
                             {!!imageUrl && !!onChangeBackgroundPosition && backgroundPosition !== undefined && (
                                 <FocalPointPicker
-                                    label={__('Background Position', namespace)}
+                                    label={breakpoint
+                                        ? <BreakpointLabel breakpoint={breakpoint} label={__('Background Position', namespace)} />
+                                        : __('Background Position', namespace)}
                                     url={imageUrl}
                                     value={parseFocalPoint(backgroundPosition)}
                                     onChange={(fp) => onChangeBackgroundPosition(focalPointToCss(fp))}
@@ -201,7 +216,7 @@ export default function ControlsMedia(
 
                             {!!imageUrl && !!onChangeBackgroundRepeat && backgroundRepeat !== undefined && (
                                 <SelectControl
-                                    label={__('Background Repeat', namespace)}
+                                    label={sharedLabel(__('Background Repeat', namespace))}
                                     value={backgroundRepeat as any}
                                     options={repeatOptions}
                                     onChange={onChangeBackgroundRepeat}

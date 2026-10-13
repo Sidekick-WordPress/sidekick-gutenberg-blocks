@@ -1,9 +1,5 @@
+import {InspectorControls} from '@wordpress/block-editor';
 import {
-    InspectorControls,
-    __experimentalBorderRadiusControl as BorderRadiusControl,
-} from '@wordpress/block-editor';
-import {
-    BorderBoxControl,
     Button,
     PanelBody,
     TabPanel,
@@ -12,7 +8,9 @@ import {
 import {useState} from '@wordpress/element';
 import {__} from '@wordpress/i18n';
 import namespace from '../../../namespace';
+import type {Breakpoint} from '../../../components/edit-controls/BreakpointLabel';
 import type {CoreColumnsAttributes} from '../attributes';
+import {BreakpointBorderBoxControl, BreakpointBorderRadiusControl} from './BreakpointControls';
 import TierNote from './TierNote';
 
 interface ResponsiveBorderControlsProps {
@@ -88,7 +86,8 @@ export default function ResponsiveBorderControls({
                             <div key={`${tab.name}-${resetKey}`} style={{paddingTop: '16px'}}>
                                 <TierNote tab={tab.name} activeTier={layoutClass} width={width} />
                                 <p className="components-base-control__help">{help}</p>
-                                <BorderBoxControl
+                                <BreakpointBorderBoxControl
+                                    breakpoint={tab.name as Breakpoint}
                                     __next40pxDefaultSize
                                     enableAlpha
                                     label={__('Borders', namespace)}
@@ -97,7 +96,8 @@ export default function ResponsiveBorderControls({
                                     onChange={(value) => setAttributes({[keys.border]: value})}
                                 />
                                 <Divider />
-                                <BorderRadiusControl
+                                <BreakpointBorderRadiusControl
+                                    breakpoint={tab.name as Breakpoint}
                                     values={attributes[keys.radius] as any}
                                     onChange={(value: unknown) => setAttributes({[keys.radius]: normalizeRadius(value)})}
                                 />

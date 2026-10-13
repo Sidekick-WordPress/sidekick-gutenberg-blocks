@@ -1,6 +1,6 @@
 {
     "name": "sidekick-gutenberg-blocks",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "description": "",
     "main": "index.js",
     "author": "Josh Baker / Black Tie Digital",
@@ -25,6 +25,7 @@
         "@wordpress/data": "10.33.1",
         "@wordpress/dependency-extraction-webpack-plugin": "^6.39.0",
         "@wordpress/i18n": "6.6.1",
+        "@wordpress/icons": "11.8.0",
         "autoprefixer": "^10.0.0",
         "babel-loader": "^8.2.2",
         "buffer": "^6.0.3",
